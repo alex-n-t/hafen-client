@@ -932,6 +932,11 @@ public class MapView extends PView implements DTarget, Console.Directory {
 		    return(map.getfo(cc));
 		}
 	    };
+	final Grid ttags = new Grid<RenderTree.Node>(false){
+		RenderTree.Node getcut(Coord cc) {
+			return map.gettts(cc);
+		}
+	};
 
 	private Terrain() {
 	}
@@ -941,6 +946,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	    if(area != null) {
 		main.tick();
 		flavobjs.tick();
+		ttags.tick();
 	    }
 	}
 
@@ -949,6 +955,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	    if(CFG.DISPLAY_FLAVOR.get()) {
 		slot.add(flavobjs);
 	    }
+	    slot.add(ttags);
 	    super.added(slot);
 	}
 

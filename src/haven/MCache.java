@@ -28,8 +28,13 @@ package haven;
 
 import java.util.*;
 import java.util.function.*;
+import java.awt.Color;
 import java.lang.ref.*;
+import java.text.SimpleDateFormat;
+
 import haven.render.*;
+import me.vault.TileFact;
+import me.vault.dao.TileFactDao;
 
 /* XXX: This whole file is a bit of a mess and could use a bit of a
  * rewrite some rainy day. Synchronization especially is quite hairy. */
@@ -216,6 +221,7 @@ public class MCache implements MapSource {
 	private int olseq = -1;
 	private final Cut cuts[];
 	private Flavobjs[] fo = new Flavobjs[cutn.x * cutn.y];
+	public TileTags[] ttgs = new TileTags[cutn.x * cutn.y];
 
 	private class Cut {
 	    MapMesh mesh;
@@ -346,6 +352,52 @@ public class MCache implements MapSource {
 	    return(fo[foo]);
 	}
 	
+	private class TileTags implements RenderTree.Node {
+		Map<Coord, Gob> tags = new HashMap<>();
+
+		TileTags(List<TileFact> buf){
+			buf.forEach(fact->{
+				Gob g = new Gob(sess.glob,Coord2d.of(fact.inGridTC.add(gc.mul(cmaps))).mul(tilesz).add(tilesz.div(2)));
+				GobInfo inf = new GobInfo(g) {
+					{tex = render();}
+					protected boolean enabled() {return true;}
+					protected Tex render() {return Text.std.renderstroked(fact.data, Color.GREEN, Color.BLACK).tex();}
+				};
+				g.setattr(inf);
+				tags.put(fact.inGridTC, g);
+			});
+		}
+
+		public void added(RenderTree.Slot slot)
+		{
+			tags.values().forEach(tag->{slot.add(tag.placed);});
+		}
+
+	}
+
+	public RenderTree.Node gettts(Coord cc){
+	    int foo = cc.x + (cc.y * cutn.x);
+	    if(ttgs[foo] == null)
+		ttgs[foo] = cachettgs(cc);
+	    return(ttgs[foo]);
+	}
+
+	public void invtts(Coord cc) {
+	    int foo = cc.x + (cc.y * cutn.x);
+	    ttgs[foo] = null;
+	}
+
+	private TileTags cachettgs(Coord cc) {
+		Date sysdate = new Date(System.currentTimeMillis());
+		System.out.printf("[%s] Cut [%d,%d] requested from DB.\n", SimpleDateFormat.getDateTimeInstance().format(sysdate), cc.x, cc.y);
+		Map<Coord, TileFact> buf = new HashMap<>();
+		List<TileFact> mined = TileFactDao.tileFactDao.getCut(id, cc, "MinedStatus");
+		mined.forEach(fact->buf.put(fact.inGridTC, fact));
+		List<TileFact> dust = TileFactDao.tileFactDao.getCut(id, cc, "DustCount");
+		dust.forEach(fact->buf.put(fact.inGridTC, fact)); //DustCount overrides mined status
+		return new TileTags(new ArrayList<>(buf.values()));
+	}
+
 	private Cut geticut(Coord cc) {
 	    return(cuts[cc.x + (cc.y * cutn.x)]);
 	}
@@ -447,6 +499,7 @@ public class MCache implements MapSource {
 		    buildcut(Coord.of(x, y));
 	    }
 	    fo = new Flavobjs[cutn.x * cutn.y];
+	    ttgs = new TileTags[cutn.x * cutn.y];
 	    for(Coord ic : new Coord[] {
 		    Coord.of(-1, -1), Coord.of( 0, -1), Coord.of( 1, -1),
 		    Coord.of(-1,  0),                   Coord.of( 1,  0),
@@ -859,6 +912,12 @@ public class MCache implements MapSource {
 	}
     }
 
+    public RenderTree.Node gettts(Coord cc) {
+	synchronized(grids) {
+	    return(getgrid(cc.div(cutn)).gettts(cc.mod(cutn)));
+	}
+    }
+    
     public RenderTree.Node getolcut(OverlayInfo id, Coord cc) {
 	synchronized(grids) {
 	    return(getgrid(cc.div(cutn)).getolcut(id, cc.mod(cutn)));

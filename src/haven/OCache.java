@@ -26,10 +26,14 @@
 
 package haven;
 
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Consumer;
 import haven.render.Render;
 import java.util.stream.Stream;
+import me.vault.*;
+import me.vault.dao.TileFactDao;
 
 public class OCache implements Iterable<Gob> {
     public static final int OD_REM = 0;
@@ -102,6 +106,34 @@ public class OCache implements Iterable<Gob> {
 	    synchronized(this) {
 		cbs = new ArrayList<>(this.cbs);
 		objs.put(ob.id, ob);
+
+			ob.ols.forEach(ol->{
+				if(ol.res!=null && ol.res.get().name.endsWith("mineout"))
+				synchronized(TileFactDao.tileFactDao) {
+					Coord mc = ob.rc.floor().div(MCache.tilesz2);
+					Coord gc = mc.div(MCache.cmaps);
+					Coord cc = mc.mod(MCache.cmaps).div(MCache.cutsz);
+					TileFactDao.tileFactDao.put(new TileFact("MinedStatus", glob.map.getgrid(gc).id, mc.mod(MCache.cmaps), "Mined"));
+					glob.map.getgrid(gc).invtts(cc);
+				}
+			});
+			ob.ols.forEach(ol->{
+				if(ol.res!=null && ol.res.get().name.endsWith("cavewarn"))
+				synchronized(TileFactDao.tileFactDao) {
+					Coord mc = ob.rc.floor().div(MCache.tilesz2);
+					Coord gc = mc.div(MCache.cmaps);
+					Coord cc = mc.mod(MCache.cmaps).div(MCache.cutsz);
+					String str = "";
+					try {
+						Field strField = ol.spr.getClass().getDeclaredField("str");
+						strField.setAccessible(true);
+						str = String.valueOf((int)strField.getFloat(ol.spr)/30);
+					} catch (Exception e) {e.printStackTrace();}
+					TileFactDao.tileFactDao.put(new TileFact("DustCount", glob.map.getgrid(gc).id, mc.mod(MCache.cmaps), "Dust: "+str));
+					glob.map.getgrid(gc).invtts(cc);
+				}
+			});
+
 	    }
 	    for(ChangeCallback cb : cbs) {
 		cb.added(ob);
@@ -757,6 +789,7 @@ public class OCache implements Iterable<Gob> {
 		    }
 		    synchronized(gob) {
 			d.apply(gob);
+			;
 		    }
 		    synchronized(this) {
 			if((pending.poll()) != d)
