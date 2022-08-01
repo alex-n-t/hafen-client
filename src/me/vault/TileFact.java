@@ -22,7 +22,7 @@ public class TileFact {
 	}
 
 	public TileFact(String type, long gridId, Coord inGridTC, String data){
-		this(type,gridId,inGridTC,data,null,null);
+		this(type,gridId,inGridTC,data,"",-1.0);
 	}
 	
 	
