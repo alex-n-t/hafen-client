@@ -126,6 +126,7 @@ public class Composite extends Drawable {
 		    };
 		np.limit = tptime;
 		np.set(ipollen);
+		this.poses = tposes.stream().map(pose -> pose.res.get().name).collect(Collectors.toList());
 		tposes = null;
 		retainequ = true;
 	    } catch(Loading e) {}
@@ -250,4 +251,6 @@ public class Composite extends Drawable {
 	}
 	return false;
     }
+
+    public List<String> getPoses(){return poses;}
 }

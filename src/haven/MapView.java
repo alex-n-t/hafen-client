@@ -41,6 +41,7 @@ import java.util.function.*;
 import haven.render.*;
 import haven.MCache.OverlayInfo;
 import haven.render.sl.Uniform;
+import me.vault.PlayerActivityInfo;
 import haven.render.sl.Type;
 
 public class MapView extends PView implements DTarget, Console.Directory {
@@ -2046,8 +2047,11 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	} else if(msg == "plob") {
 	    if(args[0] == null)
 		plgob = -1;
-	    else
+	    else {
 		plgob = Utils.uint32((Integer)args[0]);
+	    Gob p = player();
+	    p.setattr(new PlayerActivityInfo(p)); 
+	    }
 	} else if(msg == "flashol") {
 	    Collection<String> ols = new ArrayList<>();
 	    int olflash = (Integer)args[0];

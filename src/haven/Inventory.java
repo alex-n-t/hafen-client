@@ -32,6 +32,8 @@ import java.util.*;
 import java.awt.image.WritableRaster;
 import java.util.function.BiConsumer;
 
+import me.vault.TileFactRecorder;
+
 public class Inventory extends Widget implements DTarget {
     public static final Coord sqsz = UI.scale(new Coord(33, 33));
     public static final Tex invsq;
@@ -134,6 +136,7 @@ public class Inventory extends Widget implements DTarget {
 		tryDrop(wmap.get(i));
 	    }
 	    itemsChanged();
+	    TileFactRecorder.addInventoryItem(ui.gui.map, i);
 	}
     }
     

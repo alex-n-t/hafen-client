@@ -33,6 +33,7 @@ import haven.render.*;
 import haven.res.gfx.fx.msrad.MSRad;
 import integrations.mapv4.MappingClient;
 import me.ender.minimap.AutoMarkers;
+import me.vault.PlayerActivityInfo;
 
 import static haven.OCache.*;
 
@@ -259,6 +260,8 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
 	setupmods.add(customColor);
 	info = new GeneralGobInfo(this);
 	setattr(info);
+	if(Optional.ofNullable(isMe()).orElse(false)) 
+		setattr(new PlayerActivityInfo(this));
 	updwait(this::drawableUpdated, waiting -> {});
     }
 

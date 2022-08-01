@@ -389,7 +389,7 @@ public class MCache implements MapSource {
 
 	private TileTags cachettgs(Coord cc) {
 		Date sysdate = new Date(System.currentTimeMillis());
-		System.out.printf("[%s] Cut [%d,%d] requested from DB.\n", SimpleDateFormat.getDateTimeInstance().format(sysdate), cc.x, cc.y);
+//		System.out.printf("[%s] Cut [%d,%d] requested from DB.\n", SimpleDateFormat.getDateTimeInstance().format(sysdate), cc.x, cc.y);
 		Map<Coord, TileFact> buf = new HashMap<>();
 		List<TileFact> mined = TileFactDao.tileFactDao.getCut(id, cc, "MinedStatus");
 		mined.forEach(fact->buf.put(fact.inGridTC, fact));

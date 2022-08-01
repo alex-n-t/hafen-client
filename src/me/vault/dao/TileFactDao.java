@@ -19,14 +19,29 @@ public class TileFactDao {
 			+ " y			integer,"
 			+ " gx 			integer,"
 			+ " gy			integer,"
-			+ " data		text);";
+			+ " data		text,"
+			+ " item		text,"
+			+ " quality_min	numeric,"
+			+ " quality_max	numeric,"
+			+ " quality_avg	numeric,"
+			+ " counter		integer,"
+			+ " tile_key    text,"
+			+ " unique (grid_id,x,y,type,tile_key));";
 	private static final String SQL_QUERY_CUT_BY_TYPE =
-			"select type,grid_id,x,y,data from tile_fact "
+			"select type,grid_id,x,y,data from tile_fact"
 			+ " where grid_id = ?"
 			+ " and x between ? and ?"
 			+ " and y between ? and ?"
 			+ " and type = ?;";
-	private static final String SQL_INSERT_FACT = "insert into tile_fact(type,grid_id,x,y,data) values (?,?,?,?,?);";
+	private static final String SQL_INSERT_FACT = 
+			"insert into tile_fact(type,grid_id,x,y,data,item,quality_min,quality_max,quality_avg,tile_key,counter)"
+			+ " values (?,?,?,?,?,?,?,?,?,?,1)"
+			+ " on conflict (grid_id,x,y,type,tile_key)"
+			+ " do update "
+			+ " set counter = counter + 1,"
+			+ " quality_min = min(quality_min,?),"
+			+ " quality_max = max(quality_max,?),"
+			+ " quality_avg = (quality_avg*counter+?)/(counter+1);";
 
 	public static final TileFactDao tileFactDao = new TileFactDao();
 
@@ -76,12 +91,21 @@ public class TileFactDao {
 
 	public void put(TileFact fact) {
 		try (PreparedStatement stmt = getConnection().prepareStatement(SQL_INSERT_FACT)){
-			stmt.setString(1,fact.type);
-			stmt.setLong(2, fact.gridId);
-			stmt.setInt(3, fact.inGridTC.x);
-			stmt.setInt(4, fact.inGridTC.y);
-			stmt.setString(5, fact.data);
+			stmt.setString(1,	fact.type);
+			stmt.setLong(2, 	fact.gridId);
+			stmt.setInt(3, 		fact.inGridTC.x);
+			stmt.setInt(4, 		fact.inGridTC.y);
+			stmt.setString(5, 	fact.data);
+			stmt.setString(6, 	fact.item);
+			stmt.setDouble(7, 	fact.quality);
+			stmt.setDouble(8, 	fact.quality);
+			stmt.setDouble(9, 	fact.quality);
+			stmt.setString(10, 	fact.getMatchingKey());
+			stmt.setDouble(11, 	fact.quality);
+			stmt.setDouble(12, 	fact.quality);
+			stmt.setDouble(13, 	fact.quality);
 			stmt.executeUpdate();
+			System.out.println("Saved: "+fact.toString());
 		} catch (SQLException e) {e.printStackTrace();}		
 	}
 }

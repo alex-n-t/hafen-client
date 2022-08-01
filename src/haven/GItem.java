@@ -32,6 +32,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static haven.WItem.*;
 
@@ -50,6 +51,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
     public boolean sendttupdate = false;
     private long filtered = 0;
     private final List<Action0> matchListeners = new ArrayList<>();
+    public Consumer<GItem> infoCallback = null;
 
     public static void setFilter(ItemFilter filter) {
 	GItem.filter = filter;
@@ -261,8 +263,10 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
     }
 
     public List<ItemInfo> info() {
-	if(info == null)
+	if(info == null) {
 	    info = ItemInfo.buildinfo(this, rawinfo);
+	    if (infoCallback != null && info != null) infoCallback.accept(this);
+	}
 	return(info);
     }
 
