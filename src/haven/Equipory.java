@@ -98,8 +98,8 @@ public class Equipory extends Widget implements DTarget {
 	    Resource bgres = Resource.local().loadwait("gfx/hud/equip/ep" + i);
 	    Resource.Image img = bgres.layer(Resource.imgc);
 	    if(img != null) {
-		ebgs[i] = bgres.layer(Resource.imgc).tex();
-		etts[i] = Text.render(bgres.layer(Resource.tooltip).t);
+		ebgs[i] = img.tex();
+		etts[i] = Text.render(bgres.flayer(Resource.tooltip).t);
 	    }
 	}
     }
@@ -144,13 +144,13 @@ public class Equipory extends Widget implements DTarget {
 		}
 
 		{
-		    basic.add(new Outlines(true));
+		    basic.add(new Outlines(false));
 		}
 
 		final FColor cc = new FColor(0, 0, 0, 0);
 		protected FColor clearcolor() {return(cc);}
 	    }, bgc);
-	ava.color = null;
+//	ava.color = null;
 
 	bonuses = add(new AttrBonusesWdg(isz.y), isz.x + 5, 0);
 	pack();

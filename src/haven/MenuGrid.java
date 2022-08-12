@@ -95,11 +95,11 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 	    this.bind = binding();
 	}
 
-	public BufferedImage img() {return(res.layer(Resource.imgc).scaled());}
-	public String name() {return(res.layer(Resource.action).name);}
-	public String originalName() {return(res.layer(Resource.action).original);}
+	public BufferedImage img() {return(res.flayer(Resource.imgc).scaled());}
+	public String name() {return(res.flayer(Resource.action).name);}
+	public String originalName() {return(res.flayer(Resource.action).original);}
 	public KeyMatch hotkey() {
-	    char hk = res.layer(Resource.action).hk;
+	    char hk = res.flayer(Resource.action).hk;
 	    if(hk == 0)
 		return(KeyMatch.nil);
 	    //FIXME: I have no idea why exactly upper case keybinds continue to work properly.
@@ -109,10 +109,10 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 	    return(KeyBinding.get("scm/" + res.name, hotkey()));
 	}
 	@Deprecated public void use() {
-	    pag.scm.wdgmsg("act", (Object[])res.layer(Resource.action).ad);
+	    pag.scm.wdgmsg("act", (Object[])res.flayer(Resource.action).ad);
 	}
 	public void use(Interaction iact) {
-	    Object[] args = Utils.extend(new Object[0], res.layer(Resource.action).ad);
+	    Object[] args = Utils.extend(new Object[0], res.flayer(Resource.action).ad);
 	    args = Utils.extend(args, Integer.valueOf(pag.scm.ui.modflags()));
 	    if(iact.mc != null) {
 		args = Utils.extend(args, iact.mc.floor(OCache.posres));
@@ -261,7 +261,7 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 	public static enum State {
 	    ENABLED, DISABLED {
 		public Indir<Tex> img(Pagina pag) {
-		    return(Utils.cache(() -> new TexI(PUtils.monochromize(pag.button().img(), Color.LIGHT_GRAY))));
+		    return(Utils.cache(() -> new TexI(PUtils.monochromize(PUtils.copy(pag.button().img()), Color.LIGHT_GRAY))));
 		}
 	    };
 
@@ -715,7 +715,7 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 		int a = 0;
 		while(a < args.length) {
 		    int fl = (Integer)args[a++];
-		    Pagina pag = paginafor(ui.sess.getres((Integer)args[a++]));
+		    Pagina pag = paginafor(ui.sess.getres((Integer)args[a++], -2));
 		    if((fl & 1) != 0) {
 			pag.state(Pagina.State.ENABLED);
 			pag.meter = 0;
