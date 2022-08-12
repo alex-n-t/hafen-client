@@ -671,6 +671,10 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	this.glob = glob;
 	this.cc = cc;
 	this.plgob = plgob;
+
+	Gob p = player();
+	p.setattr(new PlayerActivityInfo(p));
+
 	basic.add(new Outlines(false));
 	basic.add(this.gobs = new Gobs());
 	basic.add(this.terrain = new Terrain());

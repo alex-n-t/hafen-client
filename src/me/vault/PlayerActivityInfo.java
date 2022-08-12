@@ -34,6 +34,8 @@ public class PlayerActivityInfo extends GAttrib {
 	public PlayerActivityInfo(Gob gob) {
 		super(gob);
 		skipRender = true;
+		lastAction = new Action();
+		lastAction.what = ActionType.IDLE;
 	}
 	
 	@Override

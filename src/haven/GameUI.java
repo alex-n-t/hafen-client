@@ -32,6 +32,7 @@ import haven.rx.Reactor;
 import integrations.mapv4.MappingClient;
 import me.ender.minimap.*;
 import me.ender.timer.Timer;
+import me.vault.TileFactRecorder;
 
 import java.util.*;
 import java.util.function.*;
@@ -1401,9 +1402,10 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 	    Reactor.IMSG.onNext(text);
 	    msg(text);
 	} else if(msg == "prog") {
-	    if(args.length > 0)
-		prog = ((Number)args[0]).doubleValue() / 100.0;
-	    else
+		if(args.length > 0) {
+			TileFactRecorder.addProgressInfo(map, (Number)args[0]);
+			prog = ((Number)args[0]).doubleValue() / 100.0;
+		} else
 		prog = -1;
 	} else if(msg == "setbelt") {
 	    int slot = (Integer)args[0];
