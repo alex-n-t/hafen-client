@@ -46,9 +46,13 @@ public abstract class SSearchBox<I, W extends Widget> extends SListBox<I, W> {
 	return(allitems());
     }
 
-    public SSearchBox(Coord sz, int itemh) {
-	super(sz, itemh);
+    public SSearchBox(Coord sz, int itemh, int marg) {
+	super(sz, itemh, marg);
 	setcanfocus(true);
+    }
+
+    public SSearchBox(Coord sz, int itemh) {
+	this(sz, itemh, 0);
     }
 
     public boolean keydown(KeyEvent ev) {
@@ -138,6 +142,12 @@ public abstract class SSearchBox<I, W extends Widget> extends SListBox<I, W> {
 	if(sel != null)
 	    display(sel);
 	updinfo();
+    }
+    
+    public void research() {
+	if(searching!=null) {
+	    search(searching);
+	}
     }
 
     public void draw(GOut g) {
