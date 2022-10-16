@@ -676,8 +676,11 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	this.cc = cc;
 	this.plgob = plgob;
 
-	Gob p = player();
-	p.setattr(new PlayerActivityInfo(p));
+    Gob p;
+    while((p = player()) == null) 
+    	try {Thread.sleep(500);}
+	    catch (InterruptedException e) {}
+    p.setattr(new PlayerActivityInfo(p));
 
 	basic.add(new Outlines(false));
 	basic.add(this.gobs = new Gobs());
@@ -2048,7 +2051,10 @@ public class MapView extends PView implements DTarget, Console.Directory {
 		plgob = -1;
 	    else {
 		plgob = Utils.uint32((Integer)args[0]);
-	    Gob p = player();
+	    Gob p;
+	    while((p = player()) == null) 
+	    	try {Thread.sleep(500);}
+		    catch (InterruptedException e) {}
 	    p.setattr(new PlayerActivityInfo(p)); 
 	    }
 	} else if(msg == "flashol2") {
