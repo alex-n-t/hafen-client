@@ -120,6 +120,19 @@ public abstract class Sprite implements RenderTree.Node {
 	{
 	    Factory f = res.getcode(Factory.class, false);
 	    if(f != null)
+	    if(res.name.equals("gfx/terobjs/items/parchment-decal")
+				&& owner instanceof Gob
+				&& owner.getres() != null
+				&& owner.getres().name.equals("gfx/terobjs/cupboard")
+				&& CFG.FLAT_CUPBOARDS.get()) {
+			StaticSprite spr = (StaticSprite)f.create(owner, res, sdt);
+			return new StaticSprite(owner, res, spr.parts) {
+				public void added(RenderTree.Slot slot) {
+				slot.ostate(Location.xlate(new Coord3f(0,0,1)));
+				super.added(slot);
+				}
+			};
+	    } else
 		return(f.create(owner, res, sdt));
 	}
 	for(Factory f : factories) {

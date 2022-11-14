@@ -290,6 +290,7 @@ public class MCache implements MapSource {
 	private final Cut cuts[];
 	private Flavobjs[] fo = new Flavobjs[cutn.x * cutn.y];
 	public TileTags[] ttgs = new TileTags[cutn.x * cutn.y];
+	private CFG.Observer<Boolean> tts_observer = cfg->{invtts();};
 
 	private class Cut {
 	    MapMesh mesh;
@@ -318,6 +319,7 @@ public class MCache implements MapSource {
 	    cuts = new Cut[cutn.x * cutn.y];
 	    for(int i = 0; i < cuts.length; i++)
 		cuts[i] = new Cut();
+	    CFG.SHOW_GOB_RADIUS.observe(tts_observer);
 	}
 
 	public int gettile(Coord tc) {
@@ -454,15 +456,21 @@ public class MCache implements MapSource {
 	    int foo = cc.x + (cc.y * cutn.x);
 	    ttgs[foo] = null;
 	}
+	
+	public void invtts() {
+		for(int i=0;i<ttgs.length;i++) ttgs[i] = null;
+	}
 
 	private TileTags cachettgs(Coord cc) {
 		Date sysdate = new Date(System.currentTimeMillis());
-//		System.out.printf("[%s] Cut [%d,%d] requested from DB.\n", SimpleDateFormat.getDateTimeInstance().format(sysdate), cc.x, cc.y);
+		System.out.printf("[%s] Cut [%d,%d] requested from DB.\n", SimpleDateFormat.getDateTimeInstance().format(sysdate), cc.x, cc.y);
 		Map<Coord, TileFact> buf = new HashMap<>();
-		List<TileFact> mined = TileFactDao.tileFactDao.getCut(id, cc, "MinedStatus");
-		mined.forEach(fact->buf.put(fact.inGridTC, fact));
-		List<TileFact> dust = TileFactDao.tileFactDao.getCut(id, cc, "DustCount");
-		dust.forEach(fact->buf.put(fact.inGridTC, fact)); //DustCount overrides mined status
+		if(CFG.SHOW_GOB_RADIUS.get()) {
+			List<TileFact> mined = TileFactDao.tileFactDao.getCut(id, cc, "MinedStatus");
+			mined.forEach(fact->buf.put(fact.inGridTC, fact));
+			List<TileFact> dust = TileFactDao.tileFactDao.getCut(id, cc, "DustCount");
+			dust.forEach(fact->buf.put(fact.inGridTC, fact)); //DustCount overrides mined status
+		}
 		return new TileTags(new ArrayList<>(buf.values()));
 	}
 
@@ -583,6 +591,7 @@ public class MCache implements MapSource {
 	}
 
 	public void dispose() {
+		CFG.SHOW_GOB_RADIUS.unobserve(tts_observer);
 	    for(Cut cut : cuts) {
 		if(cut.dmesh != null)
 		    cut.dmesh.cancel();
