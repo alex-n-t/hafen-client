@@ -207,10 +207,24 @@ public class GSettings extends State implements Serializable {
 	};
 
     public EnumSetting<JOGLPanel.SyncMode> syncmode = new EnumSetting<JOGLPanel.SyncMode>("syncmode", JOGLPanel.SyncMode.class) {
-	public JOGLPanel.SyncMode defval() {
-	    return(JOGLPanel.SyncMode.FRAME);
-	}
-    };
+	    public JOGLPanel.SyncMode defval() {
+		return(JOGLPanel.SyncMode.FRAME);
+	    }
+	};
+
+    public static enum LightMode {
+	SIMPLE, ZONED
+    }
+    public EnumSetting<LightMode> lightmode = new EnumSetting<LightMode>("lighting", LightMode.class) {
+	    public LightMode defval() {return(LightMode.ZONED);}
+	};
+    public IntSetting maxlights = new IntSetting("maxlights") {
+	    public Integer defval() {return(0);}
+	    public void validate(Environment env, Integer val) {
+		if(val < 0)
+		    throw(new SettingException("Must support at least one light source."));
+	    }
+	};
 
     public Setting<?> find(String name) {
 	try {
@@ -363,7 +377,7 @@ public class GSettings extends State implements Serializable {
     private static GSettings oldload(boolean failsafe) {
 	byte[] data = Utils.getprefb("gconf", null);
 	if(data == null) {
-	    return(defaults());
+	    return(null);
 	} else {
 	    Object dat;
 	    try {
@@ -372,7 +386,7 @@ public class GSettings extends State implements Serializable {
 		dat = null;
 	    }
 	    if(dat == null)
-		return(defaults());
+		return(null);
 	    return(oldload(dat, failsafe));
 	}
     }
@@ -381,18 +395,18 @@ public class GSettings extends State implements Serializable {
 	if(Utils.getprefb("gconf-cvt", false))
 	    return;
 	GSettings old = oldload(true);
-	if(old == null)
-	    return;
-	try {
-	    for(Field f : settings) {
-		Setting<?> s = (Setting<?>)f.get(old);
-		if(Utils.eq(s.val, s.defval()))
-		    s.set = false;
+	if(old != null) {
+	    try {
+		for(Field f : settings) {
+		    Setting<?> s = (Setting<?>)f.get(old);
+		    if(Utils.eq(s.val, s.defval()))
+			s.set = false;
+		}
+	    } catch(IllegalAccessException e) {
+		throw(new AssertionError(e));
 	    }
-	} catch(IllegalAccessException e) {
-	    throw(new AssertionError(e));
+	    old.save();
 	}
-	old.save();
 	Utils.setprefb("gconf-cvt", true);
     }
 

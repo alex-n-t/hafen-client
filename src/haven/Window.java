@@ -72,6 +72,8 @@ public class Window extends Widget implements DTarget {
 
 	    public Coord btloff() {return(super.btloff().sub(bo));}
 	    public Coord ctloff() {return(super.ctloff().sub(co));}
+	    public Coord bbroff() {return(super.bbroff().sub(bo));}
+	    public Coord cbroff() {return(super.cbroff().sub(co));}
 	    public Coord bisz() {return(super.bisz().sub(bo.mul(2)));}
 	    public Coord cisz() {return(super.cisz().sub(co.mul(2)));}
 	};
@@ -389,6 +391,11 @@ public class Window extends Widget implements DTarget {
 	} else {
 	    super.mousemove(c);
 	}
+    }
+
+    public boolean mousehover(Coord c) {
+	super.mousehover(c);
+	return(true);
     }
 
     public void wdgmsg(Widget sender, String msg, Object... args) {

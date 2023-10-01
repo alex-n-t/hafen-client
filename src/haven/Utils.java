@@ -34,7 +34,7 @@ import java.awt.RenderingHints;
 import java.io.*;
 import java.nio.*;
 import java.nio.file.*;
-import java.net.URL;
+import java.net.*;
 import java.lang.ref.*;
 import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
@@ -267,6 +267,7 @@ public class Utils {
 	}
     }
 
+    public static final Config.Variable<String> prefspec = Config.Variable.prop("haven.prefspec", "hafen");
     public static Preferences prefs() {
 	if(prefs == null) {
 	    synchronized(Utils.class) {
@@ -276,8 +277,8 @@ public class Utils {
 			prefs = new MapPrefs("haven", sysprefs);
 		    } else {
 			Preferences node = Preferences.userNodeForPackage(Utils.class);
-			if(Config.prefspec != null)
-			    node = node.node(Config.prefspec);
+			if(prefspec.get() != null)
+			    node = node.node(prefspec.get());
 			prefs = node;
 		    }
 		}
@@ -365,7 +366,8 @@ public class Utils {
 
     public static void setprefc(String prefname, Coord val) {
 	try {
-	    prefs().put(prefname, val.x + "x" + val.y);
+	    String enc = (val == null) ? "" : val.x + "x" + val.y;
+	    prefs().put(prefname, enc);
 	} catch(SecurityException e) {
 	}
     }
@@ -697,6 +699,12 @@ public class Utils {
 	buf[2] = z * f;
     }
 
+    public static Coord3f oct2uvec(float x, float y) {
+	float[] buf = new float[3];
+	oct2uvec(buf, x, y);
+	return(Coord3f.of(buf[0], buf[1], buf[2]));
+    }
+
     static char num2hex(int num) {
 	if(num < 10)
 	    return((char)('0' + num));
@@ -898,6 +906,13 @@ public class Utils {
 	public T run() throws IOException;
     }
 
+    /* XXX: Sometimes, the client is getting strange and weird OS
+     * errors on Windows. For example, file sharing violations are
+     * sometimes returned even though Java always opens
+     * RandomAccessFiles in non-exclusive mode, and other times,
+     * permission is spuriously denied. I've had zero luck in trying
+     * to find a root cause for these errors, so just assume the error
+     * is transient and retry. :P */
     public static <T> T ioretry(IOFunction<? extends T> task) throws IOException {
 	double[] retimes = {0.01, 0.1, 0.5, 1.0, 5.0};
 	Throwable last = null;
@@ -1199,27 +1214,22 @@ public class Utils {
 	return(r);
     }
 
-    /* XXX: These are not actually correct, since an exact integer
-     * will round downwards, but I don't actually expect that to be a
-     * problem given how I use these, and it turns out that
-     * java.lang.Math.floor is actually surprisingly slow (it
-     * delegates to StrictMath.floor for some reason). */
+    /* Note: Math.floor has historically been surprisingly slow to the
+     * extent that it has required a floordiv implementation that
+     * avoids using it. That doesn't seem to be the case any longer,
+     * but maybe keep an eye open... */
     public static int floordiv(float a, float b) {
-	float q = a / b;
-	return((q < 0)?(((int)q) - 1):((int)q));
+	return((int)Math.floor(a / b));
     }
     public static int floordiv(double a, double b) {
-	double q = a / b;
-	return((q < 0)?(((int)q) - 1):((int)q));
+	return((int)Math.floor(a / b));
     }
 
     public static float floormod(float a, float b) {
-	float r = a % b;
-	return((a < 0)?(r + b):r);
+	return(a - (floordiv(a, b) * b));
     }
     public static double floormod(double a, double b) {
-	double r = a % b;
-	return((a < 0)?(r + b):r);
+	return(a - (floordiv(a, b) * b));
     }
 
     public static double cangle(double a) {
@@ -2024,6 +2034,177 @@ public class Utils {
 	else if(ah > bh)
 	    return(1);
 	return(0);
+    }
+
+    public static final Object formatter(String fmt, Object... args) {
+	return(new Object() {
+		public String toString() {
+		    return(String.format(fmt, args));
+		}
+	    });
+    }
+
+    public static Inet4Address in4_pton(CharSequence as) {
+	int dbuf = -1, o = 0;
+	byte[] abuf = new byte[4];
+	for(int i = 0; i < as.length(); i++) {
+	    char c = as.charAt(i);
+	    if((c >= '0') && (c <= '9')) {
+		dbuf = (((dbuf < 0) ? 0 : dbuf) * 10) + (c - '0');
+		if(dbuf >= 256)
+		    throw(new IllegalArgumentException("illegal octet"));
+	    } else if(c == '.') {
+		if(dbuf < 0)
+		    throw(new IllegalArgumentException("dot without preceding octet"));
+		if(o >= 3)
+		    throw(new IllegalArgumentException("too many address octets"));
+		abuf[o++] = (byte)dbuf;
+		dbuf = -1;
+	    } else {
+		throw(new IllegalArgumentException("illegal address character"));
+	    }
+	}
+	if(dbuf < 0)
+	    throw(new IllegalArgumentException("end without preceding octet"));
+	if(o != 3)
+	    throw(new IllegalArgumentException("too few address octets"));
+	abuf[o++] = (byte)dbuf;
+	try {
+	    return((Inet4Address)InetAddress.getByAddress(abuf));
+	} catch(UnknownHostException e) {
+	    throw(new RuntimeException(e));
+	}
+    }
+
+    public static InetAddress in6_pton(CharSequence as) {
+	int hbuf = -1, dbuf = -1, p = 0, v4map = -1;
+	int[] o = {0, 0};
+	byte[][] abuf = {new byte[16], new byte[16]};
+	String scope = null;
+	for(int i = 0; i < as.length(); i++) {
+	    char c = as.charAt(i);
+	    int dv = -1;
+	    if((c >= '0') && (c <= '9'))
+		dv = c - '0';
+	    else if((c >= 'A') && (c <= 'F'))
+		dv = c + 10 - 'A';
+	    else if((c >= 'a') && (c <= 'f'))
+		dv = c + 10 - 'a';
+	    if(dv >= 0) {
+		if(hbuf < 0)
+		    hbuf = dbuf = 0;
+		hbuf = (hbuf * 16) + dv;
+		if(hbuf >= 65536)
+		    throw(new IllegalArgumentException("illegal address number"));
+		if(dbuf >= 0)
+		    dbuf = (dv >= 10) ? -1 : ((dbuf * 10) + dv);
+		if(dbuf >= 256)
+		    dbuf = -1;
+	    } else if(c == ':') {
+		if(v4map >= 0)
+		    throw(new IllegalArgumentException("illegal embedded v4 address"));
+		if(hbuf < 0) {
+		    if(p == 0) {
+			if(o[p] == 0) {
+			    if((i < as.length() - 1) && (as.charAt(i + 1) == ':')) {
+				p = 1;
+				i++;
+			    } else {
+				throw(new IllegalArgumentException("colon without preceeding address number"));
+			    }
+			} else {
+			    p = 1;
+			}
+		    } else {
+			throw(new IllegalArgumentException("duplicate zero-string"));
+		    }
+		} else {
+		    if(o[p] >= 14)
+			throw(new IllegalArgumentException("too many address numbers"));
+		    abuf[p][o[p]++] = (byte)((hbuf & 0xff00) >> 8);
+		    abuf[p][o[p]++] = (byte) (hbuf & 0x00ff);
+		    hbuf = -1;
+		}
+	    } else if(c == '.') {
+		if((hbuf < 0) || (dbuf < 0))
+		    throw(new IllegalArgumentException("illegal embedded v4 octet"));
+		if((p == 0) && (o[p] == 0))
+		    throw(new IllegalArgumentException("embedded v4 at start of address"));
+		if(v4map++ >= 2)
+		    throw(new IllegalArgumentException("too many embedded v4 octets"));
+		if(o[p] >= 15)
+		    throw(new IllegalArgumentException("too many address numbers"));
+		abuf[p][o[p]++] = (byte)dbuf;
+		hbuf = -1;
+	    } else if(c == '%') {
+		scope = as.subSequence(i + 1, as.length()).toString();
+		break;
+	    } else {
+		throw(new IllegalArgumentException("illegal address character"));
+	    }
+	}
+	if(hbuf < 0) {
+	    if((p < 1) || (o[p] > 0))
+		throw(new IllegalArgumentException("unterminated address"));
+	} else {
+	    if(v4map < 0) {
+		if(o[p] >= 15)
+		    throw(new IllegalArgumentException("too many address numbers"));
+		abuf[p][o[p]++] = (byte)((hbuf & 0xff00) >> 8);
+		abuf[p][o[p]++] = (byte) (hbuf & 0x00ff);
+	    } else {
+		if(dbuf < 0)
+		    throw(new IllegalArgumentException("illegal embedded v4 octet"));
+		if(v4map != 2)
+		    throw(new IllegalArgumentException("too few embedded v4 octets"));
+		if(o[p] >= 16)
+		    throw(new IllegalArgumentException("too many address numbers"));
+		abuf[p][o[p]++] = (byte)dbuf;
+	    }
+	}
+	byte[] fbuf;
+	if(p == 0) {
+	    if(o[0] != 16)
+		throw(new IllegalArgumentException("too few address numbers"));
+	    fbuf = abuf[0];
+	} else {
+	    if((o[0] + o[1]) >= 16)
+		throw(new IllegalArgumentException("illegal zero-string"));
+	    fbuf = new byte[16];
+	    System.arraycopy(abuf[0], 0, fbuf, 0, o[0]);
+	    System.arraycopy(abuf[1], 0, fbuf, 16 - o[1], o[1]);
+	}
+	try {
+	    if(scope == null)
+		return(InetAddress.getByAddress(fbuf));
+	    try {
+		return(Inet6Address.getByAddress(null, fbuf, Integer.parseInt(scope)));
+	    } catch(NumberFormatException e) {
+		try {
+		    NetworkInterface iface = NetworkInterface.getByName(scope);
+		    if(iface == null)
+			throw(new IllegalArgumentException("could not resolve scoped interface: " + scope));
+		    return(Inet6Address.getByAddress(null, fbuf, iface));
+		} catch(SocketException e2) {
+		    throw(new IllegalArgumentException("could not resolve scoped interface: " + scope, e));
+		}
+	    }
+	} catch(UnknownHostException e) {
+	    throw(new RuntimeException(e));
+	}
+    }
+
+    public static InetAddress inet_pton(CharSequence as) {
+	try {
+	    return(in4_pton(as));
+	} catch(IllegalArgumentException e) {
+	    try {
+		return(in6_pton(as));
+	    } catch(IllegalArgumentException e2) {
+		e2.addSuppressed(e);
+		throw(e2);
+	    }
+	}
     }
 
     public static final Comparator<Object> idcmp = new Comparator<Object>() {

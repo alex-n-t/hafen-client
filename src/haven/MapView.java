@@ -61,7 +61,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
     private Coord3f camoff = new Coord3f(Coord3f.o);
     public double shake = 0.0;
     public static double plobpgran = Utils.getprefd("plobpgran", 8);
-    public static double plobagran = Utils.getprefd("plobagran", 16);
+    public static double plobagran = Utils.getprefd("plobagran", 12);
     private static final Map<String, Class<? extends Camera>> camtypes = new HashMap<String, Class<? extends Camera>>();
     private long mapupdate = 0;
     String ttip = null;
@@ -111,7 +111,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	public void resized() {
 	    float field = 0.5f;
 	    float aspect = ((float)sz.y) / ((float)sz.x);
-	    proj = new Projection(Projection.makefrustum(new Matrix4f(), -field, field, -aspect * field, aspect * field, 1, 5000));
+	    proj = Projection.frustum(-field, field, -aspect * field, aspect * field, 1, 2000);
 	}
 
 	public void apply(Pipe p) {
@@ -242,8 +242,8 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	    }
 	    
 	    float field = field(elev);
-	    view = new haven.render.Camera(PointedCam.compute(curc.add(camoff).add(0.0f, 0.0f, h), dist(elev), elev, angl));
-	    proj = new Projection(Projection.makefrustum(new Matrix4f(), -field, field, -ca * field, ca * field, 1, 5000));
+	    view = haven.render.Camera.pointed(curc.add(camoff).add(0.0f, 0.0f, h), dist(elev), elev, angl);
+	    proj = Projection.frustum(-field, field, -ca * field, ca * field, 1, 2000);
 	}
 
 	public float angle() {
@@ -278,7 +278,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	public void tick(double dt) {
 	    Coord3f cc = getcc();
 	    cc.y = -cc.y;
-	    view = new haven.render.Camera(PointedCam.compute(cc.add(camoff).add(0.0f, 0.0f, 15f), dist, elev, angl));
+	    view = haven.render.Camera.pointed(cc.add(camoff).add(0.0f, 0.0f, 15f), dist, elev, angl);
 	}
 	
 	public float angle() {
@@ -375,7 +375,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 		cc = mc;
 	    else
 		cc = cc.add(mc.sub(cc).mul(cf));
-	    view = new haven.render.Camera(PointedCam.compute(cc.add(0.0f, 0.0f, 15f), dist, elev, angl));
+	    view = haven.render.Camera.pointed(cc.add(0.0f, 0.0f, 15f), dist, elev, angl);
 	}
 
 	public float angle() {
@@ -460,7 +460,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	public void tick(double dt) {
 	    tick2(dt);
 	    float aspect = ((float)sz.y) / ((float)sz.x);
-	    Matrix4f vm = PointedCam.compute(cc.add(camoff).add(0.0f, 0.0f, 15f), dist, elev, angl);
+	    Matrix4f vm = haven.render.Camera.makepointed(new Matrix4f(), cc.add(camoff).add(0.0f, 0.0f, 15f), dist, elev, angl);
 	    if(exact) {
 		if(jc == null)
 		    jc = cc;
@@ -472,7 +472,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 		vm = Location.makexlate(new Matrix4f(), corr).mul1(vm);
 	    }
 	    view = new haven.render.Camera(vm);
-	    proj = new Projection(Projection.makeortho(new Matrix4f(), -field, field, -field * aspect, field * aspect, 1, 5000));
+	    proj = Projection.ortho(-field, field, -field * aspect, field * aspect, 1, 5000);
 	}
 
 	public float angle() {
@@ -1157,25 +1157,6 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	}
     }
 
-    private final Material[] olmats;
-    {
-	olmats = new Material[32];
-	olmats[0] = olmat(255, 0, 128, 32);
-	olmats[1] = olmat(0, 0, 255, 32);
-	olmats[2] = olmat(255, 0, 0, 32);
-	olmats[3] = olmat(128, 0, 255, 32);
-	olmats[4] = olmat(255, 255, 255, 32);
-	olmats[5] = olmat(0, 255, 128, 32);
-	olmats[6] = olmat(0, 0, 0, 64);
-	olmats[16] = olmat(0, 255, 0, 32);
-	olmats[17] = olmat(255, 255, 0, 32);
-    }
-
-    private Material olmat(int r, int g, int b, int a) {
-	return(new Material(new BaseColor(r, g, b, a),
-			    States.maskdepth));
-    }
-
     public String camstats() {
 	String cc;
 	try {
@@ -1270,6 +1251,58 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	}
 	if(amblight != null)
 	    s_amblight = basic.add(amblight);
+    }
+
+    public static class LightCompiler {
+	public final GSettings gprefs;
+	private final Lighting.LightGrid zgrid;
+	private final int maxlights;
+
+	public LightCompiler(GSettings gprefs) {
+	    this.gprefs = gprefs;
+	    if(gprefs == null) {
+		zgrid = null;
+		maxlights = 0;
+	    } else {
+		maxlights = gprefs.maxlights.val;
+		if(gprefs.lightmode.val == GSettings.LightMode.ZONED) {
+		    zgrid = new Lighting.LightGrid(64, 64, 64);
+		    if(maxlights != 0)
+			zgrid.maxlights = maxlights;
+		} else {
+		    zgrid = null;
+		}
+	    }
+	}
+
+	public boolean valid(GSettings prefs) {
+	    return((prefs == gprefs) ||
+		   (((prefs == null) == (gprefs == null)) &&
+		    (prefs.lightmode.val == gprefs.lightmode.val) &&
+		    (prefs.maxlights.val == gprefs.maxlights.val)));
+	}
+
+	public Pipe.Op compile(Object[][] params, Projection proj) {
+	    if(zgrid == null) {
+		Lighting.SimpleLights ret = new Lighting.SimpleLights(params);
+		if(maxlights != 0)
+		    ret.maxlights = maxlights;
+		return(ret);
+	    } else {
+		return(zgrid.compile(params, proj));
+	    }
+	}
+    }
+
+    private LightCompiler lighting;
+    protected void lights() {
+	GSettings gprefs = basic.state().get(GSettings.slot);
+	if((lighting == null) || !lighting.valid(gprefs)) {
+	    basic(Light.class, null);
+	    lighting = new LightCompiler(gprefs);
+	}
+	Projection proj = (camera == null) ? new Projection(Matrix4f.id) : camera.proj;
+	basic(Light.class, Pipe.Op.compose(lights, lighting.compile(lights.params(), proj)));
     }
 
     public static final Uniform amblight_idx = new Uniform(Type.INT, p -> {
@@ -1896,14 +1929,13 @@ public class MapView extends PView implements DTarget, Console.Directory {
 
     public static class StdPlace implements PlobAdjust {
 	boolean freerot = false;
-	Coord2d gran = (plobpgran == 0) ? null : new Coord2d(1.0 / plobpgran, 1.0 / plobpgran).mul(tilesz);
 
 	public void adjust(Plob plob, Coord pc, Coord2d mc, int modflags) {
 	    Coord2d nc;
-	    if((modflags & 2) == 0)
+	    if((modflags & UI.MOD_SHIFT) == 0)
 		nc = mc.floor(tilesz).mul(tilesz).add(tilesz.div(2));
-	    else if(gran != null)
-		nc = mc.add(gran.div(2)).floor(gran).mul(gran);
+	    else if(plobpgran > 0)
+		nc = mc.div(tilesz).mul(plobpgran).roundf().div(plobpgran).mul(tilesz);
 	    else
 		nc = mc;
 	    Gob pl = plob.mv().player();
@@ -1914,11 +1946,11 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	}
 
 	public boolean rotate(Plob plob, int amount, int modflags) {
-	    if((modflags & 1) == 0)
+	    if((modflags & (UI.MOD_CTRL | UI.MOD_SHIFT)) == 0)
 		return(false);
 	    freerot = true;
 	    double na;
-	    if((modflags & 2) == 0)
+	    if((modflags & UI.MOD_SHIFT) == 0)
 		na = (Math.PI / 4) * Math.round((plob.a + (amount * Math.PI / 4)) / (Math.PI / 4));
 	    else
 		na = plob.a + amount * Math.PI / plobagran;

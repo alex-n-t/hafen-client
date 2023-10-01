@@ -24,27 +24,22 @@
  *  Boston, MA 02111-1307 USA
  */
 
-package haven;
+package haven.render.sl;
 
-import haven.render.*;
+public class IntCons extends Expression {
+    public final Expression init;
 
-public class PointedCam extends Camera {
-    public Coord3f base = Coord3f.o;
-    public float dist = 5.0f, e, a;
-
-    public PointedCam() {
-	super(Matrix4f.identity());
+    public IntCons(Expression init) {
+	this.init = init;
     }
 
-    public Matrix4f fin(Matrix4f p) {
-	update(compute(base, dist, e, a));
-	return(super.fin(p));
+    public void walk(Walker w) {
+	w.el(init);
     }
-    
-    public static Matrix4f compute(Coord3f base, float dist, float e, float a) {
-	return(makexlate(new Matrix4f(), new Coord3f(0.0f, 0.0f, -dist))
-	       .mul1(makerot(new Matrix4f(), new Coord3f(-1.0f, 0.0f, 0.0f), ((float)Math.PI / 2.0f) - e))
-	       .mul1(makerot(new Matrix4f(), new Coord3f(0.0f, 0.0f, -1.0f), ((float)Math.PI / 2.0f) + a))
-	       .mul1(makexlate(new Matrix4f(), base.inv())));
+
+    public void output(Output out) {
+	out.write("int(");
+	init.output(out);
+	out.write(")");
     }
 }

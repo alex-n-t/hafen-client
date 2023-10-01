@@ -119,6 +119,7 @@ public class Avaview extends PView implements DTarget{
     }
 
     private static final OwnerContext.ClassResolver<Avaview> ctxr = new OwnerContext.ClassResolver<Avaview>()
+	.add(Avaview.class, v -> v)
 	.add(Glob.class, v -> v.ui.sess.glob)
 	.add(Session.class, v -> v.ui.sess)
 	.add(Resource.Resolver.class, v -> (v.resmap == null ? v.ui.sess : v.resmap));
@@ -128,7 +129,7 @@ public class Avaview extends PView implements DTarget{
 	public <T> T context(Class<T> cl) {return(ctxr.context(cl, Avaview.this));}
 	@Deprecated public Glob glob() {return(context(Glob.class));}
 
-	public Coord3f getc() {return(Coord3f.o);}
+	public Collection<Location.Chain> getloc() {return(Collections.emptyList());}
 	public double getv() {return(0);}
     }
     private final AvaOwner avaowner = new AvaOwner();
@@ -150,8 +151,8 @@ public class Avaview extends PView implements DTarget{
 	if(bo == null)
 	    throw(new Loading());
 	Pipe buf = new BufPipe();
-	buf.prep(bo.forpose(comp.pose).get());
-	return(new LocationCam(buf.get(Homo3D.loc)));
+	buf.prep(bo.from(comp.pose).get());
+	return(Camera.placed(buf.get(Homo3D.loc)));
     }
 
     private Composite getgcomp() {

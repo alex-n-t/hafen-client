@@ -67,7 +67,8 @@
 
   <target name="hafen-client" depends="build-env, extlib/jogl">
     <javac srcdir="src" destdir="build/classes" debug="on"
-	   source="1.8" target="1.8" includeantruntime="no">
+	   source="1.8" target="1.8" includeantruntime="no"
+	   bootclasspath="${boot-classpath}">
       <classpath>
 	<pathelement path="lib/ext/jogl/jogl-all.jar" />
 	<pathelement path="lib/ext/jogl/gluegen-rt.jar" />
@@ -88,6 +89,7 @@
     <copy todir="build/classes/haven" file="etc/res-bgload" />
     <copy todir="build/classes/haven" file="etc/icon.png" />
     <copy todir="build/classes/haven" file="etc/font.ttf" />
+    <copy file="local-boot.properties" tofile="build/classes/haven/boot-props" failonerror="false" quiet="true" />
   </target>
   
   <target name="client-res-java" depends="hafen-client">

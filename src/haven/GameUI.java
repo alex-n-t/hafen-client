@@ -48,8 +48,8 @@ import static haven.Inventory.*;
 import static haven.ItemFilter.*;
 import static haven.KeyBinder.*;
 
-public class GameUI extends ConsoleHost implements Console.Directory {
-    public static final Text.Foundry msgfoundry = new Text.Foundry(Text.dfont, 14);
+public class GameUI extends ConsoleHost implements Console.Directory, UI.MessageWidget {
+    public static final Text.Foundry msgfoundry = RootWidget.msgfoundry;
     private static final int blpw = UI.scale(142), brpw = UI.scale(142);
     public final String chrid, genus;
     public final long plid;
@@ -67,9 +67,8 @@ public class GameUI extends ConsoleHost implements Console.Directory {
     private double msgtime;
     public Window invwnd, equwnd, srchwnd, iconwnd;
     private CraftWindow makewnd;
-    public ExtInventory maininv;
-    public Inventory beltinv;
-    public Hidewnd beltwnd;
+    public Inventory maininv;
+    public ExtInventory maininvext;
     public Equipory equipory;
     public CharWnd chrwdg;
     public MapWnd2 mapfile;
@@ -111,6 +110,7 @@ public class GameUI extends ConsoleHost implements Console.Directory {
     };
 
     private static final OwnerContext.ClassResolver<BeltSlot> beltctxr = new OwnerContext.ClassResolver<BeltSlot>()
+	.add(GameUI.class, slot -> slot.wdg())
 	.add(Glob.class, slot -> slot.wdg().ui.sess.glob)
 	.add(Session.class, slot -> slot.wdg().ui.sess);
     public class BeltSlot implements GSprite.Owner {
@@ -170,7 +170,12 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 	    }
 	    if(local && (menu != null)) {
 		if(res != null) {
-		    MenuGrid.Pagina pag = menu.paginafor(slot.res);
+		    MenuGrid.Pagina pag;
+		    /* XXX: This is a hack. The pagina system needs to be remade. */
+		    if(res != null)
+			pag = menu.paginafor(res.indir());
+		    else
+			pag = menu.paginafor(slot.res);
 		    try {
 			MenuGrid.PagButton btn = pag.button();
 			menu.use(btn, iact, false);
@@ -857,12 +862,6 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 	studywnd.toggle();
     }
 
-    public void takeScreenshot() {
-	if(Config.screenurl != null) {
-	    Screenshooter.take(this, Config.screenurl);
-	}
-    }
-
     public void addcmeter(Widget meter) {
 	ulpanel.add(meter);
 	cmeters.add(meter);
@@ -963,7 +962,7 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 		if(tarea.contains(plc))
 		    score -= 100;
 		else
-		    score -= (1 - Math.pow(tarea.closest(plc).dist(plc) / sz.dist(Coord.z), 2)) * 1.5;
+		    score -= (1 - Math.pow(tarea.closest(plc).dist(plc) / sz.dist(Coord.z), 0.5)) * 1.5;
 	    }
 	    score -= (cur.dist(org) / sz.dist(Coord.z)) * 0.75;
 	    if(score > optscore) {
@@ -1006,9 +1005,9 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 		mapfile = null;
 	    }
 	    ResCache mapstore = ResCache.global;
-	    if(Config.mapbase != null) {
+	    if(MapFile.mapbase.get() != null) {
 		try {
-		    mapstore = HashDirCache.get(Config.mapbase.toURI());
+		    mapstore = HashDirCache.get(MapFile.mapbase.get().toURI());
 		} catch(java.net.URISyntaxException e) {
 		}
 	    }
@@ -1052,10 +1051,11 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 			pack();
 		    }
 		};
-	    invwnd.add(maininv = (ExtInventory)child, Coord.z);
+	    invwnd.add(maininvext = (ExtInventory)child, Coord.z);
 	    invwnd.pack();
 	    invwnd.hide();
-	    maininv.inv.enableDrops();
+	    maininv = maininvext.inv;
+	    maininv.enableDrops();
 	    add(invwnd, Utils.getprefc("wndc-inv", new Coord(100, 100)));
 	} else if(place == "equ") {
 	    equwnd = new Hidewnd(Coord.z, "Equipment");
@@ -1499,7 +1499,7 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 		help.res = res;
 	} else if(msg == "map-mark") {
 	    long gobid = Utils.uint32((Integer)args[0]);
-	    long oid = (Long)args[1];
+	    long oid = ((Number)args[1]).longValue();
 	    Indir<Resource> res = ui.sess.getres((Integer)args[2]);
 	    String nm = (String)args[3];
 	    if(mapfile != null)
@@ -1660,7 +1660,7 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 	    super(mapmenubg.sz());
 	    add(new MenuCheckBox("lbtn-claim", kb_claim, "Display personal claims"), 0, 0).changed(a -> toggleol("cplot", a));
 	    add(new MenuCheckBox("lbtn-vil", kb_vil, "Display village claims"), 0, 0).changed(a -> toggleol("vlg", a));
-	    add(new MenuCheckBox("lbtn-rlm", kb_rlm, "Display realms"), 0, 0).changed(a -> toggleol("realm", a));
+	    add(new MenuCheckBox("lbtn-rlm", kb_rlm, "Display provinces"), 0, 0).changed(a -> toggleol("prov", a));
 	    add(new MenuCheckBox("lbtn-map", kb_map, "Map")).state(() -> wndstate(mapfile)).click(() -> {
 		togglewnd(mapfile);
 		if(mapfile != null)
@@ -1696,8 +1696,8 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 	if(key == ':') {
 	    entercmd();
 	    return(true);
-	} else if((Config.screenurl != null) && kb_shoot.key().match(ev)) {
-	    Screenshooter.take(this, Config.screenurl);
+	} else if((Screenshooter.screenurl.get() != null) && kb_shoot.key().match(ev)) {
+	    Screenshooter.take(this, Screenshooter.screenurl.get());
 	    return(true);
 	} else if(kb_hide.key().match(ev)) {
 	    toggleui();
@@ -1753,7 +1753,7 @@ public class GameUI extends ConsoleHost implements Console.Directory {
     }
 
     public void resize(Coord sz) {
-	this.sz = sz;
+	super.resize(sz);
 	chat.resize(sz.x - blpw - brpw);
 	chat.move(new Coord(blpw, sz.y));
 	if(map != null)
@@ -1761,7 +1761,6 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 	if(prog != null)
 	    prog.move(sz.sub(prog.sz).mul(0.5, 0.35));
 	beltwdg.c = new Coord(blpw + UI.scale(10), sz.y - beltwdg.sz.y - UI.scale(5));
-	super.resize(sz);
     }
     
     public void presize() {
@@ -1794,7 +1793,7 @@ public class GameUI extends ConsoleHost implements Console.Directory {
     }
     
     public void msg(String msg, Color color, boolean sfx) {
-	msg(msg, color, sfx ? msgsfx : null);
+	msg(msg, color, sfx ? RootWidget.msgsfx : null);
     }
     
     public void msg(String msg, Color color, Resource sfx) {
@@ -1808,13 +1807,12 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 	msg(msg, MsgType.ERROR);
     }
 
-    private static final Resource msgsfx = Resource.local().loadwait("sfx/msg");
     private double lastmsgsfx = 0;
     public void msg(String msg) {
 	msg(msg, MsgType.INFO);
 	double now = Utils.rtime();
 	if(now - lastmsgsfx > 0.1) {
-	    ui.sfx(msgsfx);
+	    ui.sfx(RootWidget.msgsfx);
 	    lastmsgsfx = now;
 	}
     }

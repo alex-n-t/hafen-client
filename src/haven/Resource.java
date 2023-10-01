@@ -40,11 +40,15 @@ import javax.imageio.*;
 import java.awt.image.BufferedImage;
 
 public class Resource implements Serializable {
+    public static final Config.Variable<URL> resurl = Config.Variable.propu("haven.resurl", "");
+    public static final Config.Variable<Path> resdir = Config.Variable.propp("haven.resdir", System.getenv("HAFEN_RESDIR"));
     private static ResCache prscache;
     public static ThreadGroup loadergroup = null;
     private static Map<String, LayerFactory<?>> ltypes = new TreeMap<String, LayerFactory<?>>();
     public static Class<Image> imgc = Image.class;
     public static Class<Neg> negc = Neg.class;
+    public static Class<Props> props = Props.class;
+    public static Class<Obstacle> obst = Obstacle.class;
     public static Class<Anim> animc = Anim.class;
     public static Class<Pagina> pagina = Pagina.class;
     public static Class<AButton> action = AButton.class;
@@ -246,7 +250,20 @@ public class Resource implements Serializable {
 					"lpt0", "lpt1", "lpt2", "lpt3", "lpt4",
 					"lpt5", "lpt6", "lpt7", "lpt8", "lpt9"));
 	public static final boolean windows = System.getProperty("os.name", "").startsWith("Windows");
+	private static final boolean[] winsafe;
 	public final Path base;
+
+	static {
+	    boolean[] buf = new boolean[128];
+	    String safe = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_@";
+	    for(int i = 0; i < safe.length(); i++)
+		buf[safe.charAt(i)] = true;
+	    winsafe = buf;
+	}
+
+	public static boolean winsafechar(char c) {
+	    return((c >= winsafe.length) || winsafe[c]);
+	}
 
 	public FileSource(Path base) {
 	    this.base = base;
@@ -808,8 +825,8 @@ public class Resource implements Serializable {
 		    local.add(new JarSource("res-preload"));
 		    local.add(new JarSource("res"));
 		    try {
-			if(Config.resdir != null)
-			    local.add(new FileSource(Config.resdir));
+			if(resdir.get() != null)
+			    local.add(new FileSource(resdir.get()));
 		    } catch(Exception e) {
 			/* Ignore these. We don't want to be crashing the client
 			 * for users just because of errors in development
@@ -1173,38 +1190,53 @@ public class Resource implements Serializable {
 	public void init() {}
     }
     
-    @LayerName("obst")
-    public class Obst extends Layer {
-	final int version;
-	final String id;
-	public final List<Coord2d[]> polygons;
-	
-	public Obst(Message msg) {
-	    version = msg.int8();
-	    if(version >= 2) {
-		id = msg.string();
-	    } else {
-		id = "";
-	    }
-	    int polygonCount = msg.int8();
-	    polygons = new LinkedList<>();
-	    int[] polygonSizes = new int[polygonCount];
-	    for (int i = 0; i < polygonCount; i++) {
-		polygonSizes[i] = msg.int8();
-	    }
-	    for (int i = 0; i < polygonCount; i++) {
-		int points = polygonSizes[i];
-		Coord2d[] polygon = new Coord2d[points];
-		for (int j = 0; j < points; j++) {
-		    polygon[j] = new Coord2d(msg.float16(), msg.float16());
-		}
-		polygons.add(polygon);
-	    }
+
+    @LayerName("props")
+    public class Props extends Layer {
+	public final Map<String, Object> props = new HashMap<>();
+
+	public Props(Message buf) {
+	    int ver = buf.uint8();
+	    if(ver != 1)
+		throw(new LoadException("Unknown property layer version: " + ver, getres()));
+	    Object[] raw = buf.list();
+	    for(int a = 0; a < raw.length - 1; a += 2)
+		props.put((String)raw[a], raw[a + 1]);
 	}
-	
+
+	public Object get(String nm) {
+	    return(props.get(nm));
+	}
+
 	public void init() {}
     }
-    
+
+    @LayerName("obst")
+    public class Obstacle extends Layer implements IDLayer<String> {
+	public final String id;
+	public final Coord2d[][] p;
+
+	public Obstacle(Message buf) {
+	    int ver = buf.uint8();
+	    if((ver >= 1) && (ver <= 2)) {
+		this.id = (ver >= 2) ? buf.string() : "";
+		p = new Coord2d[buf.uint8()][];
+		for(int i = 0; i < p.length; i++)
+		    p[i] = new Coord2d[buf.uint8()];
+		for(int i = 0; i < p.length; i++) {
+		    for(int o = 0; o < p[i].length; o++)
+			p[i][o] = Coord2d.of(buf.float16(), buf.float16()).mul(MCache.tilesz);
+		}
+	    } else {
+		this.id = "#";
+		this.p = new Coord2d[0][];
+	    }
+	}
+
+	public void init() {}
+	public String layerid() {return(id);}
+    }
+
     @LayerName("anim")
     public class Anim extends Layer {
 	private int[] ids;
@@ -2072,7 +2104,7 @@ public class Resource implements Serializable {
 	    System.exit(1);
 	}
 	if(url == null) {
-	    if((url = Config.resurl) == null) {
+	    if((url = resurl.get()) == null) {
 		System.err.println("get-code: no resource URL configured");
 		System.exit(1);
 	    }
@@ -2180,7 +2212,7 @@ public class Resource implements Serializable {
 	    System.exit(1);
 	}
 	if(url == null) {
-	    if((url = Config.resurl) == null) {
+	    if((url = resurl.get()) == null) {
 		System.err.println("get-code: no resource URL configured");
 		System.exit(1);
 	    }
