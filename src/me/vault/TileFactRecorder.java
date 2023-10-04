@@ -58,7 +58,7 @@ public class TileFactRecorder {
 			String longName = item.getres().name;
 			String shortName = longName.substring(longName.lastIndexOf('/')+1);
 			TileFact fact = new TileFact(action.what.name()+".Item",action.whereGridID,cc,getPlayerInfo(action.what),shortName,l.single().value);
-			TileFactDao.tileFactDao.put(fact);
+			TileFactDao.INSTANCE.put(fact);
 		} catch(Exception e) {
 			item.infoCallback = itm->{registerActionProduct(action, itm); itm.infoCallback = null;};
 		}
@@ -71,7 +71,7 @@ public class TileFactRecorder {
 			String longName = item.getres().name;
 			String shortName = longName.substring(longName.lastIndexOf('/')+1);
 			TileFact fact = new TileFact(action.what.name()+".Item",action.whereGridID,cc,getPlayerInfo(ActionType.MINING),shortName,l.single().value);
-			TileFactDao.tileFactDao.put(fact);
+			TileFactDao.INSTANCE.put(fact);
 		} catch(Exception e) {
 			item.infoCallback = itm->{registerMiningProduct(action, itm); itm.infoCallback = null;};
 		}

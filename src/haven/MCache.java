@@ -466,9 +466,9 @@ public class MCache implements MapSource {
 		System.out.printf("[%s] Cut [%d,%d] requested from DB.\n", SimpleDateFormat.getDateTimeInstance().format(sysdate), cc.x, cc.y);
 		Map<Coord, TileFact> buf = new HashMap<>();
 		if(CFG.SHOW_GOB_RADIUS.get()) {
-			List<TileFact> mined = TileFactDao.tileFactDao.getCut(id, cc, "MinedStatus");
+			List<TileFact> mined = TileFactDao.INSTANCE.getCut(id, cc, "MinedStatus");
 			mined.forEach(fact->buf.put(fact.inGridTC, fact));
-			List<TileFact> dust = TileFactDao.tileFactDao.getCut(id, cc, "DustCount");
+			List<TileFact> dust = TileFactDao.INSTANCE.getCut(id, cc, "DustCount");
 			dust.forEach(fact->buf.put(fact.inGridTC, fact)); //DustCount overrides mined status
 		}
 		return new TileTags(new ArrayList<>(buf.values()));

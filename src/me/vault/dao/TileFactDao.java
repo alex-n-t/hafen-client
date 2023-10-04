@@ -8,9 +8,7 @@ import haven.Coord;
 import haven.MCache;
 import me.vault.TileFact;
 
-public class TileFactDao {
-	private Connection connection;
-	private static final String CONNECTION_STRING = "jdbc:sqlite:.\\vault.db";
+public class TileFactDao extends VaultDao {
 	private static final String SQL_SCHEMA = "create table if not exists tile_fact("
 			+ "	fact_seqno 	integer primary key autoincrement,"
 			+ " type 		text,"
@@ -27,6 +25,7 @@ public class TileFactDao {
 			+ " counter		integer,"
 			+ " tile_key    text,"
 			+ " unique (grid_id,x,y,type,tile_key));";
+	
 	private static final String SQL_QUERY_CUT_BY_TYPE =
 			"select type,grid_id,x,y,data from tile_fact"
 			+ " where grid_id = ?"
@@ -43,29 +42,12 @@ public class TileFactDao {
 			+ " quality_max = max(quality_max,?),"
 			+ " quality_avg = (quality_avg*counter+?)/(counter+1);";
 
-	public static final TileFactDao tileFactDao = new TileFactDao();
-
-	private TileFactDao(){
-		this.connection = getConnection();
-		makeSchema();
+	public static final TileFactDao INSTANCE = new TileFactDao(SQL_SCHEMA);
+	
+	private TileFactDao(String ddl) {
+		super(ddl);
 	}
-
-	Connection getConnection() {
-		if(connection != null) return connection;
-		else try {
-			connection = DriverManager.getConnection(CONNECTION_STRING);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return connection;
-	}
-
-	private void makeSchema() {
-		try(Statement stmt = getConnection().createStatement()){
-			stmt.execute(SQL_SCHEMA);
-		} catch (SQLException e) {e.printStackTrace();}
-	}
-
+	
 	public List<TileFact> getCut(long gridId, Coord inGridCC, String type){
 		List<TileFact> facts = new ArrayList<>();
 		try (PreparedStatement stmt = getConnection().prepareStatement(SQL_QUERY_CUT_BY_TYPE)){

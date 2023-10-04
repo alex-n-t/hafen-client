@@ -114,17 +114,17 @@ public class OCache implements Iterable<Gob> {
 
 			ob.ols.forEach(ol->{
 				if(ol.res!=null && ol.res.get().name.endsWith("mineout"))
-				synchronized(TileFactDao.tileFactDao) {
+				synchronized(TileFactDao.INSTANCE) {
 					Coord mc = ob.rc.floor().div(MCache.tilesz2);
 					Coord gc = mc.div(MCache.cmaps);
 					Coord cc = mc.mod(MCache.cmaps).div(MCache.cutsz);
-					TileFactDao.tileFactDao.put(new TileFact("MinedStatus", glob.map.getgrid(gc).id, mc.mod(MCache.cmaps), "Mined"));
+					TileFactDao.INSTANCE.put(new TileFact("MinedStatus", glob.map.getgrid(gc).id, mc.mod(MCache.cmaps), "Mined"));
 					glob.map.getgrid(gc).invtts(cc);
 				}
 			});
 			ob.ols.forEach(ol->{
 				if(ol.res!=null && ol.res.get().name.endsWith("cavewarn"))
-				synchronized(TileFactDao.tileFactDao) {
+				synchronized(TileFactDao.INSTANCE) {
 					Coord mc = ob.rc.floor().div(MCache.tilesz2);
 					Coord gc = mc.div(MCache.cmaps);
 					Coord cc = mc.mod(MCache.cmaps).div(MCache.cutsz);
@@ -134,7 +134,7 @@ public class OCache implements Iterable<Gob> {
 						strField.setAccessible(true);
 						str = String.valueOf((int)strField.getFloat(ol.spr)/30);
 					} catch (Exception e) {e.printStackTrace();}
-					TileFactDao.tileFactDao.put(new TileFact("DustCount", glob.map.getgrid(gc).id, mc.mod(MCache.cmaps), "Dust: "+str));
+					TileFactDao.INSTANCE.put(new TileFact("DustCount", glob.map.getgrid(gc).id, mc.mod(MCache.cmaps), "Dust: "+str));
 					glob.map.getgrid(gc).invtts(cc);
 				}
 			});
