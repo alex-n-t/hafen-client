@@ -65,11 +65,13 @@ public class Fightsess extends Widget {
 	new KeyBinder.KeyBind(KeyEvent.VK_4, SHIFT),
 	new KeyBinder.KeyBind(KeyEvent.VK_5, SHIFT),
     };
+	private static final KeyBinder.KeyBind KB_REAGGRO = new KeyBinder.KeyBind(KeyEvent.VK_R, CTRL);
     public final Action[] actions;
     public int use = -1, useb = -1;
     public Coord pcc;
     public int pho;
-    private Fightview fv;
+    public Fightview fv;
+    private final FightCustom custom;
 
     public static class Action {
 	public final Indir<Resource> res;
@@ -92,6 +94,7 @@ public class Fightsess extends Widget {
     public Fightsess(int nact) {
 	pho = -UI.scale(40);
 	this.actions = new Action[nact];
+	this.custom = new FightCustom(this);
     }
 
     protected void added() {
@@ -172,6 +175,9 @@ public class Fightsess extends Widget {
 		fx.spr.tick(dt);
 	    }
 	}
+	if (use < 0 && useb < 0) {
+	    custom.autoRestore();
+	}
     }
 
     public void destroy() {
@@ -234,13 +240,44 @@ public class Fightsess extends Widget {
 
 	{
 	    Coord cdc = altui ? new Coord(x0, y0) : pcc.add(cmc);
+	    int[] openings = custom.openings();
+	    for(int i = 0; i < 4; i++) {
+	    FightCustom.OpeningType type = FightCustom.OpeningType.values()[i];
+	    if (openings[i] > 0) {
+	        Color color = type.color;
+	        double end = (i + 1) * Math.PI / 2;
+	        double start = end - openings[i] * Math.PI / 200;
+	        Coord r = UI.scale(new Coord(24, 24));
+	        if (openings[i] >= 30) {
+	    	r = r.mul(1.5);
+	        }
+	        if (openings[i] >= 80) {
+	    	if((System.currentTimeMillis() / 100) % 2 == 0) {
+	    	    color = color.brighter();
+	    	} else {
+	    	    color = color.darker();
+	    	}
+	        }
+	        g.chcolor(color);
+	        g.fellipse(cdc, r, start, end);
+	        g.chcolor();
+	    }
+	    }
 	    if(now < fv.atkct) {
 		double a = (now - fv.atkcs) / (fv.atkct - fv.atkcs);
+		Coord2d r = UI.scale(Coord2d.of(0, -24));
 		g.chcolor(255, 0, 128, 224);
-		g.fellipse(cdc, UI.scale(altui ? new Coord(24, 24) : new Coord(22, 22)), Math.PI / 2 - (Math.PI * 2 * Math.min(1.0 - a, 1.0)), Math.PI / 2);
+//		g.fellipse(cdc, UI.scale(altui ? new Coord(24, 24) : new Coord(22, 22)), Math.PI / 2 - (Math.PI * 2 * Math.min(1.0 - a, 1.0)), Math.PI / 2);
+		Coord prev = cdc.add(r.round());
+		int max = (int) (64 * Math.min(1.0 - a, 1.0));
+		for (int i = 1; i < max; i++) {
+		    Coord next = cdc.add(r.rot(i * Math.PI * 2 / 64).round());
+		    g.line(prev, next, 3);
+		    prev = next;
+		}
 		g.chcolor();
 	    }
-	    g.image(cdframe, altui ? new Coord(x0, y0).sub(cdframe.sz().div(2)) : cdc.sub(cdframe.sz().div(2)));
+//	    g.image(cdframe, altui ? new Coord(x0, y0).sub(cdframe.sz().div(2)) : cdc.sub(cdframe.sz().div(2)));
 	}
 	try {
 	    Indir<Resource> lastact = fv.lastact;
@@ -419,6 +456,7 @@ public class Fightsess extends Widget {
 	    } else {
 		actions[n] = null;
 	    }
+	    custom.resetMoves();
 	} else if(msg == "acool") {
 	    int n = (Integer)args[0];
 	    double now = Utils.rtime();
@@ -496,6 +534,10 @@ public class Fightsess extends Widget {
 		return(true);
 	    }
 	}
+    if(KB_REAGGRO.match(ev)) {
+    	custom.reaggro();
+    	return true;
+    }
 	if(kb_relcycle.key().match(ev, KeyMatch.S)) {
 	    if((ev.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) == 0) {
 		Fightview.Relation cur = fv.current;
