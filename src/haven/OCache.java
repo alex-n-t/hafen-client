@@ -78,12 +78,14 @@ public class OCache implements Iterable<Gob> {
 
     public OCache(Glob glob) {
 	this.glob = glob;
+	DiscoveryRgstry.INSTANCE.setOC(this);
 	callback(Gob.CHANGED);
 	CFG.DISPLAY_GOB_HITBOX.observe(cfg -> gobAction(Gob::hitboxUpdated));
 	CFG.DISPLAY_GOB_HITBOX_TOP.observe(cfg -> gobAction(Gob::hitboxUpdated));
 	CFG.HIDE_TREES.observe(cfg -> gobAction(Gob::visibilityUpdated));
 	CFG.DISPLAY_GOB_INFO.observe(cfg -> gobAction(Gob::infoUpdated));
 	CFG.SHOW_CONTAINER_FULLNESS.observe(cfg -> gobAction(Gob::infoUpdated));
+	CFG.DISPLAY_DISCOVERY_EXP_INFO.observe(cfg -> DiscoveryRgstry.INSTANCE.updateDiscoverableGobs(null));
     }
     
     public void gobAction(Consumer<Gob> action) {

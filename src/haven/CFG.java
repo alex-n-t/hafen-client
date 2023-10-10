@@ -17,6 +17,7 @@ public class CFG<T> {
     public static final CFG<Boolean> DISPLAY_KINSFX = new CFG<>("display.kinsfx", true);
     public static final CFG<Boolean> DISPLAY_FLAVOR = new CFG<>("display.flavor", true);
     public static final CFG<Boolean> DISPLAY_GOB_INFO = new CFG<>("display.gob_info", false);
+    public static final CFG<Boolean> DISPLAY_DISCOVERY_EXP_INFO = new CFG<>("display.discovery_exp_info", false);
     public static final CFG<Boolean> DISPLAY_GOB_HITBOX = new CFG<>("display.gob_hitbox", false);
     public static final CFG<Boolean> DISPLAY_GOB_HITBOX_TOP = new CFG<>("display.gob_hitbox_top", false);
     public static final CFG<Boolean> DISPLAY_GOB_PATHS = new CFG<>("display.gob_paths.show", false);

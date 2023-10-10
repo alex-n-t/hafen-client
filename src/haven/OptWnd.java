@@ -1069,6 +1069,9 @@ public class OptWnd extends WindowX {
 	panel.add(new CFGBox("Show object info", CFG.DISPLAY_GOB_INFO, "Enables damage and crop/tree growth stage displaying", true), x, y);
     
 	y += STEP;
+	panel.add(new CFGBox("Higilight undiscovered trees", CFG.DISPLAY_DISCOVERY_EXP_INFO, "Colors trees / bushes of the types that didn't have seeds/fruit collected from them in the current play session", true), x, y);
+
+	y += STEP;
 	panel.add(new CFGBox("Flat cupboards (needs restart)", CFG.FLAT_CUPBOARDS, "Makes cupboards look like floor hatches", true), x, y);
 
 	y += STEP;

@@ -33,6 +33,7 @@ import haven.render.*;
 import haven.res.gfx.fx.msrad.MSRad;
 import integrations.mapv4.MappingClient;
 import me.ender.minimap.AutoMarkers;
+import me.vault.DiscoveryRgstry;
 import me.vault.PlayerActivityInfo;
 
 import static haven.OCache.*;
@@ -41,7 +42,8 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
     private static final Color COL_READY = new Color(16, 255, 16, 128);
     private static final Color COL_FULL = new Color(215, 63, 250, 64);
     private static final Color COL_EMPTY = new Color(104, 213, 253, 64);
-    private static final Color COL_HLIGHT = new  Color(255, 64, 255, 127);
+    private static final Color COL_HLIGHT_TRUFFLE = new  Color(255, 64, 255, 127);
+    private static final Color COL_HLIGHT_KNOWN = new  Color(64, 255, 255, 127);
     public Coord2d rc;
     public double a;
     public boolean virtual = false;
@@ -1333,7 +1335,13 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 		}
 	    }
 	}
-	if(Optional.ofNullable(getres()).map(res -> res.name.contains("truffle")).orElse(false)) c = COL_HLIGHT;
+	
+	Resource res = getres();
+	if(res != null && res.name.contains("truffle")) c = COL_HLIGHT_TRUFFLE;
+	if(CFG.DISPLAY_DISCOVERY_EXP_INFO.get() && anyOf(GobTag.TREE,GobTag.BUSH) 
+			&& res != null && !DiscoveryRgstry.INSTANCE.discovered(res.name)) {
+		c = COL_HLIGHT_KNOWN;
+	}
 
 	if(customColor.color(c)) {updstate();}
     }
