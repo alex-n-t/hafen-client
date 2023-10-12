@@ -71,6 +71,29 @@ public class TileFactDao extends VaultDao {
 		return facts;
 	}
 
+	public List<TileFact> getGrid(long gridId, Coord ul, Coord br, String type){
+		List<TileFact> facts = new ArrayList<>();
+		try (PreparedStatement stmt = getConnection().prepareStatement(SQL_QUERY_CUT_BY_TYPE)){
+			stmt.setLong(1, gridId);
+			stmt.setInt(2, ul.x);
+			stmt.setInt(3, br.x);
+			stmt.setInt(4, ul.y);
+			stmt.setInt(5, br.y);
+			stmt.setString(6, type);
+			ResultSet rs = stmt.executeQuery();
+			while(rs.next())
+				facts.add(new TileFact(
+						rs.getString("type"),
+						rs.getLong("grid_id"),
+						new Coord(rs.getInt("x"), rs.getInt("y")),
+						rs.getString("data")
+						));
+		} catch (SQLException e) {e.printStackTrace();}
+		return facts;
+	}
+
+	
+	
 	public void put(TileFact fact) {
 		try (PreparedStatement stmt = getConnection().prepareStatement(SQL_INSERT_FACT)){
 			stmt.setString(1,	fact.type);

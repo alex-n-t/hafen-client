@@ -170,6 +170,14 @@ public class Coord2d implements Comparable<Coord2d>, java.io.Serializable {
 	return(Math.hypot(x, y));
     }
 
+    public double manhattan() {
+	return Math.abs(x) + Math.abs(y);
+    }
+
+    public double manhattan(Coord2d o) {
+	return Math.abs(x - o.x) + Math.abs(y - o.y);
+    }
+    
     public Coord2d norm(double n) {
 	return(mul(n / abs()));
     }
@@ -182,11 +190,10 @@ public class Coord2d implements Comparable<Coord2d>, java.io.Serializable {
 	return(of(Math.cos(a) * r, Math.sin(a) * r));
     }
     
-	public Coord2d rot(double d) {
-		double sd = Math.sin(d);
-		double cd = Math.cos(d);
-		return of(x*cd-y*sd,x*sd+y*cd);
-	}
+    public Coord2d rot(double a) {
+	double s = Math.sin(a), c = Math.cos(a);
+	return(of((x * c) - (y * s), (y * c) + (x * s)));
+    }
 
     public String toString() {
 	return("(" + x + ", " + y + ")");

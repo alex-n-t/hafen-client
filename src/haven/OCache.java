@@ -34,6 +34,8 @@ import java.lang.annotation.*;
 import java.lang.reflect.*;
 import haven.render.Render;
 import java.util.stream.Stream;
+
+import auto.CustomUtil;
 import haven.render.*;
 
 import me.vault.*;
@@ -70,6 +72,8 @@ public class OCache implements Iterable<Gob> {
     private Glob glob;
     private final Collection<ChangeCallback> cbs = new WeakList<ChangeCallback>();
     public final PathVisualizer paths = new PathVisualizer();
+    public final MineTileVisualizer mineTileVisualizer = new MineTileVisualizer();
+
 
     public interface ChangeCallback {
 	public void added(Gob ob);
@@ -115,29 +119,16 @@ public class OCache implements Iterable<Gob> {
 		objs.put(ob.id, ob);
 
 			ob.ols.forEach(ol->{
-				if(ol.res!=null && ol.res.get().name.endsWith("mineout"))
-				synchronized(TileFactDao.INSTANCE) {
+				String resname = CustomUtil.resname(ol);
+				if(resname!=null && resname.endsWith("mineout")) {
+					Coord mc = ob.rc.floor(MCache.tilesz);
+					TileFactDao.INSTANCE.put(new TileFact("MinedStatus", glob.map.getgridt(mc).id, mc.mod(MCache.cmaps), "Mined"));
+					mineTileVisualizer.flush();
+				} else if(resname!=null && resname.endsWith("cavewarn")) {
 					Coord mc = ob.rc.floor().div(MCache.tilesz2);
-					Coord gc = mc.div(MCache.cmaps);
-					Coord cc = mc.mod(MCache.cmaps).div(MCache.cutsz);
-					TileFactDao.INSTANCE.put(new TileFact("MinedStatus", glob.map.getgrid(gc).id, mc.mod(MCache.cmaps), "Mined"));
-					glob.map.getgrid(gc).invtts(cc);
-				}
-			});
-			ob.ols.forEach(ol->{
-				if(ol.res!=null && ol.res.get().name.endsWith("cavewarn"))
-				synchronized(TileFactDao.INSTANCE) {
-					Coord mc = ob.rc.floor().div(MCache.tilesz2);
-					Coord gc = mc.div(MCache.cmaps);
-					Coord cc = mc.mod(MCache.cmaps).div(MCache.cutsz);
-					String str = "";
-					try {
-						Field strField = ol.spr.getClass().getDeclaredField("str");
-						strField.setAccessible(true);
-						str = String.valueOf((int)strField.getFloat(ol.spr)/30);
-					} catch (Exception e) {e.printStackTrace();}
-					TileFactDao.INSTANCE.put(new TileFact("DustCount", glob.map.getgrid(gc).id, mc.mod(MCache.cmaps), "Dust: "+str));
-					glob.map.getgrid(gc).invtts(cc);
+					String str = String.valueOf(((Float)CustomUtil.getField(ol.spr, "str")).intValue()/30);
+					TileFactDao.INSTANCE.put(new TileFact("DustCount", glob.map.getgridt(mc).id, mc.mod(MCache.cmaps), str));
+					mineTileVisualizer.flush();
 				}
 			});
 
@@ -181,6 +172,7 @@ public class OCache implements Iterable<Gob> {
 	    copy.forEach(task);
 	else
 	    copy.parallelStream().forEach(task);
+	mineTileVisualizer.update(glob.sess);
 	paths.tick(dt);
 	if(glob.sess.ui != null && glob.sess.ui.gui != null && glob.sess.ui.gui.mapfile != null) {
 	    glob.sess.ui.gui.mapfile.updateGobMarkers();

@@ -1,4 +1,4 @@
-package custom;
+package auto;
 
 import haven.*;
 
@@ -137,32 +137,32 @@ public class CustomUtil {
 	return sprite == null ? name : sprite;
     }
 
-//    public static Coord2d mapOffset(GameUI gui) {
-//	return mapTileOffset(gui).mul(MCache.tilesz);
-//    }
-//
-//    public static Coord mapTileOffset(GameUI gui) {
-//	MiniMap.Location loc = gui.mmap.sessloc;
-//	if(loc == null) {
-//	    throw new Loading("Map data not loaded yet");
-//	}
-//	return loc.tc;
-//    }
-//
-//    public static long mapId(GameUI gui) {
-//	if(gui.mmap != null) {
-//	    MiniMap.Location loc = gui.mmap.sessloc;
-//	    if(loc != null) {
-//		return loc.seg.id;
-//	    }
-//	}
-//	return 0;
-//    }
-//
-//    public static PCoord persistCoord(GameUI gui, Coord2d coord) {
-//	Coord2d offset = mapOffset(gui);
-//	return new PCoord(mapId(gui), coord.add(offset));
-//    }
+    public static Coord2d mapOffset(GameUI gui) {
+	return mapTileOffset(gui).mul(MCache.tilesz);
+    }
+
+    public static Coord mapTileOffset(GameUI gui) {
+	MiniMap.Location loc = gui.mmap.sessloc;
+	if(loc == null) {
+	    throw new Loading("Map data not loaded yet");
+	}
+	return loc.tc;
+    }
+
+    public static long mapId(GameUI gui) {
+	if(gui.mmap != null) {
+	    MiniMap.Location loc = gui.mmap.sessloc;
+	    if(loc != null) {
+		return loc.seg.id;
+	    }
+	}
+	return 0;
+    }
+
+    public static PCoord persistCoord(GameUI gui, Coord2d coord) {
+	Coord2d offset = mapOffset(gui);
+	return new PCoord(mapId(gui), coord.add(offset));
+    }
 //
 //    public static Coord2d localCoord(GameUI gui, PCoord coord) {
 //	Coord2d offset = mapOffset(gui);

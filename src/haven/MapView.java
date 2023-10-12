@@ -686,6 +686,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	basic.add(this.gobs = new Gobs());
 	basic.add(this.terrain = new Terrain());
 	basic.add(glob.oc.paths);
+	basic.add(glob.oc.mineTileVisualizer);
 	this.clickmap = new ClickMap();
 	clmaptree.add(clickmap);
 	setcanfocus(true);
@@ -937,11 +938,7 @@ public class MapView extends PView implements DTarget, Console.Directory {
 		    return(map.getfo(cc));
 		}
 	    };
-	final Grid ttags = new Grid<RenderTree.Node>(false){
-		RenderTree.Node getcut(Coord cc) {
-			return map.gettts(cc);
-		}
-	};
+
 
 	private Terrain() {
 	}
@@ -951,7 +948,6 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	    if(area != null) {
 		main.tick();
 		flavobjs.tick();
-		ttags.tick();
 	    }
 	}
 
@@ -960,7 +956,6 @@ public class MapView extends PView implements DTarget, Console.Directory {
 	    if(CFG.DISPLAY_FLAVOR.get()) {
 		slot.add(flavobjs);
 	    }
-	    slot.add(ttags);
 	    super.added(slot);
 	}
 
