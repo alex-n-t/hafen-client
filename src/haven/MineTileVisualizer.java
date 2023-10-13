@@ -95,7 +95,7 @@ public class MineTileVisualizer implements RenderTree.Node {
         if(!supports.isEmpty() && !Objects.equals(danger_, false)) {
             Coord2d rc = tc.mul(MCache.tilesz).add(5.5, 5.5);
             for(Gob support : supports) {
-            double radius = MineUtil.SUPPORT_RADIUS.get(CustomUtil.resname(support::getres));
+            double radius = Optional.ofNullable( MineUtil.SUPPORT_RADIUS.get(CustomUtil.resname(support::getres)) ).orElse(0d);
             if(rc.dist(support.rc) < radius) {
                 GobHealth health = support.getattr(GobHealth.class);
                 if(health == null || health.hp > 0.25) {

@@ -22,7 +22,7 @@ public class MineUtil {
     static {
     	SUPPORT_RADIUS.put("gfx/terobjs/ladder", 		100d);
     	SUPPORT_RADIUS.put("gfx/terobjs/minesupport", 	100d);
-    	SUPPORT_RADIUS.put("gfx/terobjs/towercap", 		100d);
+    	SUPPORT_RADIUS.put("gfx/terobjs/trees/towercap",100d);
     	SUPPORT_RADIUS.put("gfx/terobjs/column", 		125d);
     	SUPPORT_RADIUS.put("gfx/terobjs/minebeam", 		150d);
     };
