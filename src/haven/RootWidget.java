@@ -39,8 +39,6 @@ public class RootWidget extends ConsoleHost implements UI.MessageWidget {
     private Text lastmsg;
     private double msgtime;
 	
-    final boolean[] mods = new boolean[3]; //CTRL, ALT, SHIFT
-    final long[] presses = new long[3]; //CTRL, ALT, SHIFT
     
     public RootWidget(UI ui, Coord sz) {
 	super(ui, new Coord(0, 0), sz);
@@ -91,30 +89,6 @@ public class RootWidget extends ConsoleHost implements UI.MessageWidget {
     public boolean keyup(KeyEvent ev) {
 	return super.keyup(ev);
     }
-    
-    void processModDown(KeyEvent ev) {
-	mods[0] = isCTRL(ev);
-	mods[1] = isALT(ev);
-	mods[2] = isSHIFT(ev);
-    }
-    
-    void processModUp(KeyEvent ev) {
-	if(mods[0] && isCTRL(ev)) {
-	    presses[0]++;
-	} else if(mods[1] && isALT(ev)) {
-	    presses[1]++;
-	} else if(mods[2] && isSHIFT(ev)) {
-	    presses[2]++;
-	}
-	
-	mods[0] = mods[1] = mods[2] = false;
-    }
-    
-    public long CTRLs() {return presses[0];}
-    
-    public long ALTs() {return presses[1];}
-    
-    public long SHIFTs() {return presses[2];}
     
     private boolean isCTRL(KeyEvent ev) {
 	return ev.getModifiersEx() == (ev.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK)

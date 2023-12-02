@@ -36,10 +36,12 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 import haven.ItemInfo.AttrCache;
+import me.ender.WindowDetector;
 import rx.functions.Action0;
 import rx.functions.Action3;
 
 import static haven.Inventory.sqsz;
+import static me.ender.WindowDetector.*;
 
 public class WItem extends Widget implements DTarget2 {
     public static final Resource missing = Resource.local().loadwait("gfx/invobjs/missing");
@@ -47,6 +49,7 @@ public class WItem extends Widget implements DTarget2 {
     public static final Color DURABILITY_COLOR = new Color(214, 253, 255);
     public static final Color ARMOR_COLOR = new Color(255, 227, 191);
     public static final Color MATCH_COLOR = new Color(255, 32, 255, 255);
+    private static final ItemFilter WELL_MINED = new ItemFilter.Text("Well mined", true);
     public Coord lsz = new Coord(1, 1);
     public final GItem item;
     private Resource cspr = null;
@@ -165,6 +168,23 @@ public class WItem extends Widget implements DTarget2 {
 	    GItem.InfoOverlay<?>[] ret = buf.toArray(new GItem.InfoOverlay<?>[0]);
 	    return(() -> ret);
 	});
+    
+    public final AttrCache<Pair<Double, Double>> fullness = new AttrCache<>(this::info, info -> {
+	Pair<Double, Double> result = null;
+	GItem.InfoOverlay<?>[] ols = itemols.get();
+	for (GItem.InfoOverlay<?> ol : ols) {
+	    if(Reflect.is(ol.inf, "haven.res.ui.tt.level.Level")) {
+		result = new Pair<>(
+		    Reflect.getFieldValueDouble(ol.inf, "cur"),
+		    Reflect.getFieldValueDouble(ol.inf, "max")
+		);
+		break;
+	    }
+	}
+	final Pair<Double, Double> t = result;
+	return () -> t;
+    });
+    
     public final AttrCache<Double> itemmeter = new AttrCache<Double>(this::info, AttrCache.map1(GItem.MeterInfo.class, minf -> minf::meter));
     
     public final AttrCache<ItemInfo.Contents.Content> contains;
@@ -214,7 +234,7 @@ public class WItem extends Widget implements DTarget2 {
 	}
     };
     
-    public final AttrCache<List<ItemInfo>> gilding = new AttrCache<List<ItemInfo>>(this::info, AttrCache.cache(info -> ItemInfo.findall("Slotted", info)));
+    public final AttrCache<List<ItemInfo>> gilding = new AttrCache<List<ItemInfo>>(this::info, AttrCache.cache(info -> ItemInfo.findall(ItemData.INFO_CLASS_GILDING, info)));
     
     public final AttrCache<List<ItemInfo>> slots = new AttrCache<List<ItemInfo>>(this::info, AttrCache.cache(info -> ItemInfo.findall("ISlots", info)));
 
@@ -271,8 +291,12 @@ public class WItem extends Widget implements DTarget2 {
 	    g.defstate();
 	    if(olcol.get() != null)
 		g.usestate(new ColorMask(olcol.get()));
-	    if(item.matches) {
+	    if(item.matches()) {
 		g.chcolor(MATCH_COLOR);
+		g.rect(Coord.z, sz);
+		g.chcolor();
+	    } else if(CFG.HIGHLIGHT_BROKEN_ITEMS.get() && wear.get() != null && wear.get().a <= 0) {
+		g.chcolor(Color.RED);
 		g.rect(Coord.z, sz);
 		g.chcolor();
 	    }
@@ -295,7 +319,7 @@ public class WItem extends Widget implements DTarget2 {
     private void drawmeter(GOut g, Coord sz) {
 	double meter = meter();
 	if(meter > 0) {
-	    Tex studyTime = getStudyTime();
+	    Tex studyTime = getMeterTime();
 	    if(studyTime == null && CFG.PROGRESS_NUMBER.get()) {
 		Tex tex = Text.renderstroked(String.format("%d%%", Math.round(100 * meter))).tex();
 		g.aimage(tex, sz.div(2), 0.5, 0.5);
@@ -322,10 +346,19 @@ public class WItem extends Widget implements DTarget2 {
     private String cachedTipValue = null;
     private Tex cachedStudyTex = null;
     
-    private Tex getStudyTime() {
-	Pair<String, String> data = study.get();
-	String value = data == null ? null : data.a;
-	String tip = data == null ? null : data.b;
+    private Tex getMeterTime() {
+	String value = null;
+	String tip = null;
+	
+	if(WindowDetector.isWindowType(this, WND_STUDY, WND_CHARACTER_SHEET)) {
+	    Pair<String, String> data = study.get();
+	    value = data == null ? null : data.a;
+	    tip = data == null ? null : data.b;
+	} else {
+	    int remaining = remainingSeconds();
+	    if(remaining >= 0) {value = Utils.formatTimeShort(remaining);}
+	}
+	
 	if(!Objects.equals(tip, cachedTipValue)) {
 	    cachedTipValue = tip;
 	    longtip = null;
@@ -447,6 +480,10 @@ public class WItem extends Widget implements DTarget2 {
 	rclick(Coord.z, 0);
     }
     
+    public void rclick(int modflags) {
+	rclick(Coord.z, modflags);
+    }
+    
     
     public void rclick(Coord c, int flags) {
         FlowerMenu.lastGob(null);
@@ -455,6 +492,20 @@ public class WItem extends Widget implements DTarget2 {
     
     public boolean is(String what) {
 	return item.is(what);
+    }
+    
+    public int remainingSeconds() {
+	double meter = meter();
+	if(meter <= 0) {return -1;}
+	
+	if(WindowDetector.isWindowType(this, WND_SMELTER)) {
+	    double remaining = WELL_MINED.matches(info()) ? 41.25d : 55d; //ore smelting time in minutes
+	    remaining *= 60 * (1d - meter); //remaining seconds
+	    remaining -= (System.currentTimeMillis() - item.meterUpdated) / 1000d; //adjust for time passed since last update
+	    return (int) remaining;
+	}
+	
+	return -1;
     }
 
     private boolean checkXfer(int button) {
@@ -508,24 +559,29 @@ public class WItem extends Widget implements DTarget2 {
 	return(true);
     }
 
-    public boolean mousehover(Coord c) {
-	if(item.contents != null && (!CFG.UI_STACK_SUB_INV_ON_SHIFT.get() || ui.modshift)) {
-	    item.hovering = this;
+    public boolean mousehover(Coord c, boolean on) {
+	boolean ret = super.mousehover(c, on);
+	if(on && (item.contents != null) && (!CFG.UI_STACK_SUB_INV_ON_SHIFT.get() || ui.modshift)) {
+	    item.hovering(this);
 	    return(true);
 	}
-	return(super.mousehover(c));
+	return(ret);
     }
     
     public void tryDrop() {
-	checkDrop = true;
+	if(item.contents == null) {
+	    checkDrop = true;
+	} else {
+	    item.contents.children(WItem.class).forEach(WItem::tryDrop);
+	}
     }
     
     private void checkDrop() {
 	if(checkDrop) {
-	    String name = this.name.get(null);
+	    String name = ItemAutoDrop.name(this);
 	    if(name != null) {
 		checkDrop = false;
-		if((!item.matches || !CFG.AUTO_DROP_RESPECT_FILTER.get()) && ItemAutoDrop.needDrop(name)) {
+		if((!item.matches() || !CFG.AUTO_DROP_RESPECT_FILTER.get()) && ItemAutoDrop.needDrop(name)) {
 		    item.drop();
 		}
 	    }

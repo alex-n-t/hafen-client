@@ -191,9 +191,10 @@ public class ToolBelt extends DraggableWidget implements DTarget, DropTarget {
     private MenuGrid.Pagina getcustom(GameUI.BeltSlot slot) {
 	if(slot instanceof GameUI.PaginaBeltSlot) {
 	    return ((GameUI.PaginaBeltSlot) slot).pagina;
-	} else {
-	    return null;
+	} else if(slot != null) {
+	    return ui.gui.menu.findPagina(slot.res);
 	}
+	return null;
     }
     
     private MenuGrid.Pagina getcustom(Resource res) {
@@ -271,8 +272,9 @@ public class ToolBelt extends DraggableWidget implements DTarget, DropTarget {
 	//TODO: Make actions draggable if not locked
 	int slot = beltslot(c);
 	if(slot != -1) {
+	    GameUI.BeltSlot slotItem = belt(slot);
 	    if(button == 1) {
-		MenuGrid.Pagina pagina = getcustom(belt(slot)); //FIXME: re-implement custom actions
+		MenuGrid.Pagina pagina = getcustom(slotItem);
 		if(pagina != null) {
 		    pagina.button().use();
 		} else {
@@ -282,7 +284,7 @@ public class ToolBelt extends DraggableWidget implements DTarget, DropTarget {
 		ui.gui.wdgmsg("setbelt", slot, 1);
 		setcustom(slot, null);
 	    }
-	    if(belt(slot) != null) {return true;}
+	    if(slotItem != null) {return true;}
 	}
 	return super.mousedown(c, button);
     }
@@ -303,9 +305,14 @@ public class ToolBelt extends DraggableWidget implements DTarget, DropTarget {
 	    if(ttip != null) {ttip.dispose();}
 	    ttip = null;
 	    try {
-		MenuGrid.Pagina p = ui.gui.menu.paginafor(item.res);
+		MenuGrid.Pagina p = ui.gui.menu.findPagina(item.res);
 		if(p != null) {
 		    ttip = ItemData.longtip(p, ui.sess);
+		} else {
+		    Resource.Tooltip tt = item.getres().layer(Resource.tooltip);
+		    if(tt != null) {
+			ttip = Text.render(tt.t).tex();
+		    }
 		}
 		last = item;
 	    } catch (Loading ignored) {}

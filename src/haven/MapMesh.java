@@ -102,6 +102,14 @@ public class MapMesh implements RenderTree.Node, Disposable {
         public int o(Coord in) {
             return(o(in.x, in.y));
         }
+
+	public boolean has(int x, int y) {
+	    return((x >= ul.x) && (y >= ul.y) && (x < br.x) && (y < br.y));
+	}
+
+	public boolean has(Coord in) {
+	    return(has(in.x, in.y));
+	}
     }
 
     public class MapSurface extends haven.Surface implements ConsHooks {
@@ -203,6 +211,8 @@ public class MapMesh implements RenderTree.Node, Disposable {
     }
 
     private static void dotrans(MapMesh m, Random rnd, Coord lc, Coord gc) {
+	if(CFG.NO_TILE_TRANSITION.get()) {return;}
+	
 	Tiler ground = m.map.tiler(m.map.gettile(gc));
 	int tr[][] = new int[3][3];
 	int max = -1;

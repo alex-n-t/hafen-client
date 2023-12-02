@@ -31,7 +31,7 @@ public class AnimalFarm {
 	    
 	    if(edit != null) {
 		labels.get(0).c.y -= UI.scale(10);
-		edit.c.y -= UI.scale(12);
+		edit.c.y = 0;
 		edit.sz.x = BUTTONS_ON_LINE * BTN_W + (BUTTONS_ON_LINE - 1) * PAD;
 		Coord c = new Coord(edit.c.x, edit.c.y + edit.sz.y + PAD);
 		
@@ -46,15 +46,11 @@ public class AnimalFarm {
 		wnd.pack();
 	    }
 	    
+	    /*
 	    int i = 0;
 	    while (i < labels.size()) {
 		Label label = labels.get(i);
 		String labelText = label.gettext();
-//		System.out.println(String.format("%s %s", labelText, label.c));
-		if(labelText.matches("-- With \\w+")) {
-		    label.c.x = 0;
-		    label.c.y = (i + 1 < labels.size()) ? labels.get(i + 1).c.y - UI.scale(16) : label.c.y;
-		}
 		AnimalStatType statType = AnimalStatType.parse(labelText);
 		if(statType != null && i + 1 < labels.size()) {
 		    AnimalStat stat = statType.make(labels.get(i + 1).gettext());
@@ -63,6 +59,7 @@ public class AnimalFarm {
 		}
 		i++;
 	    }
+	     */
 	}
     }
     

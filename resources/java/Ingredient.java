@@ -19,7 +19,7 @@ public class Ingredient extends ItemInfo.Tip {
     }
 
     public static class Fac implements InfoFactory {
-	public ItemInfo build(Owner owner, Object... args) {
+	public ItemInfo build(Owner owner, Raw raw, Object... args) {
 	    int a = 1;
 	    String name;
 	    if(args[a] instanceof String) {

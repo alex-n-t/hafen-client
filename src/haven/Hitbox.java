@@ -40,7 +40,7 @@ public class Hitbox extends SlottedNode implements Rendered {
     @Override
     public void added(RenderTree.Slot slot) {
 	super.added(slot);
-	slot.ostate(state);
+	slot.ostate(state(state));
 	updateState();
     }
     
@@ -64,8 +64,9 @@ public class Hitbox extends SlottedNode implements Rendered {
 	    }catch (Loading ignored) {}
 	    if(newState != state) {
 		state = newState;
+		newState = state(state);
 		for (RenderTree.Slot slot : slots) {
-		    slot.ostate(state);
+		    slot.ostate(newState);
 		}
 	    }
 	}
@@ -74,21 +75,21 @@ public class Hitbox extends SlottedNode implements Rendered {
     private boolean passable() {
 	try {
 	    String name = gob.resid();
+	    if(name == null) {return false;}
 	    ResDrawable rd = (gob.drawable instanceof ResDrawable) ? (ResDrawable) gob.drawable : null;
 	    
-	    if(rd != null) {
-		int state = gob.sdt();
-		if(name.endsWith("gate") && name.startsWith("gfx/terobjs/arch")) {//gates
-		    if(state == 1) { // gate is open
-			return true;
-		    }
-		} else if(name.endsWith("/dng/antdoor")) {
-		    return state == 1 || state == 13;
-		} else if(name.endsWith("/pow[hearth]")) {//hearth fire
-		    return true;
-		} else if(name.equals("gfx/terobjs/arch/cellardoor") || name.equals("gfx/terobjs/fishingnet")) {
-		    return true;
-		}
+	    if(rd == null) {return false;}
+	    int state = gob.sdt();
+	    if(gob.is(GobTag.GATE)) {//gates
+		if(state != 1) {return false;}// gate is not open 
+		return !gob.isVisitorGate() // not visitor gate or not in combat 
+		    || !gob.contextopt(GameUI.class).map(GameUI::isInCombat).orElse(false);
+	    } else if(name.contains("/dng/") && (name.endsWith("door") || name.endsWith("gate"))) {
+		return (state & 1) != 0;
+	    } else if(name.endsWith("/pow[hearth]")) {//hearth fire
+		return true;
+	    } else if(name.equals("gfx/terobjs/arch/cellardoor") || name.equals("gfx/terobjs/fishingnet")) {
+		return true;
 	    }
 	} catch (Loading ignored) {}
 	return false;
@@ -177,6 +178,21 @@ public class Hitbox extends SlottedNode implements Rendered {
 	    }
 	}
 	return res;
+    }
+    
+    private Pipe.Op state(Pipe.Op state) {
+	float scale = gob.scale();
+	if(scale <= 0 || scale >= 1) {return state;}
+	return Pipe.Op.compose(state, scale(scale));
+    }
+    
+    private static Pipe.Op scale(float scale) {
+	scale = 1 / scale;
+	return new Location(new Matrix4f(
+	    scale, 0, 0, 0,
+	    0, scale, 0, 0,
+	    0, 0, scale, 0,
+	    0, 0, 0, 1));
     }
     
     public static void toggle(GameUI gui) {

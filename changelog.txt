@@ -1,3 +1,122 @@
+$size[14]{$u{Update for 01.12.23:}
+  * made system messages use Interface sound volume and each message type doesn't play sound too often
+  * fixed potential crashes on loading new zones
+  * added content text to Display Sign gob info
+  * added options (Display -> gear icon near Show gob info) to configure which parts of the info to show
+ 
+$size[14]{$u{Update for 29.11.23:}
+  * added quest helper to menu grid (Xtended -> Quest helper) - it shows all uncompleted tasks from all currently active quests. Can also be bound to a key in the Global Shortcuts.
+  * fixed typo in punch sore treatment config that caused it to not show any treatments
+  * fixed land survey not working properly when flat terrain is on
+  * hopefully fixed quest pointers jumping behind you sometimes
+  * fixed crash that can happen on startup
+ 
+$size[14]{$u{Update for 28.11.23:}
+  * added wound treatment info
+  * another fix for smelter/oven refuelling not working with stacked fuel
+  * fixed container decal pickup protection not working on chests
+ 
+$size[14]{$u{Update for 26.11.23:}
+  * improved handling of dungeon door hitboxes
+  * fixed damage tooltip enhancement not working
+  * made damage tooltip enhancement work for sling and bows
+  * fixed refuel smelter/oven actions wonky behavior with stacked fuel
+ 
+$size[14]{$u{Update for 25.11.23:}
+  * made visitor gate show hitbox as impassable if you are in combat
+  * fixed some types of contents (namely trees in planter pots) not working properly with quality display and filtering
+  * show ore smelting progress as a timer instead of percentage
+  * made smelters show time till the earliest finished ore in the gob info
+ 
+$size[14]{$u{Update for 24.11.23:}
+  * added skis to radar
+  * made enhanced weapon damage tooltip not apply for ranged weapons and for crafting menus
+  * made drink refill action skip full containers
+  * made drink refill action consider nearby water barrels
+ 
+$size[14]{$u{Update for 22.11.23:}
+  * improved auto-drop handling of stacks
+  * fixed crash when clicking on item placed on custom toolbar
+  * added action to refill waterskins/flasks/jugs with water from nearby water tile - unmapped by default, can be changed in Global Shortcuts.
+  * added drink refill to menu grid (Xtended -> autoMation -> Refill drinks)
+  * added wellsprings to radar and made possible to turn on auto placing marker for them
+ 
+$size[14]{$u{Update for 21.11.23:}
+  * added option to not hide trees that have icons visible on radar (Display -> Don't hide trees that are visible on radar) 
+  * made hotkey interact with the closest gate ignore visitor gates
+  * added cart to radar icons
+ 
+$size[14]{$u{Update for 20.11.23:}
+  * do not show progress as time for curios that are not in the study
+  * highlight bee hives with wax as READY
+  * fixed crafting window not showing tab for actions opened from toolbar
+ 
+$size[14]{$u{Update for 17.11.23:}
+  * fixed crash on receiving a message in realm chat with store chat logs turned on
+  * tweaked layout of animal inspect window
+ 
+$size[14]{$u{Update for 16.11.23:}
+  * added option to highlight broken items (UI -> Highlight broken items, defaults to ON)
+  * fixed hitbox size on growing trees/bushes
+ 
+$size[14]{$u{Update for 15.11.23:}
+  * merged loftar's changes
+  * merged pull request with FR translation from Fr-Dae
+ 
+$size[14]{$u{Update for 14.11.23:}
+  * made Credo description show which parts of the bonus you already got
+  * added option to show initiative and openings over gobs during combat (Combat -> Show combat info)
+  * do not include armor from broken items in the equipment bonuses 
+  * added option to show decals on top of cupboards instead of on the door (Display -> Cupboard decals on top)
+  * added option to pickup decals from containers only when CTRL or SHIFT is held (General -> Container decal pickup protection)
+  * added option to improve weapon damage tooltip (UI -> Improve weapon damage tooltip)
+ 
+$size[14]{$u{Update for 13.11.23:}
+  * added option to flatten terrain (Display -> Make terrain flat)
+  * added option to darken deep ocean tiles (Display -> Darken deep ocean tiles)
+  * display action cooldown numerically during combat
+ 
+$size[14]{$u{Update for 12.11.23:}
+  * fixed filtering by attribute not working on gilding
+  * improved auto picker responsiveness
+  * added moles and lobsters to auto pickup list by making it use SHIFT+RClick to pickup items instead of RClick and waiting for menu
+  * fixed crash when trying to move resizable window (like Map) in Pretty theme
+  * fixed quick action/craft/build windows close on attempt to drag them
+ 
+$size[14]{$u{Update for 11.11.23:}
+  * added arrows to auto pickup list
+  * List inventory: allow right-clicking items onto items in the list
+  * made item auto drop work with stacks
+  * fixed window resizing not working on Slim UI theme
+  * fixed crash on tracking some markers
+ 
+$size[14]{$u{Update for 10.11.23:}
+  * added option to disable transition between tiles, so they all look like squares (Display -> Disable transition between tiles)
+  * added option to allow container windows to spread (UI -> Enable container window spreading) instead of stacking in same place on open
+  * fixed a crash on login to account without created characters
+ 
+$size[14]{$u{Update for 09.11.23:}
+  * added separate option to highlight finished objects (like drying racks), instead of relying on object info toggle
+  * added progress coloring for tanning tubs
+  * drying racks and tanning tubs empty highlight is governed by Display container fullness option
+  * added bay shrimp to auto pickup list
+  * fixed highlight of stacks with matching items
+  * fixed force hardware cursor option
+ 
+$size[14]{$u{Update for 08.11.23:}
+  * merged loftar's code
+  * List inventory: display mode now switched by clicking on label, not by pressing ALT
+  * added missing ores/rocks/pavings to tile highlight and icon group lists
+  * removed broken flat cupboard option
+  * added option to scale cupboards vertically
+  * added option to scale palisades and brick walls vertically
+  * fixed gilding window not working
+  * added hotkey to interact with the closest gate. ALT+W by default, can be customized in Options->Shortcut settings.
+  * fixed craft window not adding tabs for recipes opened through ingredient lookup
+  * fixed mine support radius not toggled by ALT+R
+  * added squirrel cache to container list, so they can be colored by fullness
+  * added full squirrel cache to radar
+ 
 $size[14]{$u{Update for 25.03.23:}
   * merged loftar's code
  

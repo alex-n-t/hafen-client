@@ -30,6 +30,7 @@ import haven.Equipory.SLOTS;
 import haven.rx.BuffToggles;
 import haven.rx.Reactor;
 import integrations.mapv4.MappingClient;
+import me.ender.QuestHelper;
 import me.ender.minimap.*;
 import me.ender.timer.Timer;
 import me.vault.TileFactRecorder;
@@ -43,14 +44,13 @@ import java.awt.image.WritableRaster;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import static haven.Action.*;
 import static haven.Inventory.*;
 import static haven.ItemFilter.*;
-import static haven.KeyBinder.*;
 
 public class GameUI extends ConsoleHost implements Console.Directory, UI.MessageWidget {
     public static final Text.Foundry msgfoundry = RootWidget.msgfoundry;
     private static final int blpw = UI.scale(142), brpw = UI.scale(142);
+    public final List<Widget> EXT_INVENTORIES = new LinkedList<>();
     public final String chrid, genus;
     public final long plid;
     private final Hidepanel ulpanel, umpanel, urpanel, blpanel, mapmenupanel, brpanel, menupanel;
@@ -58,6 +58,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     public MenuGrid menu;
     public MapView map;
     public PathQueue pathQueue;
+    public QuestHelper questHelper;
     public GobIcon.Settings iconconf;
     public MiniMap mmap;
     public Fightview fv;
@@ -272,11 +273,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	this.genus = genus;
 	setcanfocus(true);
 	setfocusctl(true);
-	chat = add(new ChatUI(0, 0));
-	if(Utils.getprefb("chatvis", true)) {
-	    chat.hresize(chat.savedh);
-	    chat.show();
-	}
+	chat = add(new ChatUI());
+	chat.show(Utils.getprefb("chatvis", true));
 	beltwdg.raise();
 	blpanel = add(new Hidepanel("gui-bl", null, new Coord(-1,  1)) {
 		public void move(double a) {
@@ -323,6 +321,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	opts.hide();
 	zerg = add(new Zergwnd(), Utils.getprefc("wndc-zerg", UI.scale(new Coord(187, 50))));
 	zerg.hide();
+	questHelper = add(new QuestHelper(), UI.scale(new Coord(187, 50)));
+	questHelper.hide();
 	placemmap();
     }
 
@@ -539,12 +539,12 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     public void toggleCraftList() {
 	if(craftlist == null){
 	    craftlist = add(new ActWindow("Craft…", "paginae/craft/.+"));
-	    craftlist.addtwdg(craftlist.add(new IButton("gfx/hud/btn-help", "","-d","-h"){
+	    craftlist.addtwdg(new IButton("gfx/hud/btn-help", "","-d","-h"){
 		@Override
 		public void click() {
 		    ItemFilter.showHelp(ui, HELP_SIMPLE, HELP_CURIO, HELP_FEP, HELP_ARMOR, HELP_SYMBEL, HELP_ATTR, HELP_INPUTS);
 		}
-	    }));
+	    });
 	} else if(craftlist.visible) {
 	    craftlist.hide();
 	} else {
@@ -555,12 +555,12 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     public void toggleBuildList() {
 	if(buildlist == null){
 	    buildlist = add(new ActWindow("Build…", "paginae/bld/.+"));
-	    buildlist.addtwdg(buildlist.add(new IButton("gfx/hud/btn-help", "","-d","-h"){
+	    buildlist.addtwdg(new IButton("gfx/hud/btn-help", "","-d","-h"){
 		@Override
 		public void click() {
 		    ItemFilter.showHelp(ui, HELP_SIMPLE, HELP_INPUTS);
 		}
-	    }));
+	    });
 	} else if(buildlist.visible) {
 	    buildlist.hide();
 	} else {
@@ -582,14 +582,14 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	if(chat.visible() && !chat.hasfocus) {
 	    setfocus(chat);
 	} else {
-	    if(chat.targeth == 0) {
-		chat.sresize(chat.savedh);
-		setfocus(chat);
+	    if(chat.targetshow) {
+		chat.sshow(false);
 	    } else {
-		chat.sresize(0);
+		chat.sshow(true);
+		setfocus(chat);
 	    }
 	}
-	Utils.setprefb("chatvis", chat.targeth != 0);
+	Utils.setprefb("chatvis", chat.targetshow);
     }
 
     public void toggleCraftDB() {
@@ -848,6 +848,10 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	handHidden = !handHidden;
     }
     
+    public void toggleQuestHelper() {
+	questHelper.toggle();
+    }
+    
     public DraggedItem hand() {
 	Collection<DraggedItem> collection;
 	if(handHidden) {
@@ -984,7 +988,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	    Utils.setprefc("wndc-zerg", zerg.c);
 	if(mapfile != null) {
 	    Utils.setprefc("wndc-map", mapfile.c);
-	    Utils.setprefc("wndsz-map", mapfile.asz);
+	    Utils.setprefc("wndsz-map", mapfile.csz());
 	}
     }
 
@@ -1285,13 +1289,13 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	    }
 	}
 	if(!chat.visible()) {
-	    chat.drawsmall(g, new Coord(blpw + UI.scale(10), by), UI.scale(50));
+	    chat.drawsmall(g, new Coord(blpw + UI.scale(10), by), UI.scale(100));
 	}
     }
     
-    private String iconconfname() {
+    private String iconconfname(String ver) {
 	StringBuilder buf = new StringBuilder();
-	buf.append("data/mm-icons");
+	buf.append("data/mm-icons" + ver);
 	if(genus != null)
 	    buf.append("/" + genus);
 	if(ui.sess != null)
@@ -1303,22 +1307,29 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	if(ResCache.global == null)
 	    return(new GobIcon.Settings());
 	try {
-	    try(StreamMessage fp = new StreamMessage(ResCache.global.fetch(iconconfname()))) {
+	    try(StreamMessage fp = new StreamMessage(ResCache.global.fetch(iconconfname("-2")))) {
 		return(GobIcon.Settings.load(fp, ui));
 	    }
 	} catch(java.io.FileNotFoundException e) {
-	    return(new GobIcon.Settings());
 	} catch(Exception e) {
 	    new Warning(e, "failed to load icon-conf").issue();
-	    return(new GobIcon.Settings());
 	}
+	try {
+	    try(StreamMessage fp = new StreamMessage(ResCache.global.fetch(iconconfname("")))) {
+		return(GobIcon.Settings.loadold(fp));
+	    }
+	} catch(java.io.FileNotFoundException e) {
+	} catch(Exception e) {
+	    new Warning(e, "failed to load old icon-conf").issue();
+	}
+	return(new GobIcon.Settings());
     }
 
     public void saveiconconf() {
 	if(ResCache.global == null)
 	    return;
 	try {
-	    try(StreamMessage fp = new StreamMessage(ResCache.global.store(iconconfname()))) {
+	    try(StreamMessage fp = new StreamMessage(ResCache.global.store(iconconfname("-2")))) {
 		iconconf.save(fp);
 	    }
 	} catch(Exception e) {
@@ -1338,7 +1349,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 
 	public boolean clickmarker(DisplayMarker mark, Location loc, int button, boolean press) {
 	    if(mark.m instanceof SMarker) {
-		Gob gob = MarkerID.find(ui.sess.glob.oc, ((SMarker)mark.m).oid);
+		Gob gob = MarkerID.find(ui.sess.glob.oc, (SMarker)mark.m);
 		if(gob != null)
 		    mvclick(map, null, loc, gob, button);
 	    }
@@ -1808,24 +1819,22 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     }
 
     private double lastmsgsfx = 0;
+    private final Map<String, Double> lastsfx = new HashMap<>();
     public void msg(String msg) {
 	msg(msg, MsgType.INFO);
-	double now = Utils.rtime();
-	if(now - lastmsgsfx > 0.1) {
-	    ui.sfx(RootWidget.msgsfx);
-	    lastmsgsfx = now;
-	}
     }
     
     public void msg(String msg, MsgType type) {
 	msg(msg, type.color, type.logcol);
-	if(type.sfx != null) {
-	    Audio.play(type.sfx);
+	double now = Utils.rtime();
+	if(type.sfx != null && now - lastsfx.getOrDefault(type.sfx.name, 0d) > 0.1) {
+	    ui.sfx(type.sfx);
+	    lastsfx.put(type.sfx.name, now);
 	}
     }
 
     public enum MsgType {
-	INFO(Color.WHITE), GOOD(Color.GREEN), BAD(Color.RED),
+	INFO(Color.WHITE, RootWidget.msgsfx), GOOD(Color.GREEN), BAD(Color.RED),
 	ERROR(new Color(192, 0, 0), new Color(255, 0, 0), "sfx/error");
 
 	public final Color color, logcol;
@@ -1839,6 +1848,12 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	    this.logcol = logcol;
 	    this.color = color;
 	    this.sfx = (sfx != null) ? Resource.local().loadwait(sfx) : null;
+	}
+	
+	MsgType(Color color, Resource sfx) {
+	    this.logcol = color;
+	    this.color = color;
+	    this.sfx = sfx;
 	}
     }
     
@@ -1875,6 +1890,20 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     public boolean isTracked(Marker marker) {
 	return trackedMarkers.containsKey(marker);
     }
+    
+    public Optional<MiniMap.IPointer> findPointer(String name) {
+	final long curSeg = mapfile.playerSegmentId();
+	return ui.gui.children().stream()
+	    .filter(widget -> widget instanceof MiniMap.IPointer)
+	    .map(widget -> (MiniMap.IPointer) widget)
+	    .filter(p -> p.tc(curSeg) != null)
+	    .filter(p -> Objects.equals(name, p.name()))
+	    .findFirst();
+    }
+    
+    public boolean isInCombat() {
+	return fv != null && !fv.lsrel.isEmpty();
+    }
 
     public void act(String... args) {
 	wdgmsg("act", (Object[])args);
@@ -1895,6 +1924,24 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	    }
 	}
 	wdgmsg("act", al);
+    }
+    
+    public void addInventory(Widget wdg) {
+	WindowX wnd = wdg.getparent(WindowX.class);
+	if(wnd == null) {return;}
+	String name = wnd.caption().toLowerCase();
+	if(name.contains("inventory")
+	    || name.contains("character sheet")
+	    || name.contains("belt")
+	    || name.contains("equipment")
+	    || name.contains("study")) {
+	    return;
+	}
+	EXT_INVENTORIES.add(wdg);
+    }
+    
+    public void remInventory(Widget wdg) {
+	EXT_INVENTORIES.remove(wdg);
     }
 
     public class FKeyBelt extends Belt implements DTarget, DropTarget {
@@ -1962,8 +2009,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	    adda(new IButton("gfx/hud/hb-btn-chat", "", "-d", "-h") {
 		    Tex glow;
 		    {
-//			this.tooltip = RichText.render("Chat ($col[255,255,0]{Ctrl+C})", 0);
-			glow = new TexI(PUtils.rasterimg(PUtils.blurmask(up.getRaster(), 2, 2, Color.WHITE)));
+			this.tooltip = RichText.render("Chat ($col[255,255,0]{Ctrl+C})", 0);
+			glow = new TexI(PUtils.rasterimg(PUtils.blurmask(up.getRaster(), UI.scale(2), UI.scale(2), Color.WHITE)));
 		    }
 
 		    public void click() {
@@ -1987,9 +2034,9 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 			super.draw(g);
 			Color urg = chat.urgcols[chat.urgency];
 			if(urg != null) {
-			    GOut g2 = g.reclipl(new Coord(-2, -2), g.sz().add(4, 4));
+			    GOut g2 = g.reclipl2(UI.scale(-4, -4), g.sz().add(UI.scale(4, 4)));
 			    g2.chcolor(urg.getRed(), urg.getGreen(), urg.getBlue(), 128);
-			    g2.image(glow, Coord.z, UI.scale(glow.sz()));
+			    g2.image(glow, Coord.z);
 			}
 		    }
 		}, sz, 1, 1);

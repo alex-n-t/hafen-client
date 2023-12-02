@@ -32,6 +32,7 @@ import java.awt.image.BufferedImage;
 public interface MapSource {
     public int gettile(Coord tc);
     public double getfz(Coord tc);
+    default public double getfz2(Coord tc) {return getfz(tc);}
     public Tileset tileset(int t);
     public Tiler tiler(int t);
 

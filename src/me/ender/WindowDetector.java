@@ -5,9 +5,14 @@ import haven.rx.CharterBook;
 import haven.rx.Reactor;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class WindowDetector {
+    public static final String WND_STUDY = "Study";
+    public static final String WND_CHARACTER_SHEET = "Character Sheet";
+    public static final String WND_SMELTER = "Ore Smelter";
+    
     private static final Object lock = new Object();
     private static final Set<Window> toDetect = new HashSet<>();
     private static final Set<Window> detected = new HashSet<>();
@@ -76,11 +81,33 @@ public class WindowDetector {
     
     public static Widget newWindow(Coord sz, String title, boolean lg) {
 	if(isPortal(title)) {
-	    return new CharterBook(sz, title, lg, Coord.z, Coord.z);
+	    return new CharterBook(sz, title, lg);
 	} else if(isProspecting(title)) {
 	    return new ProspectingWnd(sz, title);
 	}
 	return (new WindowX(sz, title, lg));
+    }
+    
+    public static String getWindowName(Widget wdg) {
+	Window wnd;
+	if(wdg == null) {return null;}
+	if(wdg instanceof Window) {
+	    wnd = (Window) wdg;
+	} else {
+	    wnd = wdg.getparent(Window.class);
+	}
+	return wnd == null ? null : wnd.caption();
+    }
+    
+    public static boolean isWindowType(Widget wdg, String... types) {
+	if(types == null || types.length == 0) {return false;}
+	String wnd = getWindowName(wdg);
+	if(wnd == null) {return false;}
+	for (String type : types) {
+	    if(Objects.equals(type, wnd)) {return true;}
+	}
+	
+	return false;
     }
     
     public static boolean isPortal(String title) {

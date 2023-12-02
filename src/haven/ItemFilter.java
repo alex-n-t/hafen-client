@@ -330,34 +330,16 @@ public class ItemFilter {
 
 	@Override
 	protected boolean match(ItemInfo item) {
-	    if(item instanceof ItemInfo.Contents) {
-		String name = this.name(((ItemInfo.Contents) item).sub);
-		if(name != null) {
-		    name = name.toLowerCase();
-		    return name.contains(text) && test(count(name));
-		}
-	    }
-	    return false;
+	    ItemInfo.Contents.Content content = ItemInfo.getContent(item);
+	    if(content.empty()) {return false;}
+	    return content.name.toLowerCase().contains(text) && test(content.count);
 	}
 
 	@Override
 	protected Sign getDefaultSign() {
 	    return Sign.GREQUAL;
 	}
-
-	private float count(String txt) {
-	    float n = 0;
-	    if(txt != null) {
-		try {
-		    Matcher matcher = float_p.matcher(txt);
-		    if(matcher.find()) {
-			n = Float.parseFloat(matcher.group(1));
-		    }
-		} catch (Exception ignored) {}
-	    }
-	    return n;
-	}
-
+	
 	private String name(List<ItemInfo> sub) {
 	    ItemInfo.Name name = ItemInfo.find(ItemInfo.Name.class, sub);
 	    return name != null ? name.str.text : null;

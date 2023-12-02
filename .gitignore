@@ -2,7 +2,9 @@
 /bin
 /local-config.properties
 /local-boot.properties
+/build.properties
 *~
 out
 /resources/compiled
 /resources/classes
+/resources/custom/

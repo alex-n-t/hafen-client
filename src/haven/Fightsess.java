@@ -276,6 +276,7 @@ public class Fightsess extends Widget {
 		    prev = next;
 		}
 		g.chcolor();
+		FastText.aprintf(g, cdc, 0.5, 0.5, "%.1f", fv.atkct - now);
 	    }
 //	    g.image(cdframe, altui ? new Coord(x0, y0).sub(cdframe.sz().div(2)) : cdc.sub(cdframe.sz().div(2)));
 	}

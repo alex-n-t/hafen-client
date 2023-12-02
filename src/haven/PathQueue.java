@@ -4,6 +4,7 @@ import auto.Bot;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import static haven.MCache.*;
 import static haven.OCache.*;
@@ -173,9 +174,9 @@ public class PathQueue {
 	boolean passenger = false;
 	if(moving instanceof Following) {
 	    Following follow = (Following) moving;
-	    Gob vehicle = follow.tgt();
-	    if(vehicle != null) {
-		String id = vehicle.resid();
+	    Optional<String> vehicle = Optional.ofNullable(follow.tgt()).map(Gob::resid);
+	    if(vehicle.isPresent()) {
+		String id = vehicle.get();
 		String pos = follow.xfname;
 		if(id.contains("/vehicle/snekkja")) {
 		    passenger = !pos.equals("m0");

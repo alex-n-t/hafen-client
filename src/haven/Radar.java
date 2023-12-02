@@ -31,7 +31,7 @@ public class Radar {
     public static GobIcon getIcon(Gob gob) {
 	String resname = gob2icon.get(gob.resid());
 	if(resname != null) {
-	    return new GobIcon(gob, Resource.remote().load(resname));
+	    return new GobIcon(gob, Resource.remote().load(resname), true);
 	}
 	return null;
     }
@@ -63,6 +63,23 @@ public class Radar {
 	    } catch (Exception ignored) {}
 	}
 	return new LinkedList<>();
+    }
+    
+    enum Symbols {
+	$circle("gfx/hud/mmap/symbols/circle"),
+	$diamond("gfx/hud/mmap/symbols/diamond"),
+	$dot("gfx/hud/mmap/symbols/dot"),
+	$down("gfx/hud/mmap/symbols/down"),
+	$pentagon("gfx/hud/mmap/symbols/pentagon"),
+	$square("gfx/hud/mmap/symbols/square"),
+	$up("gfx/hud/mmap/symbols/up");
+
+	public final Tex tex;
+	public static final Symbols DEFAULT = $circle;
+
+	Symbols(String res) {
+	    tex = Resource.loadtex(res);
+	}
     }
     
     private static class RadarItemVO {

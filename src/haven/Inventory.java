@@ -98,9 +98,13 @@ public class Inventory extends Widget implements DTarget {
 	int mo = 0;
 	for(c.y = 0; c.y < isz.y; c.y++) {
 	    for(c.x = 0; c.x < isz.x; c.x++) {
-		if((sqmask != null) && sqmask[mo++])
-		    continue;
-		g.image(invsq, c.mul(sqsz));
+		if((sqmask != null) && sqmask[mo++]) {
+		    g.chcolor(64, 64, 64, 255);
+		    g.image(invsq, c.mul(sqsz));
+		    g.chcolor();
+		} else {
+		    g.image(invsq, c.mul(sqsz));
+		}
 	    }
 	}
 	super.draw(g);
@@ -230,7 +234,7 @@ public class Inventory extends Widget implements DTarget {
 	    if(wdg.visible && wdg instanceof WItem) {
 		WItem wItem = (WItem) wdg;
 		GItem child = wItem.item;
-		if(item.matches == child.matches && isSame(name, spr, child)) {
+		if(item.matches() == child.matches() && isSame(name, spr, child)) {
 		    items.add(wItem);
 		}
 	    }
@@ -323,11 +327,11 @@ public class Inventory extends Widget implements DTarget {
 	    canDropItems = true;
 	    dropsCallback = this::doDrops;
 	    ItemAutoDrop.addCallback(dropsCallback);
-	    wnd.addtwdg(wnd.add(new ICheckBox("gfx/hud/btn-adrop", "", "-d", "-h")
+	    wnd.addtwdg(new ICheckBox("gfx/hud/btn-adrop", "", "-d", "-h")
 		.changed(this::doEnableDrops)
 		.rclick(this::showDropCFG)
 		.settip("Left-click to toggle item dropping\nRight-click to open settings", true)
-	    ));
+	    );
 	}
     }
     public void itemsChanged() {

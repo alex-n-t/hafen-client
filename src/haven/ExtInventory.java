@@ -23,14 +23,13 @@ public class ExtInventory extends Widget {
     private static final String CFG_GROUP = "ext.group";
     private static final String CFG_SHOW = "ext.show";
     private static final String CFG_INV = "ext.inv";
-    private static final String[] TYPES = new String[]{"Quality", "Name", "Info"};
-    //TODO: remove name as it is not really needed
-    private static final List<Widget> INVENTORIES = new LinkedList<>();
+    private static int curType = 0;
     private static final Set<String> EXCLUDES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("Steelbox", "Pouch", "Frame", "Tub", "Fireplace", "Rack", "Pane mold", "Table", "Purse")));
     public final Inventory inv;
     private final ItemGroupList list;
     private final Widget extension;
-    private final Label space, type;
+    private final Label space;
+    private final TextButton type;
     private SortedMap<ItemType, List<WItem>> groups;
     private final Dropbox<Grouping> grouping;
     private boolean disabled = false;
@@ -50,9 +49,10 @@ public class ExtInventory extends Widget {
 	chb_show
 	    .rclick(this::toggleInventory)
 	    .changed(this::setVisibility)
-	    .settip("LClick to toggle extra info\nRClick to hide inventory when info is visible\nTapping ALT toggles between displaying quality, name and info", true);
+	    .settip("LClick to toggle extra info\nRClick to hide inventory when info is visible", true);
     
 	Composer composer = new Composer(extension).hmrgn(margin).vmrgn(margin);
+	composer.add(0);
 	grouping = new Dropbox<Grouping>(UI.scale(75), 5, UI.scale(16)) {
 	    {bgcolor = new Color(16, 16, 16, 128);}
 	    
@@ -85,7 +85,7 @@ public class ExtInventory extends Widget {
 	    }
 	};
 	space = new Label("");
-	type = new Label(TYPES[0]);
+	type = new TextButton(DisplayType.values()[curType].name(), Coord.of(70, 0), this::changeDisplayType);
 	grouping.sel = Grouping.NONE;
 	composer.addr(
 	    new Label("Group:"), 
@@ -99,7 +99,7 @@ public class ExtInventory extends Widget {
 	type.c.x = listw - type.sz.x - margin;
 	extension.pack();
 	composer = new Composer(this).hmrgn(margin);
-	composer.addr(inv, extension);
+	composer.addr2(inv, extension);
 	pack();
     }
     
@@ -126,7 +126,7 @@ public class ExtInventory extends Widget {
     
     @Override
     public void unlink() {
-	remInventory(this);
+	ui.gui.remInventory(this);
 	if(chb_show.parent != null) {
 	    chb_show.unlink();
 	}
@@ -138,13 +138,11 @@ public class ExtInventory extends Widget {
     
     @Override
     protected void added() {
-	addInventory(this);
+	ui.gui.addInventory(this);
 	wnd = null;//just in case
 	Window tmp;
-	//do not try to add if we are in small floaty contents widget 
-	if(!(parent instanceof GItem.Contents)
-	    //or in the contents window
-	    && !(parent instanceof GItem.ContentsWindow)
+	//do not try to add if we are in the contents window
+	if(!(parent instanceof GItem.ContentsWindow)
 	    //or in the item
 	    && !(parent instanceof GItem)
 	    //or if we have no window parent, 
@@ -158,7 +156,7 @@ public class ExtInventory extends Widget {
 	    showInv = wnd.cfg.getValue(CFG_INV, true);
 	    if(!disabled) {
 		chb_show.a = vis;
-		wnd.addtwdg(wnd.add(chb_show));
+		wnd.addtwdg(chb_show);
 		grouping.sel = Grouping.valueOf(wnd.cfg.getValue(CFG_GROUP, Grouping.NONE.name()));
 		needUpdate = true;
 	    }
@@ -200,7 +198,7 @@ public class ExtInventory extends Widget {
 	if(inv.visible && parent != null) {
 	    szx = inv.sz.x;
 	    for (Widget w : wnd.children()) {
-		if(w != this && (wnd != parent || w != wnd.cbtn && !wnd.twdgs.contains(w))) {
+		if(w != this && (wnd != parent || w != wnd.deco)) {
 		    Position p = w.pos("br");
 		    szx = Math.max(szx, p.x);
 		    szy = Math.max(szy, p.y);
@@ -291,13 +289,20 @@ public class ExtInventory extends Widget {
 	}
 	if(extension.visible) {
 	    updateSpace();
-	    String t = TYPES[(int) (ui.root.ALTs() % TYPES.length)];
-	    if(!t.equals(type.texts)) {
-		type.settext(t);
-		type.c.x = listw - type.sz.x - margin;
-	    }
+	    updateTypeText();
 	}
 	super.tick(dt);
+    }
+    
+    private void changeDisplayType(Integer btn) {
+	curType = (curType + (btn == 1 ? 1 : -1) + DisplayType.values().length) % DisplayType.values().length;
+	updateTypeText();
+    }
+    
+    private void updateTypeText() {
+	String t = DisplayType.values()[curType].name();
+	type.setText(t);
+	type.c.x = listw - type.sz.x - margin;
     }
     
     private void processItem(SortedMap<ItemType, List<WItem>> groups, WItem witem) {
@@ -362,7 +367,7 @@ public class ExtInventory extends Widget {
 	    this.name = name(w);
 	    this.resname = resname(w);
 	    this.quality = quality;
-	    this.matches = w.item.matches;
+	    this.matches = w.item.matches();
 	    this.color = w.olcol.get();
 	    this.mask = color == null ? null : new ColorMask(color);
 	    loading = name.startsWith("???");
@@ -426,16 +431,16 @@ public class ExtInventory extends Widget {
 		quality = type.quality;
 	    }
 	    String quantity = Utils.f2s(items.stream().map(wItem -> wItem.quantity.get()).reduce(0f, Float::sum));
-	    this.text[1] = fnd.render(String.format("×%s %s", quantity, type.name)).tex();
+	    this.text[DisplayType.Name.ordinal()] = fnd.render(String.format("×%s %s", quantity, type.name)).tex();
 	    if(!Double.isNaN(quality)) {
 		String avg = type.quality != null ? "" : "~";
 		String sign = (g == Grouping.NONE || g == Grouping.Q) ? "" : "+";
 		String q = String.format("%sq%s%s", avg, Utils.f2s(quality, 1), sign);
-		this.text[0] = fnd.render(String.format("×%s %s", quantity, q)).tex();
+		this.text[DisplayType.Quality.ordinal()] = fnd.render(String.format("×%s %s", quantity, q)).tex();
 	    } else {
-		this.text[0] = text[1];
+		this.text[DisplayType.Quality.ordinal()] = text[DisplayType.Name.ordinal()];
 	    }
-	    this.text[2] = info(sample, quantity, text[1]);
+	    this.text[DisplayType.Info.ordinal()] = info(sample, quantity, text[DisplayType.Name.ordinal()]);
 	    flowerSubscription = Reactor.FLOWER_CHOICE.subscribe(this::flowerChoice);
 	}
     
@@ -486,7 +491,7 @@ public class ExtInventory extends Widget {
 		    }
 		}
 	    }
-	    int mode = (int) (ui.root.ALTs() % text.length);
+	    int mode = curType % text.length;
 	    if(icon != null) {
 		double meter = sample.meter();
 		if(meter > 0) {
@@ -597,12 +602,26 @@ public class ExtInventory extends Widget {
 	}
     }
     
-    private class ItemGroupList extends Listbox<ItemsGroup> {
+    private class ItemGroupList extends Listbox<ItemsGroup> implements DTarget2{
 	private List<ItemsGroup> groups = Collections.emptyList();
 	private boolean needsUpdate = false;
 
 	public ItemGroupList(int w, int h, int itemh) {
 	    super(w, h, itemh);
+	}
+	
+	@Override
+	public boolean drop(WItem target, Coord cc, Coord ul) {
+	    return false;
+	}
+	
+	@Override
+	public boolean iteminteract(WItem target, Coord cc, Coord ul) {
+	    ItemsGroup item = itemat(cc);
+	    if(item == null) {return false;}
+	    if(item.items.isEmpty()) {return false;}
+	    item.items.get(0).iteminteract(target, cc, ul);
+	    return false;
 	}
 
 	@Override
@@ -670,27 +689,6 @@ public class ExtInventory extends Widget {
 	    return null;
 	}
     }
-    public static void addInventory(Widget ext) {
-	WindowX wnd = ext.getparent(WindowX.class);
-	if(wnd == null) {return;}
-	String name = wnd.cfgName(wnd.caption()).toLowerCase();
-	if(name.contains("inventory")
-	    || name.contains("character sheet")
-	    || name.contains("equipment")
-	    || name.contains("study")) {
-	    return;
-	}
-	INVENTORIES.add(ext);
-    }
-    
-    public static void remInventory(Widget ext) {
-	for (int i = 0; i < INVENTORIES.size(); i++) {
-	    if(INVENTORIES.get(i) == ext) {
-		INVENTORIES.remove(i);
-		return;
-	    }
-	}
-    }
     
     //TODO: should we sort inventories based on z-order of windows?
     private Object[] getTransferTargets() {
@@ -698,17 +696,22 @@ public class ExtInventory extends Widget {
 	if(inv != ui.gui.maininv) {
 	    return null;
 	}
-	if(INVENTORIES.isEmpty()) {
+	List<Widget> inventories = ui.gui.EXT_INVENTORIES;
+	if(inventories.isEmpty()) {
 	    return null;
 	}
-	Object[] args = new Object[2 + INVENTORIES.size()];
+	Object[] args = new Object[2 + inventories.size()];
 	int i = 0;
 	args[i++] = 0; //flags
 	args[i++] = 1; //how many to transfer
-	for (Widget wdg : INVENTORIES) {
+	for (Widget wdg : inventories) {
 	    args[i++] = wdg.wdgid();
 	}
 	return args;
+    }
+    
+    enum DisplayType {
+	Quality, Name, Info
     }
     
     enum Grouping {

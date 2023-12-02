@@ -30,6 +30,8 @@ package haven;
 import java.util.HashSet;
 import java.util.LinkedList;
 import haven.render.*;
+import me.ender.GobInfoOpts;
+
 import java.awt.event.KeyEvent;
 import java.util.Set;
 
@@ -153,7 +155,7 @@ public class OptWnd extends WindowX {
 		    Label dpy = new Label.Untranslated("");
 		    final int steps = 4;
 		    addhlp(prev.pos("bl").adds(0, 2), UI.scale(5),
-			   prev = new HSlider(UI.scale(160), -2 * steps, 2 * steps, (int)Math.round(steps * Math.log(prefs.rscale.val) / Math.log(2.0f))) {
+			   prev = new HSlider(UI.scale(160), -2 * steps, 1 * steps, (int)Math.round(steps * Math.log(prefs.rscale.val) / Math.log(2.0f))) {
 			       protected void added() {
 				   dpy();
 			       }
@@ -280,15 +282,17 @@ public class OptWnd extends WindowX {
 		prev = add(new Label("Light-source limit"), prev.pos("bl").adds(0, 5).x(0));
 		{
 		    Label dpy = new Label("");
-		    int val = prefs.maxlights.val;
+		    int val = prefs.maxlights.val, max = 32;
 		    if(val == 0) {    /* XXX: This is just ugly. */
 			if(prefs.lightmode.val == GSettings.LightMode.ZONED)
 			    val = Lighting.LightGrid.defmax;
 			else
 			    val = Lighting.SimpleLights.defmax;
 		    }
+		    if(prefs.lightmode.val == GSettings.LightMode.SIMPLE)
+			max = 4;
 		    addhlp(prev.pos("bl").adds(0, 2), UI.scale(5),
-			   prev = new HSlider(UI.scale(160), 1, 32, val / 4) {
+			   prev = new HSlider(UI.scale(160), 1, max, val / 4) {
 			       protected void added() {
 				   dpy();
 			       }
@@ -447,6 +451,25 @@ public class OptWnd extends WindowX {
 			ui.audio.amb.setvolume(val / 1000.0);
 		    }
 		}, prev.pos("bl").adds(0, 2));
+	    prev = add(new Label("Audio latency"), prev.pos("bl").adds(0, 15));
+	    {
+		Label dpy = new Label("");
+		addhlp(prev.pos("bl").adds(0, 2), UI.scale(5),
+		       prev = new HSlider(UI.scale(160), 128, Math.round(Audio.fmt.getSampleRate() / 4), Audio.bufsize()) {
+			       protected void added() {
+				   dpy();
+			       }
+			       void dpy() {
+				   dpy.settext(Math.round((this.val * 1000) / Audio.fmt.getSampleRate()) + " ms");
+			       }
+			       public void changed() {
+				   Audio.bufsize(val, true);
+				   dpy();
+			       }
+			   }, dpy);
+		prev.settip("Sets the size of the audio buffer. Smaller sizes are better, " +
+			    "but larger sizes can fix issues with broken sound.", true);
+	    }
 	    add(new PButton(UI.scale(200), "Back", 27, back), prev.pos("bl").adds(0, 30));
 	    pack();
 	}
@@ -932,6 +955,9 @@ public class OptWnd extends WindowX {
     
 	y += STEP;
 	panel.add(new CFGBox("Item drop protection", CFG.ITEM_DROP_PROTECTION, "Drop items on cursor only when CTRL is pressed"), new Coord(x, y));
+	
+	y += STEP;
+	panel.add(new CFGBox("Container decal pickup protection", CFG.DECAL_SHIFT_PICKUP, "Require holding CTRL or SHIFT to pickup decals placed on containers."), new Coord(x, y));
     
 	y += STEP;
 	panel.add(new CFGBox("Enable path queueing", CFG.QUEUE_PATHS, "ALT+LClick will queue movement"), x, y);
@@ -1057,6 +1083,18 @@ public class OptWnd extends WindowX {
 	panel.add(new CFGBox("Simple crops", CFG.SIMPLE_CROPS, "Requires area reload"), x, y);
 	
 	y += STEP;
+	panel.add(new CFGBox("Don't hide trees that are visible on radar", CFG.SKIP_HIDING_RADAR_TREES), x, y);
+	
+	y += STEP;
+	panel.add(new CFGBox("Disable transition between tiles", CFG.NO_TILE_TRANSITION), x, y);
+    
+	y += STEP;
+	panel.add(new CFGBox("Make terrain flat", CFG.FLAT_TERRAIN), x, y);
+	
+	y += STEP;
+	panel.add(new CFGBox("Darken deep ocean tiles", CFG.COLORIZE_DEEP_WATER), x, y);
+	
+	y += STEP;
 	panel.add(new CFGBox("Always show kin names", CFG.DISPLAY_KINNAMES), x, y);
 	
 	y += STEP;
@@ -1066,17 +1104,28 @@ public class OptWnd extends WindowX {
 	panel.add(new CFGBox("Show task status messages", CFG.SHOW_BOT_MESSAGES, "Will log task (like auto-pickup or auto-drink) status to system log"), x, y);
 
 	y += STEP;
-	panel.add(new CFGBox("Show object info", CFG.DISPLAY_GOB_INFO, "Enables damage and crop/tree growth stage displaying", true), x, y);
+	tx = panel.add(new CFGBox("Show object info", CFG.DISPLAY_GOB_INFO, "Enables damage and crop/tree growth stage displaying", true), x, y).sz.x;
+	panel.add(new IButton("gfx/hud/opt", "", "-d", "-h") {
+	    @Override
+	    public void click() {
+		if(ui.gui != null) {
+		    GobInfoOpts.toggle(ui.gui);
+		} else {
+		    GobInfoOpts.toggle(ui.root);
+		}
+	    }
+	    
+	}, x + tx + UI.scale(10), y + UI.scale(1)).settip("Configure types of info that is shown");
     
 	y += STEP;
 	panel.add(new CFGBox("Highlight undiscovered trees", CFG.DISPLAY_DISCOVERY_EXP_INFO, "Colors trees / bushes of the types that didn't have seeds/fruit collected from them in the current play session", true), x, y);
 
 	y += STEP;
-	panel.add(new CFGBox("Flat cupboards (needs restart)", CFG.FLAT_CUPBOARDS, "Makes cupboards look like floor hatches", true), x, y);
-
-	y += STEP;
 	panel.add(new CFGBox("Display container fullness", CFG.SHOW_CONTAINER_FULLNESS, "Makes containers tint different colors when they are empty or full", true), x, y);
-    
+	
+	y += STEP;
+	panel.add(new CFGBox("Highlight finished objects", CFG.SHOW_PROGRESS_COLOR, "Highlights drying racks and tanning tubs green when they have only finished products inside", true), x, y);
+	
 	y += STEP;
 	tx = panel.add(new CFGBox("Draw paths", CFG.DISPLAY_GOB_PATHS, "Draws lines where objects are moving", true), x, y).sz.x;
 	panel.add(new IButton("gfx/hud/opt", "", "-d", "-h") {
@@ -1106,10 +1155,44 @@ public class OptWnd extends WindowX {
 	}, x, y);
  
 	my = Math.max(my, y);
-
+	
+	x += UI.scale(250);
+	y = START;
+	
+	y = addSlider(CFG.DISPLAY_SCALE_CUPBOARDS, "Cupboard scale", "Scale cupboard vertically, changes are applied on open/close of cupboard or zone reload.", panel, x, y, STEP);
+	
+	y += STEP;
+	y = addSlider(CFG.DISPLAY_SCALE_WALLS, "Wall scale", "Scale palisade and brick wall vertically, changes are applied on zone reload.", panel, x, y, STEP);
+	
+	y += STEP;
+	panel.add(new CFGBox("Cupboard decals on top", CFG.DISPLAY_DECALS_ON_TOP, "Show decals put on cupboard on its top instead of a door. (Requires zone reload or re-applying decal)", true), x, y);
+    
+	my = Math.max(my, y);
+	
 	panel.add(new PButton(UI.scale(200), "Back", 27, main), new Coord(0, my + UI.scale(35)));
 	panel.pack();
 	title.c.x = (panel.sz.x - title.sz.x) / 2;
+    }
+    
+    private int addSlider(CFG<Integer> cfg, String text, String tip, Panel panel, int x, int y, int STEP) {
+	final Label label = panel.add(new Label(text), x, y);
+	label.settip(tip);
+	
+	y += STEP;
+	panel.add(new HSlider(UI.scale(200), 15, 100, cfg.get()) {
+	    protected void attach(UI ui) {
+		super.attach(ui);
+		val = cfg.get();
+		label.settext(String.format("%s: %d%%", text, val));
+	    }
+	    
+	    public void changed() {
+		cfg.set(val);
+		label.settext(String.format("%s: %d%%", text, val));
+	    }
+	}, x, y).settip(tip);
+	
+	return y;
     }
     
     private void initUIPanel(Panel panel) {
@@ -1150,6 +1233,9 @@ public class OptWnd extends WindowX {
     
 	y += STEP;
 	panel.add(new CFGBox("Always show UI on start", CFG.DISABLE_UI_HIDING), x, y);
+	
+	y += STEP;
+	panel.add(new CFGBox("Enable container window spreading", CFG.UI_DISABLE_CONTAINER_POS, "If enabled container windows would be auto positioned next to other, if enabled then they will stack in same position."), x, y);
     
 	y += STEP;
 	panel.add(new CFGBox("Show F-key tool bar", CFG.SHOW_TOOLBELT_0), x, y);
@@ -1234,9 +1320,15 @@ public class OptWnd extends WindowX {
     
 	y += STEP;
 	panel.add(new CFGBox("Show item wear bar", CFG.SHOW_ITEM_WEAR_BAR), new Coord(x, y));
+	
+	y += STEP;
+	panel.add(new CFGBox("Highlight broken items", CFG.HIGHLIGHT_BROKEN_ITEMS, "Broken items will have red border"), new Coord(x, y));
     
 	y += STEP;
 	panel.add(new CFGBox("Show item armor", CFG.SHOW_ITEM_ARMOR), new Coord(x, y));
+	
+	y += STEP;
+	panel.add(new CFGBox("Improve weapon damage tooltip", CFG.IMPROVE_DAMAGE_TIP, "Make damage tooltip show base damage and damage based on its quality and your strength"), new Coord(x, y));
 	
 	my = Math.max(my, y);
     
@@ -1264,6 +1356,9 @@ public class OptWnd extends WindowX {
     
 	y += STEP;
 	panel.add(new CFGBox("Auto peace on combat start", CFG.COMBAT_AUTO_PEACE , "Automatically enter peaceful mode on combat start id enemy is aggressive - useful for taming"), x, y);
+	
+	y += STEP;
+	panel.add(new CFGBox("Show combat info", CFG.SHOW_COMBAT_INFO, "Will display initiative points and openings over gobs that you are fighting"), x, y);
     
 	y += STEP;
 	panel.add(new CFGBox("Show combat damage", CFG.SHOW_COMBAT_DMG), x, y);

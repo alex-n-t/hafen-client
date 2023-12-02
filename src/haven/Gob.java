@@ -32,6 +32,9 @@ import java.util.function.*;
 import haven.render.*;
 import haven.res.gfx.fx.msrad.MSRad;
 import integrations.mapv4.MappingClient;
+import me.ender.Reflect;
+import me.ender.ResName;
+import me.ender.gob.GobCombatInfo;
 import me.ender.minimap.AutoMarkers;
 import me.vault.DiscoveryRgstry;
 import me.vault.PlayerActivityInfo;
@@ -65,10 +68,11 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
     public Drawable drawable;
     public Moving moving;
     private Boolean isMe = null;
-    private final GeneralGobInfo info;
+    public final GeneralGobInfo info;
     private GobWarning warning = null;
-    public StatusUpdates status = new StatusUpdates();
+    private StatusUpdates status = new StatusUpdates();
     private final CustomColor customColor = new CustomColor();
+    private final GobCustomScale customScale = new GobCustomScale();
     private final Set<GobTag> tags = new HashSet<>();
     public boolean drivenByPlayer = false;
     public boolean mapProcessed = false;
@@ -168,21 +172,34 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    if(slots != null)
 		slots.remove(slot);
 	}
+	
+	public String name() {
+	    try {
+		if(res != null)
+		    return res.get().name;
+		else
+		    return "";
+	    } catch (Loading l) {
+		return "";
+	    }
+	}
     }
     
     private static class CustomColor implements SetupMod {
 	Pipe.Op op = null;
 	Color c = null;
-    
-	boolean color(Color c) {
-	    boolean changed = !Objects.equals(c, this.c);
+
+	void color(Color c) {
+	    if(Objects.equals(c, this.c)) {
+		return;
+	    }
+	    
 	    if(c == null) {
 		op = null;
 	    } else {
 		op = new MixColor(c);
 	    }
 	    this.c = c;
-	    return changed;
 	}
     
 	@Override
@@ -280,7 +297,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    for(int i = 0; i < no.length; i++) {
 		for(int o = 0; o < ro[i].length; o++) {
 		    Coord2d a = ro[i][o], b = ro[i][(o + 1) % ro[i].length];
-		    for(Coord2d c : new Coord2d.GridIsect(a, b, MCache.tilesz, false)) {
+		    for(Coord2d c : new Line2d.GridIsect(a, b, MCache.tilesz, false)) {
 			double z = map.getz(surf, c);
 			if(Float.isNaN(ret) || (z < ret))
 			    ret = (float)z;
@@ -299,6 +316,79 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 		this.ca = ra;
 	    }
 	    return(Coord3f.of((float)rc.x, (float)rc.y, this.z));
+	}
+    }
+
+    public static class LinePlace extends DefaultPlace {
+	public final double max, min;
+	public final Coord2d k;
+	private Coord3f c;
+	private Matrix4f r = Matrix4f.id;
+	private int seq = -1;
+	private Coord2d cc;
+	private double ca;
+
+	public LinePlace(MCache map, MCache.SurfaceID surf, Coord2d[][] points, Coord2d k) {
+	    super(map, surf);
+	    Line2d l = Line2d.from(Coord2d.z, k);
+	    double max = 0, min = 0;
+	    for(int i = 0; i < points.length; i++) {
+		for(int o = 0; o < points[i].length; o++) {
+		    int p = (o + 1) % points[i].length;
+		    Line2d edge = Line2d.twixt(points[i][o], points[i][p]);
+		    Coord2d t = l.cross(edge);
+		    if((t.y >= 0) && (t.y <= 1)) {
+			max = Math.max(t.x, max);
+			min = Math.min(t.x, min);
+		    }
+		}
+	    }
+	    if((max == 0) || (min == 0))
+		throw(new RuntimeException("illegal bounds for LinePlace"));
+	    this.k = k;
+	    this.max = max;
+	    this.min = min;
+	}
+
+	public LinePlace(MCache map, MCache.SurfaceID surf, Resource res, String id, Coord2d k) {
+	    this(map, surf, res.flayer(Resource.obst, id).p, k);
+	}
+
+	public LinePlace(MCache map, MCache.SurfaceID surf, Resource res, Coord2d k) {
+	    this(map, surf, res, "", k);
+	}
+
+	private void recalc(Coord2d rc, double ra) {
+	    Coord2d rk = k.rot(ra);
+	    double maxz = map.getz(surf, rc.add(rk.mul(max)));
+	    double minz = map.getz(surf, rc.add(rk.mul(min)));
+	    Coord3f rax = Coord3f.of((float)-rk.y, (float)-rk.x, 0);
+	    float dz = (float)(maxz - minz);
+	    float dx = (float)(max - min);
+	    float hyp = (float)Math.sqrt((dx * dx) + (dz * dz));
+	    float sin = dz / hyp, cos = dx / hyp;
+	    c = Coord3f.of((float)rc.x, (float)rc.y, (float)minz + (dz * (float)(-min / (max - min))));
+	    r = Transform.makerot(new Matrix4f(), rax, sin, cos).mul(super.getr(rc, ra));
+	}
+
+	private void check(Coord2d rc, double ra) {
+	    int mseq = map.chseq;
+	    if((mseq != this.seq) || !Utils.eq(rc, cc) || (ra != ca)) {
+		recalc(rc, ra);
+		this.seq = mseq;
+		this.cc = rc;
+		this.ca = ra;
+	    }
+	}
+
+	public Coord3f getc(Coord2d rc, double ra) {
+	    check(rc, ra);
+	    return(c);
+	}
+
+	public Matrix4f getr(Coord2d rc, double ra) {
+	    check(rc, ra);
+	    return(r);
 	}
     }
 
@@ -408,11 +498,13 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    addDmg();
 	}
 	setupmods.add(customColor);
+	setupmods.add(customScale);
 	info = new GeneralGobInfo(this);
 	setattr(info);
 	if(Optional.ofNullable(isMe()).orElse(false)) 
 		setattr(new PlayerActivityInfo(this));
 	updwait(this::drawableUpdated, waiting -> {});
+	GobCombatInfo.check(this);
     }
 
     public Gob(Glob glob, Coord2d c) {
@@ -583,10 +675,18 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	damage = null;
     }
     
-    public void rclick() {
+    public void addCombatInfo(Fightview.Relation rel) {
+	setattr(GobCombatInfo.class, new GobCombatInfo(this, rel));
+    }
+    
+    public void rclick(int modflags) {
+	click(3, modflags);
+    }
+    
+    public void click(int button, int modflags) {
 	try {
 	    MapView map = glob.sess.ui.gui.map;
-	    map.click(this, 3, Coord.z);
+	    map.click(this, button, Coord.z, modflags);
 	} catch (Exception ignored) {}
     }
     
@@ -644,13 +744,46 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
     
     public Boolean isMe() {
 	if(isMe == null) {
-	    if(glob.sess.ui.gui == null || glob.sess.ui.gui.map == null || glob.sess.ui.gui.map.plgob < 0) {
+	    GameUI gui = context(GameUI.class);
+	    if(gui == null || gui.map == null || gui.map.plgob < 0) {
 		return null;
 	    } else {
-		isMe = id == glob.sess.ui.gui.map.plgob;
+		isMe = id == gui.map.plgob;
 	    }
 	}
 	return isMe;
+    }
+    
+    public boolean hasPose(String... poses) {
+	Drawable d = drawable;
+	if(d == null) {return false;}
+	for (String pose : poses) {
+	    if(d.hasPose(pose)) {return true;}
+	}
+	return false;
+    }
+
+    /**returns whether icon for this gob is visible on radar, if there's no icon in config returns null*/
+    public Boolean isOnRadar() {
+	GobIcon icon = getattr(GobIcon.class);
+	GameUI gui = context(GameUI.class);
+	if(icon == null || gui == null || gui.iconconf == null) {return null;}
+	try {
+	    GobIcon.Setting s = gui.iconconf.get(icon.res.get());
+	    return s == null ? null : s.show;
+	} catch (Loading ignored) {}
+	return null;
+    }
+    
+    public boolean isVisitorGate() {
+	for (Overlay ol : ols) {
+	    if(!Reflect.is(ol.spr, "haven.res.gfx.fx.eq.Equed")) {continue;}
+	    AnimSprite espr = Reflect.getFieldValue(ol.spr, "espr", AnimSprite.class);
+	    if(espr != null && "gfx/terobjs/arch/visflag".equals(espr.res.name)) {
+		return true;
+	    }
+	}
+	return false;
     }
 
     public Placer placer() {
@@ -771,13 +904,20 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 
 	public Object[] clickargs(ClickData cd) {
 	    Object[] ret = {0, (int)gob.id, gob.rc.floor(OCache.posres), 0, -1};
+	    boolean simpleClick = false;
 	    for(Object node : cd.array()) {
 		if(node instanceof Gob.Overlay) {
+		    if(gob.simplifyClick((Overlay) node)) {simpleClick = true;}
 		    ret[0] = 1;
 		    ret[3] = ((Gob.Overlay)node).id;
 		}
 		if(node instanceof FastMesh.ResourceMesh)
 		    ret[4] = ((FastMesh.ResourceMesh)node).id;
+	    }
+	    if(simpleClick) {
+		ret[0] = 0;
+		ret[3] = 0;
+		ret[4] = -1;
 	    }
 	    return(ret);
 	}
@@ -788,6 +928,20 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
     }
 
     protected void obstate(Pipe buf) {
+    }
+    
+    private boolean simplifyClick(Gob.Overlay overlay) {
+	if(!is(GobTag.CONTAINER) || !CFG.DECAL_SHIFT_PICKUP.get()) {return false;}
+	
+	UI ui = context(UI.class);
+	if(ui == null) {return false;}
+	
+	String name = overlay.name();
+	if(ResName.DECALS.contains(name)) {
+	    return !ui.modctrl && !ui.modshift;
+	}
+	
+	return false;
     }
 
     private class GobState implements Pipe.Op {
@@ -838,9 +992,12 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    return;
 	}
 	if(!Utils.eq(nst, curstate)) {
-	    for(RenderTree.Slot slot : slots)
-		slot.ostate(nst);
-	    this.curstate = nst;
+	    try {
+		for(RenderTree.Slot slot : slots)
+		    slot.ostate(nst);
+		this.curstate = nst;
+	    } catch(Loading l) {
+	    }
 	}
     }
 
@@ -930,16 +1087,19 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	return null;
     }
     
+    public String inspect() {
+	return String.format("%s [%d]",resid(), sdt());
+    }
+    
     private static final ClassResolver<Gob> ctxr = new ClassResolver<Gob>()
 	.add(Gob.class, g -> g)
 	.add(Glob.class, g -> g.glob)
+	.add(UI.class, g -> g.glob.sess.ui)
 	.add(GameUI.class, g -> (g.glob.sess.ui != null) ? g.glob.sess.ui.gui : null)
 	.add(MapWnd2.class, g -> (g.glob.sess.ui != null && g.glob.sess.ui.gui != null) ? g.glob.sess.ui.gui.mapfile : null)
 	.add(Session.class, g -> g.glob.sess);
     public <T> T context(Class<T> cl) {return(ctxr.context(cl, this));}
-
-    @Deprecated
-    public Glob glob() {return(context(Glob.class));}
+    public <T> Optional<T> contextopt(Class<T> cl) {return Optional.ofNullable(context(cl));}
 
     /* Because generic functions are too nice a thing for Java. */
     public double getv() {
@@ -951,13 +1111,22 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 
     public Collection<Location.Chain> getloc() {
 	Collection<Location.Chain> ret = new ArrayList<>(slots.size());
-	for(RenderTree.Slot slot : slots)
-	    ret.add(slot.state().get(Homo3D.loc));
+	for(RenderTree.Slot slot : slots) {
+	    Location.Chain loc = slot.state().get(Homo3D.loc);
+	    if(loc != null)
+		ret.add(loc);
+	}
 	return(ret);
     }
 
     public class Placed implements RenderTree.Node, TickList.Ticking, TickList.TickNode {
-	private final Collection<RenderTree.Slot> slots = new ArrayList<>(1);
+	/* XXX: Using a COW list is far from an ideal solution. It
+	 * should work for the specific case of flavobjs (which are
+	 * added asynchronously in a way that makes it difficult to
+	 * lock on each individually), but it's certainly not a
+	 * general solution, and it would be nice with something that
+	 * is in fact more general. */
+	private final Collection<RenderTree.Slot> slots = new java.util.concurrent.CopyOnWriteArrayList<>();
 	private Placement cur;
 
 	private Placed() {}
@@ -1136,6 +1305,10 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	if(anyOf(GobTag.TREE, GobTag.BUSH)) {
 	    Drawable d = drawable;
 	    Boolean needHide = CFG.HIDE_TREES.get();
+	    Boolean onRadar = isOnRadar();
+	    if(onRadar != null && onRadar && CFG.SKIP_HIDING_RADAR_TREES.get()) {
+		needHide = false;
+	    }
 	    if(d != null && d.skipRender != needHide) {
 		d.skipRender = needHide;
 		if(needHide) {
@@ -1159,11 +1332,15 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
     }
     
     private void updateIcon() {
-	if(getattr(GobIcon.class) == null) {
-	    GobIcon icon = Radar.getIcon(this);
-	    if(icon != null) {
-		setattr(icon);
-	    }
+	GobIcon icon = getattr(GobIcon.class);
+	if(icon != null && !icon.isCustom) {
+	    return;
+	}
+	icon = Radar.getIcon(this);
+	if(icon == null) {
+	    delattr(GobIcon.class);
+	} else {
+	    setattr(icon);
 	}
     }
     
@@ -1241,6 +1418,15 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	return 0;
     }
     
+    public Message sdtm() {
+	Drawable d = drawable;
+	if(d instanceof ResDrawable) {
+	    ResDrawable dw = (ResDrawable) d;
+	    return dw.sdt.clone();
+	}
+	return null;
+    }
+    
     public void setQuality(int q) {
         info.setQ(q);
         status.update(StatusType.info);
@@ -1257,6 +1443,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
     public void kinUpdated() {status.update(StatusType.kin);}
     
     public void hitboxUpdated() {status.update(StatusType.hitbox);}
+    public void combatUpdated() {status.update(StatusType.combat);}
     
     public void visibilityUpdated() {status.update(StatusType.visibility);}
     
@@ -1276,7 +1463,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    status.update(StatusType.tags);
 	}
     
-	if(status.updated(StatusType.drawable, StatusType.visibility, StatusType.tags)) {
+	if(status.updated(StatusType.drawable, StatusType.visibility, StatusType.tags, StatusType.icon)) {
 	    if(updateVisibility()) {
 		status.update(StatusType.visibility);
 	    }
@@ -1292,8 +1479,12 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    }
 	}
     
-	if(status.updated(StatusType.drawable, StatusType.hitbox, StatusType.visibility)) {
+	if(status.updated(StatusType.drawable, StatusType.hitbox, StatusType.visibility, StatusType.combat)) {
 	    updateHitbox();
+	}
+	
+	if(status.updated(StatusType.drawable)) {
+	    customScale.update(this);
 	}
     
 	if(status.updated(StatusType.drawable, StatusType.id, StatusType.icon)) {
@@ -1319,20 +1510,16 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
     
     private void updateColor() {
 	Color c = null;
-	if(CFG.DISPLAY_GOB_INFO.get()) {
-	    if(is(GobTag.DRACK)) {
-		if(is(GobTag.EMPTY)) {
-		    c = COL_EMPTY;
-		} else if(is(GobTag.READY)) {
-		    c = COL_READY;
-		}
+	if(CFG.SHOW_PROGRESS_COLOR.get() && is(GobTag.PROGRESSING)) {
+	    if(is(GobTag.READY)) {
+		c = COL_READY;
 	    }
-	    if(CFG.SHOW_CONTAINER_FULLNESS.get() && is(GobTag.CONTAINER)) {
-		if(is(GobTag.EMPTY)) {
-		    c = COL_EMPTY;
-		} else if(is(GobTag.FULL)) {
-		    c = COL_FULL;
-		}
+	}
+	if(CFG.SHOW_CONTAINER_FULLNESS.get() && is(GobTag.CONTAINER)) {
+	    if(is(GobTag.EMPTY)) {
+		c = COL_EMPTY;
+	    } else if(is(GobTag.FULL)) {
+		c = COL_FULL;
 	    }
 	}
 	
@@ -1343,8 +1530,12 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 		c = COL_HLIGHT_KNOWN;
 	}
 
-	if(customColor.color(c)) {updstate();}
+	customColor.color(c);
     }
+    
+    public float scale() {return info.growthScale();}
+    
+    public String contents() {return info.contents();}
     
     private static class StatusUpdates {
 	private final Set<StatusType> updated = new HashSet<>();
@@ -1370,7 +1561,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
     }
     
     private enum StatusType {
-	drawable, overlay, tags, pose, id, info, kin, hitbox, icon, visibility, marker
+	drawable, overlay, tags, pose, id, info, kin, hitbox, icon, visibility, marker, combat
     }
     
     private void updateMovingInfo(GAttrib a, GAttrib prev) {
