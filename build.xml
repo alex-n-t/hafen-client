@@ -42,15 +42,15 @@
       <local name="@{name}-files" />
       <mkdir dir="@{path}" />
       <loadresource property="@{name}-files">
-	<url url="@{url}/lib-files" />
-	<filterchain>
-	  <prefixlines prefix="@{url}/" />
-	</filterchain>
+		<url url="@{url}/lib-files" />
+		<filterchain>
+		  <prefixlines prefix="@{url}/" />
+		</filterchain>
       </loadresource>
       <get dest="@{path}/" usetimestamp="true">
-	<resourcelist>
-	  <propertyresource name="@{name}-files" />
-	</resourcelist>
+		<resourcelist>
+		  <propertyresource name="@{name}-files" />
+		</resourcelist>
       </get>
       <touch file="@{path}/has-@{name}" />
     </sequential>
@@ -81,12 +81,13 @@
 	   source="1.8" target="1.8" release="8" includeantruntime="no"
 	   bootclasspath="${boot-classpath}">
       <classpath>
-	<pathelement path="lib/ext/jogl/jogl-all.jar" />
-	<pathelement path="lib/ext/jogl/gluegen-rt.jar" />
-	<pathelement path="lib/ext/lwjgl/lwjgl-fat.jar" />
-	<pathelement path="lib/ext/lwjgl/lwjgl-opengl-fat.jar" />
-	<pathelement path="lib/jglob.jar" />
-	<pathelement path="lib/gson-2.8.6.jar" />
+		<pathelement path="lib/ext/jogl/jogl-all.jar" />
+		<pathelement path="lib/ext/jogl/gluegen-rt.jar" />
+		<pathelement path="lib/ext/lwjgl/lwjgl-awt.jar" />
+		<pathelement path="lib/ext/lwjgl/lwjgl-fat.jar" />
+		<pathelement path="lib/ext/lwjgl/lwjgl-opengl-fat.jar" />
+		<pathelement path="lib/jglob.jar" />
+		<pathelement path="lib/gson-2.8.6.jar" />
         <pathelement path="lib/rxjava-1.1.5.jar" />
       </classpath>
       <compilerarg value="-Xlint:unchecked" />
@@ -150,9 +151,6 @@
       <file file="etc/treatments.json5"/>
       <fileset dir="." includes="i10n/**/**.json"/>
     </jar>
-    <copy file="lib/ext/builtin-res.jar" todir="build"/>
-    <copy file="lib/ext/hafen-res.jar" todir="build"/>
-    <copy file="lib/sqlite-jdbc-3.36.0.3.jar" todir="build"/>
   </target>
 
   <target name="jar" depends="hafen-client, buildinfo, lib-classes">
@@ -168,7 +166,7 @@
     <chmod file="build/hafen.jar" perm="a+x" />
   </target>
 
-  <target name="res-jar" depends="build-env, extlib-env" unless="has-res-jar">
+  <target name="res-jar" depends="build-env" unless="has-res-jar">
     <get src="${ext-lib-base}/builtin-res.jar" dest="lib/ext/builtin-res.jar"
 	 usetimestamp="true" />
     <get src="${ext-lib-base}/hafen-res.jar" dest="lib/ext/hafen-res.jar"
@@ -191,20 +189,19 @@
       <fileset dir="lib/ext/jogl"><include name="*.jar" /></fileset>
       <fileset dir="lib/ext/lwjgl"><include name="*.jar" /></fileset>
     </copy>
-    <copy file="etc/ansgar-config.properties" tofile="build/haven-config.properties" failonerror="false" quiet="true" />
+    <copy file="etc/local-config.properties" tofile="build/haven-config.properties" failonerror="false" quiet="true" />
   </target>
 
   <target name="bin" depends="jar, extlib/jogl, extlib/lwjgl-gl, res-jar, resources">
     <mkdir dir="bin" />
     <copy todir="bin">
       <fileset dir="build">
-	<include name="hafen.jar" />
-
-   	<include name="client-res.jar" />
+		<include name="hafen.jar" />
+	   	<include name="client-res.jar" />
       </fileset>
       <fileset dir="lib/ext">
-	<include name="hafen-res.jar" />
-	<include name="builtin-res.jar" />
+		<include name="hafen-res.jar" />
+		<include name="builtin-res.jar" />
       </fileset>
       <fileset dir="lib"><include name="sqlite-jdbc-3.36.0.3.jar" /></fileset>
       <fileset dir="lib/ext/jogl"><include name="*.jar" /></fileset>
@@ -223,7 +220,7 @@
 
   <target name="clean" depends="clean-assets, clean-code">
     <delete dir="lib/ext" />
-    <delete dir="bin" />
+    <!--delete dir="bin" /-->
   </target>
 
   
