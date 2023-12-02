@@ -154,10 +154,29 @@ public class SkelSprite extends Sprite implements Sprite.CUpd, EquipTarget, Skel
 	return(RUtils.StateTickNode.from(wrap, rst));
     }
 
+    public static final Matrix4f CUPBOARD_TRANSFORM_DOOR = Transform.makexlate(new Matrix4f(), Coord3f.of(0, 0, -3f))
+	.mul1(Transform.makerot(new Matrix4f(), Coord3f.of(0, 1, 0), (float) (-Math.PI / 2)))
+	.mul1(Transform.makexlate(new Matrix4f(), Coord3f.of(0, 0, -5.5f)))
+	.mul1(Transform.makescale(new Matrix4f(), 1, 1, 0.6f));
+    public static final Matrix4f CUPBOARD_TRANSFORM_DECAL = Transform.makexlate(new Matrix4f(), Coord3f.of(0, 0, -3f))
+	.mul1(Transform.makerot(new Matrix4f(), Coord3f.of(0, 1, 0), (float) (-Math.PI / 2)))
+	.mul1(Transform.makexlate(new Matrix4f(), Coord3f.of(0, 0, -11f)));
+    public static final Matrix4f CUPBOARD_TRANSFORM = Transform.makexlate(new Matrix4f(), Coord3f.of(0, 0, 1))
+	.mul1(Transform.makerot(new Matrix4f(), Coord3f.of(0, 1, 0), (float) (-Math.PI / 2)))
+	.mul1(Transform.makexlate(new Matrix4f(), Coord3f.of(0, 0, -5.5f)))
+	.mul1(Transform.makescale(new Matrix4f(), 0.2f, 1, 0.6f));
+
     public void iparts(int mask, Collection<RenderTree.Node> rbuf, Collection<Runnable> tbuf, Collection<Consumer<Render>> gbuf) {
+	boolean cupboard = res.name.equals("gfx/terobjs/cupboard");
 	for(FastMesh.MeshRes mr : res.layers(FastMesh.MeshRes.class)) {
-	    if((mr.mat != null) && ((mr.id < 0) || (((1 << mr.id) & mask) != 0)))
-		rbuf.add(animwrap(mr.mat.get().apply(mr.m), tbuf, gbuf));
+	    if((mr.mat != null) && ((mr.id < 0) || (((1 << mr.id) & mask) != 0))) {
+		RenderTree.Node node = animwrap(mr.mat.get().apply(mr.m), tbuf, gbuf);
+		if(cupboard) {
+		    Pipe.Op op = new Location(mr.id == -1 && mr.mat.id == 3 ? CUPBOARD_TRANSFORM_DOOR : CUPBOARD_TRANSFORM);
+		    node = new Pipe.Op.Wrapping(node, op, false);
+		}
+		rbuf.add(node);
+	    }
 	}
 	Owner rec = null;
 	for(RenderLink.Res lr : res.layers(RenderLink.Res.class)) {

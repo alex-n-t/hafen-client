@@ -1141,6 +1141,9 @@ public class Skeleton {
 	    List<Function<EquipTarget, Supplier<? extends Pipe.Op>>> cbuf = new LinkedList<>();
 	    while(!buf.eom())
 		cbuf.add(opcodes[buf.uint8()].apply(buf));
+	    if (res.name.equals("gfx/terobjs/cupboard")) {
+		cbuf.add(0, equ -> () -> new Location(SkelSprite.CUPBOARD_TRANSFORM_DECAL));
+	    }
 	    this.prog = cbuf.toArray(new Function[0]);
 	}
 
