@@ -452,7 +452,8 @@ public class WaterTile extends Tiler {
     public static final Pipe.Op surfmat = Pipe.Op.compose(new BaseSurface(), new Rendered.Order.Default(6000));
 
     private static final Pipe.Op foamextra = Pipe.Op.compose(surfextra, FragColor.blend(new BlendMode(BlendMode.Factor.ONE, BlendMode.Factor.ONE)),
-							     new Light.PhongLight(true, new Color(255, 255, 255), new Color(128, 128, 128), new Color(0, 0, 0), new Color(0, 0, 0), 0));
+							     new Light.PhongLight(true, new Color(255, 255, 255), new Color(128, 128, 128), new Color(0, 0, 0), new Color(0, 0, 0), 0),
+							     ShadowMap.maskshadow);
     public static class FoamSurface extends State {
 	public static final Attribute[] vertv = new Attribute[4];
 	@SuppressWarnings("unchecked")
@@ -631,13 +632,13 @@ public class WaterTile extends Tiler {
     public static class Fac implements Factory {
 	public Tiler create(int id, Tileset set) {
 	    int a = 0;
-	    int depth = (Integer)set.ta[a++];
+	    int depth = Utils.iv(set.ta[a++]);
 	    Tiler.MCons bottom = new GroundTile(id, set);
 	    while(a < set.ta.length) {
 		Object[] desc = (Object[])set.ta[a++];
 		String p = (String)desc[0];
 		if(p.equals("bottom") /* Backwards compatibility */ || p.equals("gnd") || p.equals("trn")) {
-		    Resource bres = set.getres().pool.load((String)desc[1], (Integer)desc[2]).get();
+		    Resource bres = set.getres().pool.load((String)desc[1], Utils.iv(desc[2])).get();
 		    Tileset ts = bres.flayer(Tileset.class);
 		    Tiler b = ts.tfac().create(id, ts);
 		    bottom = (Tiler.MCons)b;
@@ -658,7 +659,7 @@ public class WaterTile extends Tiler {
 
     public void lay(MapMesh m, Random rnd, Coord lc, Coord gc) {
 	MapMesh.MapSurface ms = m.data(MapMesh.gnd);
-	MPart d = MPart.splitquad(lc, gc, ms.fortilea(lc), ms.split[ms.ts.o(lc)]);
+	MPart d = MPart.splitquad(lc, gc, ms.fortilea(lc), ms.split[ms.bs.o(lc)]);
 
 	{
 	    MeshBuf mesh = MapMesh.Model.get(m, surfmat);
@@ -695,7 +696,7 @@ public class WaterTile extends Tiler {
 	}
 
 	Bottom b = m.data(Bottom.id);
-	MPart bd = MPart.splitquad(lc, gc, b.fortilea(lc), ms.split[ms.ts.o(lc)]);
+	MPart bd = MPart.splitquad(lc, gc, b.fortilea(lc), ms.split[ms.bs.o(lc)]);
 	bd.mat = botmat();
 	bottom.faces(m, bd);
     }
@@ -707,7 +708,7 @@ public class WaterTile extends Tiler {
 	    if(bottom instanceof CTrans) {
 		MapMesh.MapSurface ms = m.data(MapMesh.gnd);
 		Bottom b = m.data(Bottom.id);
-		MPart d = MPart.splitquad(lc, gc, b.fortilea(lc), ms.split[ms.ts.o(lc)]);
+		MPart d = MPart.splitquad(lc, gc, b.fortilea(lc), ms.split[ms.bs.o(lc)]);
 		d.mat = botmat();
 		((CTrans)bottom).tcons(z, bmask, cmask).faces(m, d);
 	    }

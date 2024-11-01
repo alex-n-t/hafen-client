@@ -1,6 +1,7 @@
 package haven;
 
-import auto.Bot;
+import auto.ITarget;
+import auto.Targets;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -55,10 +56,8 @@ public class PathQueue {
 	}
     }
     
-    public void click(Bot.Target target) {
-	if(target != null && target.gob != null) {
-	    click(target.gob);
-	}
+    public void click(ITarget target) {
+	click(Targets.gob(target));
     }
     
     public void click(Gob gob) {
@@ -181,7 +180,7 @@ public class PathQueue {
 		if(id.contains("/vehicle/snekkja")) {
 		    passenger = !pos.equals("m0");
 		} else if(id.contains("/vehicle/knarr")) {
-		    passenger = !pos.equals("m0"); //TODO: check if knarr works properly
+		    passenger = !pos.equals("m9");
 		} else if(id.contains("/vehicle/rowboat")) {
 		    passenger = !pos.equals("d");
 		} else if(id.contains("/vehicle/spark")) {
@@ -205,13 +204,14 @@ public class PathQueue {
 	    if(DBG) Debug.log.printf("skip (%d) '%d' is null, %b%n", gob.id, map.plgob, skip);
 	    return skip;
 	}
-	if(me.drives == 0) {
+	long vehicleId = me.vehicleId();
+	if(vehicleId == 0) {
 	    boolean skip = me.id != gob.id;
-	    if(DBG) Debug.log.printf("skip (%d) '%d'<%d> not drives, %b%n", gob.id, map.plgob, me.drives, skip);
+	    if(DBG) Debug.log.printf("skip (%d) '%d'<%d> not drives, %b%n", gob.id, map.plgob, vehicleId, skip);
 	    return skip;
 	} else {
-	    boolean skip = gob.id != me.drives;
-	    if(DBG) Debug.log.printf("skip (%d) '%d'<%d> drives, %b%n", gob.id, map.plgob, me.drives, skip);
+	    boolean skip = gob.id != vehicleId;
+	    if(DBG) Debug.log.printf("skip (%d) '%d'<%d> drives, %b%n", gob.id, map.plgob, vehicleId, skip);
 	    return skip;
 	}
     }

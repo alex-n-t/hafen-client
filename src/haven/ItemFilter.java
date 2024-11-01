@@ -3,6 +3,7 @@ package haven;
 import haven.QualityList.SingleType;
 import haven.resutil.Curiosity;
 import haven.resutil.FoodInfo;
+import me.ender.ClientUtils;
 import me.ender.Reflect;
 
 import java.util.LinkedList;
@@ -124,8 +125,8 @@ public class ItemFilter {
     }
 
     final public boolean matches(MenuGrid.Pagina pagina, Session sess) {
-	List<ItemInfo> infos = pagina.info();
-	if(infos == null || infos.isEmpty()){
+	List<ItemInfo> infos = pagina.button().info();
+	if(infos == null || infos.isEmpty()) {
 	    return matches(ItemData.get(pagina), sess);
 	}
 	return matches(infos);
@@ -503,9 +504,9 @@ public class ItemFilter {
 	    if(item instanceof FoodInfo) {
 		FoodInfo food = (FoodInfo) item;
 		if("energy".equals(text)) {
-		    return test(Utils.round(100 * food.end, 2));
+		    return test(ClientUtils.round(100 * food.end, 2));
 		} else if("hunger".equals(text)) {
-		    return test(Utils.round(100 * food.glut, 2));
+		    return test(ClientUtils.round(100 * food.glut, 2));
 		}
 	    }
 	    return false;
@@ -576,10 +577,10 @@ public class ItemFilter {
 		    return true;
 		}
 		if("fep".startsWith(text)) {
-		    return test(Utils.round(100D * Reflect.getFieldValueDouble(item, "fev"), 1));
+		    return test(ClientUtils.round(100D * Reflect.getFieldValueDouble(item, "fev"), 1));
 		}
 		if("hunger".startsWith(text)) {
-		    return test(Utils.round(100D * Reflect.getFieldValueDouble(item, "glut"), 1));
+		    return test(ClientUtils.round(100D * Reflect.getFieldValueDouble(item, "glut"), 1));
 		}
 	    }
 	    return false;

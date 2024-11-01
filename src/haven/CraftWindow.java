@@ -97,11 +97,11 @@ public class CraftWindow extends GameUI.Hidewnd {
 	    tabStrip.remove(old);
 	}
 	Tex icon = new TexI(PUtils.convolvedown(pagina.res.get().layer(Resource.imgc).img, new Coord(20, 20), CharWnd.iconfilter));
-	String text = pagina.act().name;
+	String text = pagina.button().act().name;
 	if(text.length() > 12) {
 	    text = text.substring(0, 12 - 2) + "..";
 	}
-	TabStrip.Button<Pagina> added = tabStrip.insert(0, icon, text, pagina.act().name);
+	TabStrip.Button<Pagina> added = tabStrip.insert(0, icon, text, pagina.button().act().name);
 	added.tag = pagina;
 	tabStrip.select(added);
 	added.setActive(true);

@@ -167,9 +167,9 @@ public class GildingWnd extends WindowX {
     }
 
     @Override
-    public boolean mousedown(Coord c, int button) {
-	if(c.isect(Coord.z, sz)) {
-	    super.mousedown(c, button);
+    public boolean mousedown(MouseDownEvent ev) {
+	if(ev.c.isect(Coord.z, sz)) {
+	    super.mousedown(ev);
 	} else {
 	    close();
 	}
@@ -214,12 +214,12 @@ public class GildingWnd extends WindowX {
 	}
 
 	@Override
-	public boolean iteminteract(WItem target, Coord cc, Coord ul) {
+	public boolean iteminteract(DTarget.Interact ev) {
 	    return false;
 	}
 
 	@Override
-	public boolean mousedown(Coord c, int btn) {
+	public boolean mousedown(MouseDownEvent ev) {
 	    return false;
 	}
     }

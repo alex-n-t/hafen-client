@@ -33,9 +33,15 @@ import java.util.function.*;
 import java.lang.reflect.Constructor;
 import haven.render.*;
 
-public abstract class Sprite implements RenderTree.Node {
+public abstract class Sprite implements RenderTree.Node, PView.Render2D {
     public final Resource res;
     public final Owner owner;
+    
+    protected Tex tex2d;
+    private final Coord3f pos2d = new Coord3f(0, 0, 1);
+    protected final Object texLock = new Object();
+    protected Pair<Double, Double> tex2dAlign = new Pair<>(0.5, 0.5);
+    public MessageBuf sdt;
     public static List<Factory> factories = new LinkedList<Factory>();
     static {
 	factories.add(SpriteLink.sfact);
@@ -47,16 +53,18 @@ public abstract class Sprite implements RenderTree.Node {
 
     public interface Owner extends OwnerContext {
 	public Random mkrandoom();
-	public Resource getres();
+	@Deprecated public Resource getres();
     }
 
-    public class RecOwner implements Owner, Skeleton.HasPose {
+    public class RecOwner implements Owner {
 	public Random mkrandoom() {return(owner.mkrandoom());}
 	public <T> T context(Class<T> cl) {return(owner.context(cl));}
 
 	public Resource getres() {return(res);}
 
-	public Skeleton.Pose getpose() {return(Skeleton.getpose(Sprite.this));}
+	public String toString() {
+	    return(String.format("#<rec-owner of %s, owned by %s>", Sprite.this, owner));
+	}
     }
 
     public static interface CDel {
@@ -82,6 +90,10 @@ public abstract class Sprite implements RenderTree.Node {
     @Resource.PublishedCode(name = "spr", instancer = FactMaker.class)
     public interface Factory {
 	public Sprite create(Owner owner, Resource res, Message sdt);
+    }
+
+    public interface Mill<S extends Sprite> {
+	public S create(Owner owner);
     }
 
     public static class ResourceException extends RuntimeException {
@@ -117,13 +129,18 @@ public abstract class Sprite implements RenderTree.Node {
     public static Sprite create(Owner owner, Resource res, Message sdt) {
 	{
 	    Factory f = res.getcode(Factory.class, false);
-	    if(f != null)
-		return(f.create(owner, res, sdt));
+	    if(f != null) {
+		Sprite spr = f.create(owner, res, sdt);
+		if(sdt instanceof MessageBuf) {spr.sdt = (MessageBuf) sdt;}
+		return spr;
+	    }
 	}
 	for(Factory f : factories) {
 	    Sprite ret = f.create(owner, res, sdt);
-	    if(ret != null)
+	    if(ret != null) {
+		if(sdt instanceof MessageBuf) {ret.sdt = (MessageBuf) sdt;}
 		return(ret);
+	    }
 	}
 	/* XXXRENDER
 	throw(new ResourceException("Does not know how to draw resource " + res.name, res));
@@ -132,6 +149,29 @@ public abstract class Sprite implements RenderTree.Node {
     }
 
     public void draw(GOut g) {}
+    
+    public void setTex2d(Tex t) {
+	synchronized (texLock) {
+	    tex2d = t;
+	}
+    }
+    
+    protected void up2d(int up) {pos2d.z = up;}
+    
+    @Override
+    public void draw(GOut g, Pipe state) {
+	if(tex2d == null) {return;} //quick check, since most sprites don't have 2d textures
+	synchronized (texLock) {
+	    if(tex2d == null) {return;}
+	    if(owner instanceof Gob && !((Gob) owner).info.enabled()) {return;}
+	    Coord3f c3d = Homo3D.obj2view2(pos2d, state, Area.sized(g.sz()));
+	    if(c3d == null) {return;}
+	    Coord sc = c3d.round2();
+	    if(sc.isect(Coord.z, g.sz())) {
+		g.aimage(tex2d, sc, tex2dAlign.a, tex2dAlign.b);
+	    }
+	}
+    }
 
     public boolean tick(double dt) {
 	return(false);
@@ -140,6 +180,13 @@ public abstract class Sprite implements RenderTree.Node {
     public void gtick(Render g) {
     }
 
+    public void age() {
+    }
+
     public void dispose() {
+    }
+
+    public String toString() {
+	return(String.format("#<%s %s of %s>", this.getClass().getSimpleName(), (res == null) ? null : res.name, owner));
     }
 }

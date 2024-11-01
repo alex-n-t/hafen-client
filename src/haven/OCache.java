@@ -29,6 +29,7 @@ package haven;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 import java.lang.annotation.*;
 import java.lang.reflect.*;
@@ -57,7 +58,7 @@ public class OCache implements Iterable<Gob> {
     public static final int OD_OVERLAY = 12;
     /* public static final int OD_AUTH = 13; -- Removed */
     public static final int OD_HEALTH = 14;
-    public static final int OD_BUDDY = 15;
+    /* public static final int OD_BUDDY = 15; -- Removed */
     public static final int OD_CMPPOSE = 16;
     public static final int OD_CMPMOD = 17;
     public static final int OD_CMPEQU = 18;
@@ -68,12 +69,12 @@ public class OCache implements Iterable<Gob> {
     public static final Coord2d posres = Coord2d.of(0x1.0p-10, 0x1.0p-10).mul(11, 11);
     /* XXX: Use weak refs */
     private Collection<Collection<Gob>> local = new LinkedList<Collection<Gob>>();
-    private HashMultiMap<Long, Gob> objs = new HashMultiMap<Long, Gob>();
+    private MultiMap<Long, Gob> objs = new HashMultiMap<Long, Gob>();
     private Glob glob;
     private final Collection<ChangeCallback> cbs = new WeakList<ChangeCallback>();
     public final PathVisualizer paths = new PathVisualizer();
     public final MineTileVisualizer mineTileVisualizer = new MineTileVisualizer();
-
+    private final List<Disposable> disposables = new LinkedList<>();
 
     public interface ChangeCallback {
 	public void added(Gob ob);
@@ -82,18 +83,50 @@ public class OCache implements Iterable<Gob> {
 
     public OCache(Glob glob) {
 	this.glob = glob;
-	DiscoveryRgstry.INSTANCE.setOC(this);
+    DiscoveryRgstry.INSTANCE.setOC(this);
 	callback(Gob.CHANGED);
-	CFG.DISPLAY_GOB_HITBOX.observe(cfg -> gobAction(Gob::hitboxUpdated));
-	CFG.DISPLAY_GOB_HITBOX_TOP.observe(cfg -> gobAction(Gob::hitboxUpdated));
-	CFG.HIDE_TREES.observe(cfg -> gobAction(Gob::visibilityUpdated));
-	CFG.SKIP_HIDING_RADAR_TREES.observe(cfg -> gobAction(Gob::visibilityUpdated));
-	CFG.DISPLAY_GOB_INFO.observe(cfg -> gobAction(Gob::infoUpdated));
-	CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.observe(cfg -> gobAction(Gob::infoUpdated));
-	CFG.DISPLAY_GOB_INFO_SHORT.observe(cfg -> gobAction(Gob::infoUpdated));
-	CFG.SHOW_CONTAINER_FULLNESS.observe(cfg -> gobAction(Gob::infoUpdated));
-	CFG.DISPLAY_DISCOVERY_EXP_INFO.observe(cfg -> DiscoveryRgstry.INSTANCE.updateDiscoverableGobs(null));
-	CFG.SHOW_PROGRESS_COLOR.observe(cfg -> gobAction(Gob::infoUpdated));
+	disposables.add(CFG.DISPLAY_GOB_HITBOX.observe(cfg -> gobAction(Gob::hitboxUpdated)));
+	disposables.add(CFG.DISPLAY_GOB_HITBOX_TOP.observe(cfg -> gobAction(Gob::hitboxUpdated)));
+	disposables.add(CFG.DISPLAY_GOB_HITBOX_FILLED.observe(cfg -> gobAction(Gob::hitboxUpdated)));
+	disposables.add(CFG.COLOR_HBOX_FILLED.observe(cfg -> gobAction(Gob::hitboxUpdated)));
+	disposables.add(CFG.COLOR_HBOX_SOLID.observe(cfg -> gobAction(Gob::hitboxUpdated)));
+	disposables.add(CFG.COLOR_HBOX_PASSABLE.observe(cfg -> gobAction(Gob::hitboxUpdated)));
+	disposables.add(CFG.HIDE_TREES.observe(cfg -> gobAction(Gob::visibilityUpdated)));
+	disposables.add(CFG.SKIP_HIDING_RADAR_TREES.observe(cfg -> gobAction(Gob::visibilityUpdated)));
+	disposables.add(CFG.DISPLAY_GOB_INFO.observe(cfg -> gobAction(Gob::infoUpdated)));
+	disposables.add(CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.observe(cfg -> gobAction(Gob::infoUpdated)));
+	disposables.add(CFG.DISPLAY_GOB_INFO_SHORT.observe(cfg -> gobAction(Gob::infoUpdated)));
+	disposables.add(CFG.HIGHLIGHT_PARTY_IN_COMBAT.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.HIGHLIGHT_SELF_IN_COMBAT.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.HIGHLIGHT_ENEMY_IN_COMBAT.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.FLAT_TERRAIN.observe(cfg -> gobAction(Gob::markerUpdated)));
+	disposables.add(CFG.DISPLAY_AURA_SPEED_BUFF.observe(cfg -> gobAction(Gob::markerUpdated)));
+	disposables.add(CFG.DISPLAY_AURA_RABBIT.observe(cfg -> gobAction(Gob::markerUpdated)));
+	disposables.add(CFG.DISPLAY_AURA_CRITTERS.observe(cfg -> gobAction(Gob::markerUpdated)));
+	disposables.add(CFG.MARK_PARTY_IN_COMBAT.observe(cfg -> gobAction(Gob::markerUpdated)));
+	disposables.add(CFG.MARK_SELF_IN_COMBAT.observe(cfg -> gobAction(Gob::markerUpdated)));
+	disposables.add(CFG.MARK_ENEMY_IN_COMBAT.observe(cfg -> gobAction(Gob::markerUpdated)));
+	disposables.add(CFG.SHOW_CONTAINER_FULLNESS.observe(cfg -> gobAction(Gob::infoUpdated)));
+	disposables.add(CFG.DISPLAY_DISCOVERY_EXP_INFO.observe(cfg -> DiscoveryRgstry.INSTANCE.updateDiscoverableGobs(null)));
+	disposables.add(CFG.SHOW_PROGRESS_COLOR.observe(cfg -> gobAction(Gob::infoUpdated)));
+	
+	disposables.add(CFG.COLOR_GOB_READY.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_FULL.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_EMPTY.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_PARTY.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_LEADER.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_SELF.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_IN_COMBAT.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_COMBAT_TARGET.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_SPEED_BUFF.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_RABBIT.observe(cfg -> gobAction(Gob::colorUpdated)));
+	disposables.add(CFG.COLOR_GOB_CRITTERS.observe(cfg -> gobAction(Gob::colorUpdated)));
+    }
+    
+    public void destroy() {
+	disposables.forEach(Disposable::dispose);
+	disposables.clear();
+	cbs.clear();
     }
     
     public void gobAction(Consumer<Gob> action) {
@@ -324,6 +357,20 @@ public class OCache implements Iterable<Gob> {
 	}
     }
 
+    public static class OlSprite implements Sprite.Mill<Sprite> {
+	public final Indir<Resource> res;
+	public Message sdt;
+
+	public OlSprite(Indir<Resource> res, Message sdt) {
+	    this.res = res;
+	    this.sdt = sdt;
+	}
+
+	public Sprite create(Sprite.Owner owner) {
+	    return(Sprite.create(owner, res.get(), sdt));
+	}
+    }
+
     @DeltaType(OD_OVERLAY)
     public static class $overlay implements Delta {
 	public void apply(Gob g, AttrDelta msg) {
@@ -350,14 +397,20 @@ public class OCache implements Iterable<Gob> {
 		sdt = new MessageBuf(sdt);
 		Gob.Overlay nol = null;
 		if(ol == null) {
-		    g.addol(nol = new Gob.Overlay(g, olid, res, sdt), false);
-		} else if(!ol.sdt.equals(sdt)) {
-		    if(ol.spr instanceof Sprite.CUpd) {
+		    nol = new Gob.Overlay(g, olid, new OlSprite(res, sdt));
+		    nol.old = msg.old;
+		    g.addol(nol, false);
+		} else {
+		    OlSprite os = (ol.sm instanceof OlSprite) ? (OlSprite)ol.sm : null;
+		    if((os != null) && Utils.eq(os.sdt, sdt)) {
+		    } else if((os != null) && (ol.spr instanceof Sprite.CUpd)) {
 			MessageBuf copy = new MessageBuf(sdt);
 			((Sprite.CUpd)ol.spr).update(copy);
-			ol.sdt = copy;
+			os.sdt = copy;
 		    } else {
-			g.addol(nol = new Gob.Overlay(g, olid, res, sdt), false);
+			nol = new Gob.Overlay(g, olid, new OlSprite(res, sdt));
+			nol.old = msg.old;
+			g.addol(nol, false);
 			ol.remove(false);
 		    }
 		}

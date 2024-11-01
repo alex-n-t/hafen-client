@@ -120,7 +120,7 @@ public class Equipory extends Widget implements DTarget {
 	    else if(args[0] == null)
 		gobid = -1;
 	    else
-		gobid = Utils.uint32((Integer)args[0]);
+		gobid = Utils.uiv(args[0]);
 	    return(new Equipory(gobid));
 	}
     }
@@ -134,7 +134,7 @@ public class Equipory extends Widget implements DTarget {
     public Equipory(long gobid) {
 	super(isz);
 	ava = add(new Avaview(bg.sz(), gobid, "equcam") {
-		public boolean mousedown(Coord c, int button) {
+		public boolean mousedown(MouseDownEvent ev) {
 		    return(false);
 		}
 
@@ -166,7 +166,7 @@ public class Equipory extends Widget implements DTarget {
 	    GItem g = (GItem)child;
 	    ArrayList<WItem> v = new ArrayList<>();
 	    for(int i = 0; i < args.length; i++) {
-		int ep = (Integer)args[i];
+		int ep = Utils.iv(args[i]);
 		if(ep < ecoords.length) {
 		    WItem wdg = add(new WItem(g), ecoords[ep].add(1, 1));
 		    v.add(wdg);
@@ -250,9 +250,6 @@ public class Equipory extends Widget implements DTarget {
     }
 
     public Object tooltip(Coord c, Widget prev) {
-	Object tt = super.tooltip(c, prev);
-	if(tt != null)
-	    return(tt);
 	int sl = epat(c);
 	if(sl >= 0)
 	    return(etts[sl]);

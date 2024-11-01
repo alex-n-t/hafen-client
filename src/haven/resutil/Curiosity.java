@@ -27,6 +27,7 @@
 package haven.resutil;
 
 import haven.*;
+import me.ender.ClientUtils;
 import me.ender.timer.Timer;
 
 import java.awt.Color;
@@ -60,7 +61,7 @@ public class Curiosity extends ItemInfo.Tip implements GItem.ColorInfo {
 	if(CFG.REAL_TIME_CURIO.get()) {
 	    time = (int) (time / Timer.SERVER_RATIO);
 	}
-	return Utils.formatTimeLong(time);
+	return ClientUtils.formatTimeLong(time);
     }
     
     public static int lph(int lph){
@@ -125,7 +126,7 @@ public class Curiosity extends ItemInfo.Tip implements GItem.ColorInfo {
     private String remainingShortTip(int time) {
 	if(!CFG.SHOW_CURIO_REMAINING_METER.get() || time < 0) {return null;}
 	time = (int) (time / Timer.SERVER_RATIO); //short tip is always in real time
-	return Utils.formatTimeShort(time);
+	return ClientUtils.formatTimeShort(time);
     }
     
     public Pair<String, String> remainingTip() {

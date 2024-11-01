@@ -27,8 +27,6 @@
 package haven;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
 
 public class TextEntry extends Widget implements ReadLine.Owner {
     public static final Color defcol = new Color(255, 205, 109), dirtycol = new Color(255, 232, 209);
@@ -53,7 +51,7 @@ public class TextEntry extends Widget implements ReadLine.Owner {
     @RName("text")
     public static class $_ implements Factory {
 	public Widget create(UI ui, Object[] args) {
-	    return(new TextEntry(UI.scale((Integer)args[0]), (String)args[1]));
+	    return(new TextEntry(UI.scale(Utils.iv(args[0])), (String)args[1]));
 	}
     }
 
@@ -79,16 +77,16 @@ public class TextEntry extends Widget implements ReadLine.Owner {
 	    if(args.length == 0) {
 		buf.select(0, buf.length());
 	    } else {
-		int f = (args[0] == null) ? buf.length() : Utils.clip((Integer)args[0], 0, buf.length());
-		int t = (args[1] == null) ? buf.length() : Utils.clip((Integer)args[1], 0, buf.length());
+		int f = (args[0] == null) ? buf.length() : Utils.clip(Utils.iv(args[0]), 0, buf.length());
+		int t = (args[1] == null) ? buf.length() : Utils.clip(Utils.iv(args[1]), 0, buf.length());
 		buf.select(f, t);
 	    }
 	} else if(name == "get") {
 	    wdgmsg("text", buf.line());
 	} else if(name == "pw") {
-	    pw = ((Integer)args[0]) != 0;
+	    pw = Utils.bv(args[0]);
 	} else if(name == "dshow") {
-	    dshow = ((Integer)args[0]) != 0;
+	    dshow = Utils.bv(args[0]);
 	} else if(name == "cmt") {
 	    commit();
 	} else {
@@ -167,31 +165,27 @@ public class TextEntry extends Widget implements ReadLine.Owner {
 	activate(buf.line());
     }
 
-    public boolean type(char c, KeyEvent ev) {
-	return(buf.key(ev));
-    }
-
-    public boolean gkeytype(KeyEvent ev) {
+    public boolean gkeytype(GlobKeyEvent ev) {
 	activate(buf.line());
 	return(true);
     }
 
-    public boolean keydown(KeyEvent e) {
-	return(buf.key(e));
+    public boolean keydown(KeyDownEvent e) {
+	return(buf.key(e.awt));
     }
 
-    public void mousemove(Coord c) {
+    public void mousemove(MouseMoveEvent ev) {
 	if((d != null) && (tcache != null)) {
-	    int p = tcache.charat(c.x + sx - toffx);
+	    int p = tcache.charat(ev.c.x + sx - toffx);
 	    if(buf.mark() < 0)
 		buf.mark(buf.point());
 	    buf.point(p);
 	}
     }
 
-    public boolean mousedown(Coord c, int button) {
-	if((button == 1) && (tcache != null)) {
-	    buf.point(tcache.charat(c.x + sx - toffx));
+    public boolean mousedown(MouseDownEvent ev) {
+	if((ev.b == 1) && (tcache != null)) {
+	    buf.point(tcache.charat(ev.c.x + sx - toffx));
 	    buf.mark(-1);
 	    d = ui.grabmouse(this);
 	}
@@ -199,8 +193,8 @@ public class TextEntry extends Widget implements ReadLine.Owner {
 	return(true);
     }
 
-    public boolean mouseup(Coord c, int button) {
-	if((button == 1) && (d != null)) {
+    public boolean mouseup(MouseUpEvent ev) {
+	if((ev.b == 1) && (d != null)) {
 	    d.remove();
 	    d = null;
 	    return(true);

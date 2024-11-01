@@ -57,7 +57,7 @@ public class MCache implements MapSource {
     Map<Coord, Request> req = new HashMap<Coord, Request>();
     Map<Coord, Grid> grids = new HashMap<Coord, Grid>();
     Session sess;
-    Set<Overlay> ols = new HashSet<Overlay>();
+    final Set<Overlay> ols = new HashSet<Overlay>();
     public int olseq = 0, chseq = 0;
     public long lastupdate = 0;
     Map<Integer, Defrag> fragbufs = new TreeMap<Integer, Defrag>();
@@ -199,11 +199,11 @@ public class MCache implements MapSource {
 			break;
 		    }
 		    case "mat": {
-			matid = (Integer)arg[1];
+			matid = Utils.iv(arg[1]);
 			break;
 		    }
 		    case "omat": {
-			omatid = (Integer)arg[1];
+			omatid = Utils.iv(arg[1]);
 			break;
 		    }
 		    }
@@ -240,17 +240,22 @@ public class MCache implements MapSource {
     public class Overlay {
 	private Area a;
 	private OverlayInfo id;
+	private Function<Coord, Boolean> mask;
 
 	public Overlay(Area a, OverlayInfo id) {
 	    this.a = a;
 	    this.id = id;
-	    ols.add(this);
-	    olseq++;
+	    synchronized (ols) {
+		ols.add(this);
+		olseq++;
+	    }
 	}
 
 	public void destroy() {
-	    ols.remove(this);
-	    olseq++;
+	    synchronized (ols) {
+		ols.remove(this);
+		olseq++;
+	    }
 	}
 
 	public void update(Area a) {
@@ -259,6 +264,10 @@ public class MCache implements MapSource {
 		this.a = a;
 	    }
 	}
+	
+	public void mask(Function<Coord, Boolean> mask) {this.mask = mask;}
+	
+	public boolean mask(Coord c) {return mask == null || Boolean.TRUE.equals(mask.apply(c));}
     }
 
     private void cktileid(int id) {
@@ -802,10 +811,12 @@ public class MCache implements MapSource {
 	this.sess = sess;
 	CFG.NO_TILE_TRANSITION.observe(this::resetMap);
 	CFG.FLAT_TERRAIN.observe(this::resetMap);
+	CFG.DISPLAY_RIDGE_BOX.observe(this::resetMap);
+	CFG.COLOR_RIDGE_BOX.observe(this::resetMap);
 	CFG.COLORIZE_DEEP_WATER.observe(this::resetMap);
     }
     
-    private void resetMap(CFG<Boolean> cfg) {
+    private void resetMap(CFG<?> cfg) {
 	synchronized (MCache.this) {
 	    trimall();
 	}
@@ -962,9 +973,11 @@ public class MCache implements MapSource {
 		    ret.add(id);
 	    }
 	}
-	for(Overlay lol : ols) {
-	    if((lol.a.overlap(a) != null) && !ret.contains(lol.id))
-		ret.add(lol.id);
+	synchronized (ols) {
+	    for (Overlay lol : ols) {
+		if((lol.a.overlap(a) != null) && !ret.contains(lol.id))
+		    ret.add(lol.id);
+	    }
 	}
 	return(ret);
     }
@@ -984,13 +997,15 @@ public class MCache implements MapSource {
 		    buf[a.ri(tc)] = gbuf[(tc.x - gt.ul.x) + ((tc.y - gt.ul.y) * cmaps.x)];
 	    }
 	}
-	for(Overlay lol : ols) {
-	    if(lol.id != id)
-		continue;
-	    Area la = lol.a.overlap(a);
-	    if(la != null) {
-		for(Coord lc : la)
-		    buf[a.ri(lc)] = true;
+	synchronized (ols) {
+	    for (Overlay lol : ols) {
+		if(lol.id != id)
+		    continue;
+		Area la = lol.a.overlap(a);
+		if(la != null) {
+		    for (Coord lc : la)
+			if(lol.mask(lc)) {buf[a.ri(lc)] = true;}
+		}
 	    }
 	}
     }

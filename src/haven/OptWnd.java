@@ -30,7 +30,9 @@ package haven;
 import java.util.HashSet;
 import java.util.LinkedList;
 import haven.render.*;
+import me.ender.CFGColorBtn;
 import me.ender.GobInfoOpts;
+import me.ender.CustomOptPanels;
 
 import java.awt.event.KeyEvent;
 import java.util.Set;
@@ -41,8 +43,9 @@ public class OptWnd extends WindowX {
     public static final Coord PANEL_POS = new Coord(220, 30);
     public static final Coord Q_TYPE_PADDING = new Coord(3, 0);
     private final Panel display, general, camera, shortcuts, mapping, uipanel, combat;
+    private final Panel color;
     public final Panel main;
-    private static final Text.Foundry LBL_FNT = new Text.Foundry(sans, 14);
+    public static final Text.Foundry LBL_FNT = new Text.Foundry(sans, 14);
     public Panel current;
     private WidgetList<KeyBinder.ShortcutWidget> shortcutList;
     
@@ -75,12 +78,12 @@ public class OptWnd extends WindowX {
 	    chpanel(tgt);
 	}
 
-	public boolean keydown(java.awt.event.KeyEvent ev) {
-	    if((this.key != -1) && (ev.getKeyChar() == this.key)) {
+	public boolean keydown(KeyDownEvent ev) {
+	    if((this.key != -1) && (ev.c == this.key)) {
 		click();
 		return (true);
 	    }
-	    return (false);
+	    return (super.keydown(ev));
 	}
     }
     
@@ -103,7 +106,7 @@ public class OptWnd extends WindowX {
 		click();
 		return (true);
 	    }
-	    return (false);
+	    return(super.keydown(ev));
 	}
     }
 
@@ -150,6 +153,12 @@ public class OptWnd extends WindowX {
 			    a = val;
 			}
 		    }, Coord.z);
+		prev = add(new CFGBox("Full screen", CFG.VIDEO_FULL_SCREEN).set(v -> {
+		    try {
+			ui.cons.run(ui.root, new String[]{"fs", v ? "1" : "0"});
+		    } catch (Exception ignored) {
+		    }
+		}), prev.pos("bl").adds(0, 5));
 		prev = add(new Label("Render scale"), prev.pos("bl").adds(0, 5));
 		{
 		    Label dpy = new Label.Untranslated("");
@@ -166,6 +175,7 @@ public class OptWnd extends WindowX {
 				   try {
 				       float val = (float)Math.pow(2, this.val / (double)steps);
 				       ui.setgprefs(prefs = prefs.update(null, prefs.rscale, val));
+				       if(ui.gui != null && ui.gui.map != null) {ui.gui.map.updateGridMat(null);}
 				   } catch(GSettings.SettingException e) {
 				       error(e.getMessage());
 				       return;
@@ -480,8 +490,9 @@ public class OptWnd extends WindowX {
 	    Widget prev = add(new Label("Interface scale (requires restart)"), 0, 0);
 	    {
 		Label dpy = new Label("");
-		final double smin = 1, smax = Math.floor(UI.maxscale() / 0.25) * 0.25;
-		final int steps = (int)Math.round((smax - smin) / 0.25);
+		final double gran = 0.05;
+		final double smin = 1, smax = Math.floor(UI.maxscale() / gran) * gran;
+		final int steps = (int)Math.round((smax - smin) / gran);
 		addhlp(prev.pos("bl").adds(0, 2), UI.scale(5),
 		       prev = new HSlider(UI.scale(160), 0, steps, (int)Math.round(steps * (Utils.getprefd("uiscale", 1.0) - smin) / (smax - smin))) {
 			       protected void added() {
@@ -509,7 +520,7 @@ public class OptWnd extends WindowX {
 		    final int steps = (int)Math.round((smax - smin) / 0.25);
 		    int ival = (int)Math.round(MapView.plobpgran);
 		    addhlp(Coord.of(x + UI.scale(5), pos.c.y), UI.scale(5),
-			   prev = new HSlider(UI.scale(155 - x), 2, 17, (ival == 0) ? 17 : ival) {
+			   prev = new HSlider(UI.scale(155) - x, 2, 17, (ival == 0) ? 17 : ival) {
 				   protected void added() {
 				       dpy();
 				   }
@@ -534,7 +545,7 @@ public class OptWnd extends WindowX {
 			    ival = i;
 		    }
 		    addhlp(Coord.of(x + UI.scale(5), ang.c.y), UI.scale(5),
-			   prev = new HSlider(UI.scale(155 - x), 0, vals.length - 1, ival) {
+			   prev = new HSlider(UI.scale(155) - x, 0, vals.length - 1, ival) {
 				   protected void added() {
 				       dpy();
 				   }
@@ -661,7 +672,7 @@ public class OptWnd extends WindowX {
     }
 
 
-    public static class PointBind extends Button {
+    public static class PointBind extends Button implements CursorQuery.Handler {
 	public static final String msg = "Bind other elements...";
 	public static final Resource curs = Resource.local().loadwait("gfx/hud/curs/wrench");
 	private UI.Grab mg, kg;
@@ -710,15 +721,15 @@ public class OptWnd extends WindowX {
 	    return(true);
 	}
 
-	public boolean mousedown(Coord c, int btn) {
-	    if(mg == null)
-		return(super.mousedown(c, btn));
+	public boolean mousedown(MouseDownEvent ev) {
+	    if(!ev.grabbed)
+		return(super.mousedown(ev));
 	    Coord gc = ui.mc;
-	    if(btn == 1) {
+	    if(ev.b == 1) {
 		this.cmd = KeyBinding.Bindable.getbinding(ui.root, gc);
 		return(true);
 	    }
-	    if(btn == 3) {
+	    if(ev.b == 3) {
 		mg.remove();
 		mg = null;
 		change(msg);
@@ -727,11 +738,11 @@ public class OptWnd extends WindowX {
 	    return(false);
 	}
 
-	public boolean mouseup(Coord c, int btn) {
+	public boolean mouseup(MouseUpEvent ev) {
 	    if(mg == null)
-		return(super.mouseup(c, btn));
+		return(super.mouseup(ev));
 	    Coord gc = ui.mc;
-	    if(btn == 1) {
+	    if(ev.b == 1) {
 		if((this.cmd != null) && (KeyBinding.Bindable.getbinding(ui.root, gc) == this.cmd)) {
 		    mg.remove();
 		    mg = null;
@@ -742,21 +753,19 @@ public class OptWnd extends WindowX {
 		}
 		return(true);
 	    }
-	    if(btn == 3)
+	    if(ev.b == 3)
 		return(true);
 	    return(false);
 	}
 
-	public Resource getcurs(Coord c) {
-	    if(mg == null)
-		return(null);
-	    return(curs);
+	public boolean getcurs(CursorQuery ev) {
+	    return(ev.grabbed ? ev.set(curs) : false);
 	}
 
-	public boolean keydown(KeyEvent ev) {
-	    if(kg == null)
+	public boolean keydown(KeyDownEvent ev) {
+	    if(!ev.grabbed)
 		return(super.keydown(ev));
-	    if(handle(ev)) {
+	    if(handle(ev.awt)) {
 		kg.remove();
 		kg = null;
 		cmd = null;
@@ -781,6 +790,7 @@ public class OptWnd extends WindowX {
 	camera = add(new Panel());
 	shortcuts = add(new Panel());
 	mapping = add(new Panel());
+	color = add(new Panel());
 
 	int row = 0, colum = 0, mrow = 1;
     
@@ -798,6 +808,7 @@ public class OptWnd extends WindowX {
 	addPanelButton("General", 'g', general, colum, row++);
 	addPanelButton("UI", 'u', uipanel, colum, row++);
 	addPanelButton("Display", 'd', display, colum, row++);
+	addPanelButton("Colors", 'o', color, colum, row++);
 	addPanelButton("Combat", 'b', combat, colum, row++);
 	addPanelButton("Map upload", 'm', mapping, colum, row++);
 
@@ -810,6 +821,11 @@ public class OptWnd extends WindowX {
 	//y = main.add(new PButton(UI.scale(200), "Keybindings", 'k', keybind), 0, y).pos("bl").adds(0, 5).y;
 	y += UI.scale((mrow + 1) * PANEL_POS.y);
 	if(gopts) {
+	    if((SteamStore.steamsvc.get() != null) && (Steam.get() != null)) {
+		y = main.add(new Button(UI.scale(200), "Visit store", false).action(() -> {
+			    SteamStore.launch(ui.sess);
+		}), 0, y).pos("bl").adds(0, 5).y;
+	    }
 	    y = main.add(new Button(UI.scale(200), "Switch character", false).action(() -> {
 			getparent(GameUI.class).act("lo", "cs");
 	    }), 0, y).pos("bl").adds(0, 5).y;
@@ -825,10 +841,11 @@ public class OptWnd extends WindowX {
 	chpanel(this.main);
 	initDisplayPanel(display);
 	initUIPanel(uipanel);
-	initCombatPanel(combat);
+	CustomOptPanels.initCombatPanel(this, combat);
 	initGeneralPanel(general);
 	initCameraPanel();
 	initMappingPanel(mapping);
+	CustomOptPanels.initColorPanel(this, color);
 	main.pack();
 	chpanel(main);
     }
@@ -1068,6 +1085,7 @@ public class OptWnd extends WindowX {
 
     private void initDisplayPanel(Panel panel) {
 	int STEP = UI.scale(25);
+	int H_STEP = UI.scale(10);
 	int START;
 	int x, y;
 	int my = 0, tx;
@@ -1090,6 +1108,9 @@ public class OptWnd extends WindowX {
     
 	y += STEP;
 	panel.add(new CFGBox("Make terrain flat", CFG.FLAT_TERRAIN), x, y);
+	
+	y += STEP;
+	panel.add(new CFGBox("Colorize ridge tiles", CFG.DISPLAY_RIDGE_BOX, "Makes it easier to properly approach ridge for climbing"), x, y);
 	
 	y += STEP;
 	panel.add(new CFGBox("Darken deep ocean tiles", CFG.COLORIZE_DEEP_WATER), x, y);
@@ -1141,6 +1162,9 @@ public class OptWnd extends WindowX {
 	
 	y += 35;
 	panel.add(new CFGBox("Show object radius", CFG.SHOW_GOB_RADIUS, "Shows radius of mine supports, beehives etc.", true), x, y);
+	
+	y += STEP;
+	panel.add(new CFGBox("Show mine support radius as overlay", CFG.SHOW_MINE_SUPPORT_AS_OVERLAY, "Will highlight tiles covered by mine supports, instead of drawing radius around supports."), x, y);
 
 	y += STEP;
 	panel.add(new Button(UI.scale(150), "Show as buffs", false) {
@@ -1165,7 +1189,27 @@ public class OptWnd extends WindowX {
 	y = addSlider(CFG.DISPLAY_SCALE_WALLS, "Wall scale", "Scale palisade and brick wall vertically, changes are applied on zone reload.", panel, x, y, STEP);
 	
 	y += STEP;
+	panel.add(new CFGBox("Cupboard use default materials", CFG.DISPLAY_NO_MAT_CUPBOARDS, "All cupboards will have default look", true), x, y);
+	
+	y += STEP;
 	panel.add(new CFGBox("Cupboard decals on top", CFG.DISPLAY_DECALS_ON_TOP, "Show decals put on cupboard on its top instead of a door. (Requires zone reload or re-applying decal)", true), x, y);
+	
+	y += STEP;
+	
+	y += STEP;
+	panel.add(new Label("Show clickable auras:"), x, y);
+	
+	y += STEP;
+	tx = panel.add(new CFGColorBtn(CFG.COLOR_GOB_SPEED_BUFF, true), x + H_STEP, y).sz.x + H_STEP;
+	panel.add(new CFGBox("Speed Buff", CFG.DISPLAY_AURA_SPEED_BUFF), x + tx + H_STEP, y);
+	
+	y += STEP;
+	tx = panel.add(new CFGColorBtn(CFG.COLOR_GOB_RABBIT, true), x + H_STEP, y).sz.x + H_STEP;
+	panel.add(new CFGBox("Rabbits", CFG.DISPLAY_AURA_RABBIT), x + tx + H_STEP, y);
+	
+	y += STEP;
+	tx = panel.add(new CFGColorBtn(CFG.COLOR_GOB_CRITTERS, true), x + H_STEP, y).sz.x + H_STEP;
+	panel.add(new CFGBox("Critters", CFG.DISPLAY_AURA_CRITTERS), x + tx + H_STEP, y);
     
 	my = Math.max(my, y);
 	
@@ -1250,7 +1294,7 @@ public class OptWnd extends WindowX {
 		super.set(a);
 		if(ui.gui != null && ui.gui.chrwdg != null) {
 		    if(a) {
-			ui.gui.addcmeter(new FEPMeter(ui.gui.chrwdg.feps));
+			ui.gui.addcmeter(new FEPMeter(ui.gui.chrwdg.battr.feps));
 		    } else {
 			ui.gui.delcmeter(FEPMeter.class);
 		    }
@@ -1265,7 +1309,7 @@ public class OptWnd extends WindowX {
 		super.set(a);
 		if(ui.gui != null && ui.gui.chrwdg != null) {
 		    if(a) {
-			ui.gui.addcmeter(new HungerMeter(ui.gui.chrwdg.glut));
+			ui.gui.addcmeter(new HungerMeter(ui.gui.chrwdg.battr.glut));
 		    } else {
 			ui.gui.delcmeter(HungerMeter.class);
 		    }
@@ -1287,9 +1331,19 @@ public class OptWnd extends WindowX {
     
 	y += 2*STEP;
 	panel.add(new CFGBox("Require SHIFT to show stack inventory", CFG.UI_STACK_SUB_INV_ON_SHIFT, "Show stack hover-inventories only if SHIFT is pressed"), x, y);
-    
+	
 	y += STEP;
-	panel.add(new CFGBox("Unpack stacks in extra inventory", CFG.UI_STACK_EXT_INV_UNPACK, "Show stacked items 'unpacked' in extra inventory's list"), x, y);
+	Label label = panel.add(new Label(String.format("Minimum rows in list inventory: %d", CFG.UI_EXT_INV_MIN_ROWS.get())), x, y);
+	y += UI.scale(15);
+	panel.add(new CFGHSlider(UI.scale(150), CFG.UI_EXT_INV_MIN_ROWS, 3, 15) {
+	    @Override
+	    public void changed() {
+		label.settext(String.format("Minimum rows in list inventory: %d", val));
+	    }
+	}, x, y);
+	
+	y += STEP;
+	panel.add(new CFGBox("Unpack stacks in list inventory", CFG.UI_STACK_EXT_INV_UNPACK, "Show stacked items 'unpacked' in extra inventory's list"), x, y);
     
 	//second row
 	my = Math.max(my, y);
@@ -1337,56 +1391,7 @@ public class OptWnd extends WindowX {
 	title.c.x = (panel.sz.x - title.sz.x) / 2;
     }
     
-    private void initCombatPanel(Panel panel) {
-	int STEP = UI.scale(25);
-	int START;
-	int x, y;
-	int my = 0, tx;
     
-	Widget title = panel.add(new Label("Combat settings", LBL_FNT), 0, 0);
-	START = title.sz.y + UI.scale(10);
-    
-	x = 0;
-	y = START;
-	//first row
-	panel.add(new CFGBox("Use new combat UI", CFG.ALT_COMBAT_UI), x, y);
-    
-	y += STEP;
-	panel.add(new CFGBox("Always mark current target", CFG.ALWAYS_MARK_COMBAT_TARGET , "Usually current target only marked when there's more than one"), x, y);
-    
-	y += STEP;
-	panel.add(new CFGBox("Auto peace on combat start", CFG.COMBAT_AUTO_PEACE , "Automatically enter peaceful mode on combat start id enemy is aggressive - useful for taming"), x, y);
-	
-	y += STEP;
-	panel.add(new CFGBox("Show combat info", CFG.SHOW_COMBAT_INFO, "Will display initiative points and openings over gobs that you are fighting"), x, y);
-    
-	y += STEP;
-	panel.add(new CFGBox("Show combat damage", CFG.SHOW_COMBAT_DMG), x, y);
-    
-	y += STEP;
-	panel.add(new CFGBox("Clear player damage after combat", CFG.CLEAR_PLAYER_DMG_AFTER_COMBAT), x, y);
-    
-	y += STEP;
-	panel.add(new CFGBox("Clear all damage after combat", CFG.CLEAR_ALL_DMG_AFTER_COMBAT), x, y);
-    
-	y += STEP;
-	panel.add(new CFGBox("Simplified combat openings", CFG.SIMPLE_COMBAT_OPENINGS, "Show openings as solid colors with numbers"), x, y);
-    
-	y += STEP;
-	panel.add(new CFGBox("Display combat keys", CFG.SHOW_COMBAT_KEYS), x, y);
-	
-	//second row
-	my = Math.max(my, y);
-	x += UI.scale(265);
-	y = START;
-	
-	
-	my = Math.max(my, y);
-    
-	panel.add(new PButton(UI.scale(200), "Back", 27, main), new Coord(0, my + UI.scale(35)));
-	panel.pack();
-	title.c.x = (panel.sz.x - title.sz.x) / 2;
-    }
 
     private void populateShortcutsPanel(KeyBinder.KeyBindType type) {
         shortcutList.clear(true);

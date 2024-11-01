@@ -1,3 +1,194 @@
+$size[14]{$u{Update for 25.10.24:}
+  * merged loftar's changes
+  * fixed map window reacting to hotkeys while hidden
+ 
+$size[14]{$u{Update for 23.10.24:}
+  * merged loftar's changes
+  * added option to make cupboards have default look regardless of materials (Options -> Display -> Cupboard use default materials)
+  * holding SHIFT while inspect custom cursor is on will show gob materials
+  * fixed not being able to click on UI if ALT-Tabbed from client while rotating camera with middle mouse button
+ 
+$size[14]{$u{Update for 18.10.24:}
+  * added smelt timer for finery forge
+ 
+$size[14]{$u{Update for 12.10.24:}
+  * fixed holding CTRL to drop item with drop protection on not working unless SHIFT or ALT are pressed too
+  * fixed Take button in stockpiles
+  * allow drink refill to fill Birchbark Kuksa
+  * fixed drink refill not recognizing water barrels if gob info display is disabled
+  * merged PR with KO translation
+  * fixed rabbit/critter and speed buff auras being not clickable if flat terrain is disabled
+  * fixed Study Window not registering clicks on curios
+  * merged loftar's code
+ 
+$size[14]{$u{Update for 07.10.24:}
+  * fixed combat keybinds
+  * fixed list inventory not updating in some cases
+ 
+$size[14]{$u{Update for 01.10.24:}
+ * merged loftar's changes in preparation to steam release
+ 
+$size[14]{$u{Update for 18.09.24:}
+  * fixed inability to upload new images to sketch
+  * fixed sketch preview window not closing
+ 
+$size[14]{$u{Update for 13.09.24:}
+  * merged loftar's changes
+ 
+$size[14]{$u{Update for 05.08.24:}
+  * merged loftar's changes
+ 
+$size[14]{$u{Update for 26.07.24:}
+  * merged loftar's changes
+ 
+$size[14]{$u{Update for 25.07.24:}
+  * added options (Options -> Display, Options -> Colors) to show clickable auras for speed buffs, rabbits and other critters
+  * added some missing critters to the list
+  * added some missing aggressive animals to the list
+  * fixed crash related to toggling tree visibility
+ 
+$size[14]{$u{Update for 22.07.24:}
+  * update tile grid line width when render scale changes
+  * fixed hit boxes being absent for some domesticated animals
+  * fixed ConcurrentModificationException related to mine support radii as map overlay
+ 
+$size[14]{$u{Update for 21.07.24:}
+  * added option to make solid hit boxes filled in with customized color
+  * added option to drag combat UI and button to reset its position
+  * bumped max vertical offset for combat info
+  * fixed Green and Blue channels being swapped in input fields on opening color config window
+ 
+$size[14]{$u{Update for 20.07.24:}
+  * made action lists (Craft/Build/Act) to jump in front of all windows when opened
+  * added option (Options -> Combat) to show draggable HP and stamina bars 
+ 
+$size[14]{$u{Update for 19.07.24:}
+  * improved openings display in combat info
+  * added stance display to combat info
+  * added setting to change how high combat info is displayed
+  * fixed colors of rings for current target and just in combat being swapped
+  * fixed kin names of party members on minimap being visible only while they are in vision range
+ 
+$size[14]{$u{Update for 18.07.24:}
+  * added option (Options -> Combat) to highlight gobs in combat by adding rings near feet
+ 
+$size[14]{$u{Update for 16.07.24:}
+  * split aggro one into PVP and PVE versions and clarified all aggro descriptions a bit
+ 
+$size[14]{$u{Update for 15.07.24:}
+  * added button to show party member names on minimap
+  * fixed ridge highlight
+  * fixed aggro one/all not targeting some animals 
+  * made aggro one/all actions not aggro own horse or those of party members
+  * made aggro one/all actions not aggro KO creatures
+  * fixed smelter timer disappearing when window is closed
+ 
+$size[14]{$u{Update for 14.07.24:}
+  * added Options -> Colors panel - allows to tweak various colors used by client
+  * added Options -> Display -> Colorize ridge tiles
+ 
+$size[14]{$u{Update for 13.07.24:}
+  * added action to aggro creature nearest to cursor that is not in your party (eXtra -> Automation -> Aggro one). Also, can be bound in global hotkey settings.
+  * added action to aggro all non-party members near you (eXtra -> Automation -> Aggro all). Also, can be bound in global hotkey settings.
+  * added option to highlight party members during combat
+  * added option to highlight self during combat
+  * added option to highlight enemies during combat
+  * added option (Display -> Show mine support radius as overlay) that will highlight tiles covered by mine supports, instead of drawing radius around supports. Turned on by default.
+ 
+$size[14]{$u{Update for 30.06.24:}
+  * fixed startup buffs not working
+  * fixed chat losing focus when items stack in inventory 
+ 
+$size[14]{$u{Update for 29.06.24:}
+  * added whirling snowflake to critters
+ 
+$size[14]{$u{Update for 28.06.24:}
+  * merged loftar's code 
+ 
+$size[14]{$u{Update for 07.06.24:}
+  * merged loftar's code
+  * fixed another potential crash on client start related to QuestHelper
+  * added earth worms to auto-pickup command list 
+ 
+$size[14]{$u{Update for 29.05.24:}
+  * fixed overlap in Realm Blessings window
+  * fixed another potential crash on client start related to QuestHelper 
+ 
+$size[14]{$u{Update for 28.05.24:}
+  * merged loftar's code
+  * added Full Screen option in Video settings
+  * fixed potential crash on client start related to QuestHelper
+ 
+$size[14]{$u{Update for 19.03.24:}
+  * fixed ConcurrentModificationException in Buddy's Info 
+  * fixed NPE in Buddy code 
+ 
+$size[14]{$u{Update for 18.03.24:}
+  * fixed food tooltip hanging client if food has no hunger stats
+  * fixed "Dismiss" button on prospecting window
+  * improved handling of pickling jars in list inventory
+ 
+$size[14]{$u{Update for 17.03.24:}
+  * fixed QBuff crash
+  * added option to set minimum rows for list inventory
+  * fixed layout of stockpile widget
+  * show tooltip for all gobs when inspect cursor is active
+  * added buttons to menu grid (eXtra -> Object Info) to toggle which parts of object info to show
+ 
+$size[14]{$u{Update for 16.03.24:}
+  * merged loftar's changes
+  * fixed bunch of errors when trying to enter Valhalla
+ 
+$size[14]{$u{Update for 12.03.24:}
+  * fixed cattle window detection
+  * fixed crash when picking up item with not-yet-loaded resource
+  * fixed $font[monospaced,13]{use:} item filter not working
+ 
+$size[14]{$u{Update for 09.03.24:}
+  * made custom tool belts store action same way default client does - on server side
+ 
+$size[14]{$u{Update for 04.03.24:}
+  * merged loftar's code
+  * fixed gilding window
+  * fixed timers
+ 
+$size[14]{$u{Update for 27.02.24:}
+  * fixed list inventory grouping
+ 
+$size[14]{$u{Update for 26.02.24:}
+  * merged loftar's code
+  * re-added LP/H to skill tab
+  * fixed resource not found crash in ToolBelt
+  * fixed simple crops
+  * fixed guildings not showing in the equipment bonuses
+ 
+$size[14]{$u{Update for 22.02.24:}
+  * fixed quest pointer crash
+ 
+$size[14]{$u{Update for 21.02.24:}
+  * merged loftar's code
+ 
+$size[14]{$u{Update for 12.02.24:}
+  * merged loftar's code
+  * fixed position of parent text of animal inspect window
+  * added Reindeer support to animal inspect window extension
+  * fixed simple crops not working
+ 
+$size[14]{$u{Update for 22.12.23:}
+  * merged loftar's code
+  * fixed crash when tracking some objects
+ 
+$size[14]{$u{Update for 05.12.23:}
+  * fixed gob info disabled parts not working on restart
+  * fixed mannequins triggering player warning
+ 
+$size[14]{$u{Update for 03.12.23:}
+  * made drink action silent
+  * fixed overlaps in the realm Blessings window
+  * added cheese rack contents to gob info (can be turned off in Display -> gear icon near Show gob info)
+  * fixed potential prospecting crash
+  * fixed potential crash related to display sign contents
+ 
 $size[14]{$u{Update for 01.12.23:}
   * made system messages use Interface sound volume and each message type doesn't play sound too often
   * fixed potential crashes on loading new zones

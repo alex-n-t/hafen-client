@@ -36,12 +36,12 @@ public class ActWindow extends GameUI.Hidewnd {
 	    }
 
 	    @Override
-	    public boolean keydown(KeyEvent e) {
-		if(e.getKeyCode() == KeyEvent.VK_UP) {
+	    public boolean keydown(KeyDownEvent e) {
+		if(e.code == KeyEvent.VK_UP) {
 		    filtered.change(Math.max(filtered.selindex - 1, 0));
 		    filtered.showsel();
 		    return true;
-		} else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
+		} else if(e.code == KeyEvent.VK_DOWN) {
 		    filtered.change((Math.min(filtered.selindex + 1, filtered.listitems() - 1)));
 		    filtered.showsel();
 		    return true;
@@ -72,6 +72,7 @@ public class ActWindow extends GameUI.Hidewnd {
 	filter.settext("");
 	filtered.change(0);
 	filtered.showsel();
+	raise();
 	parent.setfocus(this);
     }
 
@@ -82,11 +83,11 @@ public class ActWindow extends GameUI.Hidewnd {
     }
     
     @Override
-    public boolean keydown(KeyEvent ev) {
-	return !ignoredKey(ev) && super.keydown(ev);
+    public boolean keydown(KeyDownEvent ev) {
+	return !ignoredKey(ev.awt) && super.keydown(ev);
     }
     
-    private static boolean ignoredKey(KeyEvent ev){
+    private static boolean ignoredKey(KeyEvent ev) {
 	int code = ev.getKeyCode();
 	int mods = ev.getModifiersEx();
 	//any modifier except SHIFT pressed alone is ignored, TAB is also ignored
@@ -141,7 +142,7 @@ public class ActWindow extends GameUI.Hidewnd {
 		    all.clear();
 		    all.addAll(
 			menu.paginae.stream()
-			    .filter(p -> category.matcher(Pagina.name(p)).matches())
+			    .filter(p -> category.matcher(Pagina.resname(p)).matches())
 			    .collect(Collectors.toList())
 		    );
 

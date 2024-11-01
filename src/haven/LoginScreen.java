@@ -29,16 +29,16 @@ package haven;
 import haven.rx.CharterBook;
 
 import java.util.*;
-import java.awt.event.KeyEvent;
 import java.io.*;
 
 public class LoginScreen extends Widget {
+    public static final Config.Variable<String> authmech = Config.Variable.prop("haven.authmech", "native");
     public static final Text.Foundry
 	textf = new Text.Foundry(Text.sans, 16).aa(true),
 	textfs = new Text.Foundry(Text.sans, 14).aa(true);
     public static final Tex bg = Resource.loadtex("gfx/loginscr");
     public static final Position bgc = new Position(UI.scale(420, 300));
-    public final Credbox login;
+    public final Widget login;
     public final String hostname;
     private Text error, progress;
     private Button optbtn;
@@ -58,10 +58,20 @@ public class LoginScreen extends Widget {
 	add(new Img(bg), Coord.z);
 	optbtn = adda(new Button(UI.scale(100), "Options"), pos("cbl").add(10, -10), 0, 1);
 	optbtn.setgkey(GameUI.kb_opt);
-	adda(login = new Credbox(), bgc.adds(0, 10), 0.5, 0.0).hide();
-	accounts = add(new AccountList(10));
-	adda(new StatusLabel(hostname, 0.5), bgc.x, bg.sz().y, 0.5, 1);
+	switch(authmech.get()) {
+	case "native":
+	    login = new Credbox();
+	    accounts = add(new AccountList(10));
+	    adda(new StatusLabel(hostname, 0.5), bgc.x, bg.sz().y, 0.5, 1);
+	    break;
+	case "steam":
+	    login = new Steambox();
+	    break;
+	default:
+	    throw(new RuntimeException("Unknown authmech: " + authmech.get()));
+	}
 	CharterBook.init();
+	adda(login, bgc.adds(0, 10), 0.5, 0.0).hide();
     }
     
     private void showChangeLog() {
@@ -90,7 +100,7 @@ public class LoginScreen extends Widget {
 	}
 	txt.setprog(0);
     }
-
+    
     public static final KeyBinding kb_savtoken = KeyBinding.get("login/savtoken", KeyMatch.forchar('R', KeyMatch.M));
     public static final KeyBinding kb_deltoken = KeyBinding.get("login/deltoken", KeyMatch.forchar('F', KeyMatch.M));
     public class Credbox extends Widget {
@@ -126,7 +136,7 @@ public class LoginScreen extends Widget {
 		changed();
 	    }
 
-	    public boolean keydown(KeyEvent ev) {
+	    public boolean keydown(KeyDownEvent ev) {
 		if(ConsoleHost.kb_histprev.key().match(ev)) {
 		    if(hpos < history.size() - 1) {
 			if(hpos < 0)
@@ -251,7 +261,7 @@ public class LoginScreen extends Widget {
 	    return(ret);
 	}
 
-	public boolean keydown(KeyEvent ev) {
+	public boolean keydown(KeyDownEvent ev) {
 	    if(key_act.match(ev)) {
 		enter();
 		return(true);
@@ -266,6 +276,42 @@ public class LoginScreen extends Widget {
 	    checktoken();
 	    if(pwbox.visible && !user.text().equals(""))
 		setfocus(pass);
+	}
+    }
+
+    private static boolean steam_autologin = true;
+    public class Steambox extends Widget {
+
+	private Steambox() {
+	    super(UI.scale(200, 150));
+	    Widget prev = adda(new Label("Logging in with Steam", textf), sz.x / 2, 0, 0.5, 0);
+	    adda(new IButton("gfx/hud/buttons/login", "u", "d", "o") {
+		    protected void depress() {ui.sfx(Button.clbtdown.stream());}
+		    protected void unpress() {ui.sfx(Button.clbtup.stream());}
+		    public void click() {enter();}
+		},
+		prev.pos("bl").adds(0, 10).x(sz.x / 2), 0.5, 0.0)
+		.setgkey(key_act);
+	}
+
+	private AuthClient.Credentials creds() throws java.io.IOException {
+	    return(new SteamCreds());
+	}
+
+	private void enter() {
+	    try {
+		LoginScreen.this.wdgmsg("login", creds(), false);
+	    } catch(java.io.IOException e) {
+		error(e.getMessage());
+	    }
+	}
+
+	public void tick(double dt) {
+	    super.tick(dt);
+	    if(steam_autologin) {
+		enter();
+		steam_autologin = false;
+	    }
 	}
     }
 
@@ -332,12 +378,13 @@ public class LoginScreen extends Widget {
 
     public void wdgmsg(Widget sender, String msg, Object... args) {
 	if(sender == accounts) {
-	    if("account".equals(msg)) {
+	    if("account".equals(msg) && login instanceof Credbox) {
+		Credbox creds = (Credbox) login;
 		String name = (String) args[0];
 		String token = (String) args[1];
-		login.user.settext2(name);
-		login.token = Utils.hex2byte(token);
-		login.enter();
+		creds.user.settext2(name);
+		creds.token = Utils.hex2byte(token);
+		creds.enter();
 	    }
 	    return;
 	}

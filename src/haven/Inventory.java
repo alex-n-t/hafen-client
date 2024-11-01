@@ -35,7 +35,7 @@ import java.util.function.BiConsumer;
 import me.vault.TileFactRecorder;
 
 public class Inventory extends Widget implements DTarget {
-    public static final Coord sqsz = UI.scale(new Coord(33, 33));
+    public static final Coord sqsz = UI.scale(new Coord(32, 32)).add(1, 1);
     public static final Tex invsq;
     public boolean dropul = true;
     private boolean canDropItems = false;
@@ -115,23 +115,23 @@ public class Inventory extends Widget implements DTarget {
 	isz = sz;
     }
     
-    public boolean mousewheel(Coord c, int amount) {
+    public boolean mousewheel(MouseWheelEvent ev) {
 	if(locked){return false;}
 	if(ui.modshift) {
 	    ExtInventory minv = getparent(GameUI.class).maininvext;
 	    if(minv != this.parent) {
-		if(amount < 0)
+		if(ev.a < 0)
 		    wdgmsg("invxf", minv.wdgid(), 1);
-		else if(amount > 0)
+		else if(ev.a > 0)
 		    minv.wdgmsg("invxf", parent.wdgid(), 1);
 	    }
 	}
 	return(true);
     }
-
+    
     @Override
-    public boolean mousedown(Coord c, int button) {
-	return !locked && super.mousedown(c, button);
+    public boolean mousedown(MouseDownEvent ev) {
+	return locked || super.mousedown(ev);
     }
 
     public void addchild(Widget child, Object... args) {
@@ -199,7 +199,7 @@ public class Inventory extends Widget implements DTarget {
 	    this.sqmask = nmask;
 	    cachedSize = -1;
 	} else if(msg == "mode") {
-	    dropul = (((Integer)args[0]) == 0);
+	    dropul = !Utils.bv(args[0]);
 	} else {
 	    super.uimsg(msg, args);
 	}
@@ -336,6 +336,13 @@ public class Inventory extends Widget implements DTarget {
     }
     public void itemsChanged() {
 	if(ext != null) {ext.itemsChanged();}
+	GItem.ContentsWindow cnt = getparent(GItem.ContentsWindow.class);
+	if(cnt != null) {
+	    Inventory inv = cnt.cont.getparent(Inventory.class);
+	    if(inv != null) {
+		inv.itemsChanged();
+	    }
+	}
     }
     
     private void showDropCFG() {

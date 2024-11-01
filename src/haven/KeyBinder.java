@@ -23,6 +23,7 @@ public class KeyBinder {
     public static final int ALT = 1;
     public static final int CTRL = 2;
     public static final int SHIFT = 4;
+    public static final int MODS = ALT | CTRL | SHIFT;
     public static final String COMBAT_KEYS_UPDATED = "KeyBinder.COMBAT_KEYS_UPDATED";
     
     private static final Gson gson;
@@ -90,6 +91,9 @@ public class KeyBinder {
 	add(KeyEvent.VK_Z, CTRL,  TOGGLE_TILE_CENTERING);
 	add(KeyEvent.VK_Q, ALT,   BOT_PICK_ALL_HERBS);
 	add(KeyEvent.VK_W, ALT,   BOT_OPEN_GATE);
+	add(AGGRO_ONE_PVE);
+	add(AGGRO_ONE_PVP);
+	add(AGGRO_ALL);
 	
 	//Camera controls
 	add(KeyEvent.VK_ADD, NONE, CAM_ZOOM_IN);
@@ -113,15 +117,23 @@ public class KeyBinder {
 	Config.saveFile(CONFIG_JSON, gson.toJson(new ConfigBean(binds, Fightsess.keybinds)));
     }
     
-    public static boolean handle(UI ui, KeyEvent e) {
+    public static boolean handle(UI ui, GlobKeyEvent e) {
 	return get(e).execute(ui);
     }
     
-    public static int getModFlags(int modflags) {
+    public static int getAWTModFlags(int modflags) {
 	modflags = ((modflags & InputEvent.ALT_DOWN_MASK) != 0 ? ALT : 0)
 	    | ((modflags & InputEvent.META_DOWN_MASK) != 0 ? ALT : 0)
 	    | ((modflags & InputEvent.CTRL_DOWN_MASK) != 0 ? CTRL : 0)
 	    | ((modflags & InputEvent.SHIFT_DOWN_MASK) != 0 ? SHIFT : 0);
+	return modflags;
+    }
+    
+    public static int getLoftarModFlags(int modflags) {
+	modflags = ((modflags & KeyMatch.M) != 0 ? ALT : 0)
+	    | ((modflags & KeyMatch.SUPER) != 0 ? ALT : 0) //not sure about this one
+	    | ((modflags & KeyMatch.C) != 0 ? CTRL : 0)
+	    | ((modflags & KeyMatch.S) != 0 ? SHIFT : 0);
 	return modflags;
     }
     
@@ -144,12 +156,12 @@ public class KeyBinder {
 	return binds.get(action);
     }
 
-    public static KeyBind get(final KeyEvent e) {
+    public static KeyBind get(final GlobKeyEvent e) {
 	return binds.values().stream().filter(b -> b.match(e)).findFirst().orElse(EMPTY);
     }
     
     public static KeyBind make(KeyEvent e, Action action) {
-	return new KeyBind(e.getKeyCode(), getModFlags(e.getModifiersEx()), action);
+	return new KeyBind(e.getKeyCode(), getAWTModFlags(e.getModifiersEx()), action);
     }
     
     private static boolean change(KeyBind to) {
@@ -229,11 +241,19 @@ public class KeyBinder {
 	}
     
 	public boolean match(KeyEvent e) {
-	    return match(e.getKeyCode(), getModFlags(e.getModifiersEx()));
+	    return match(e.getKeyCode(), getAWTModFlags(e.getModifiersEx()), 0);
 	}
 	
-	public boolean match(int code, int mods) {
-	    return !isEmpty() && code == this.code && mods == this.mods;
+	public boolean match(KbdEvent e) {
+	    return match(e, 0);
+	}
+	
+	public boolean match(KbdEvent e, int modign) {
+	    return match(e.code, getLoftarModFlags(e.mods), modign);
+	}
+	
+	public boolean match(int code, int mods, int modign) {
+	    return !isEmpty() && code == this.code && ((mods & MODS & ~modign) == (this.mods & ~modign));
 	}
 
 	public boolean execute(UI ui) {
@@ -334,9 +354,9 @@ public class KeyBinder {
 		  }
     
 		  @Override
-		  public boolean mouseup(Coord c, int button) {
+		  public boolean mouseup(MouseUpEvent ev) {
 		      //FIXME: a little hack, because WidgetList does not pass correct click coordinates if scrolled
-		      return super.mouseup(Coord.z, button);
+		      return super.mouseup(new MouseUpEvent(ev, Coord.z));
 		  }
 	      },
 	    UI.scale(225), 0);
@@ -382,8 +402,8 @@ public class KeyBinder {
 	}
     
 	@Override
-	public boolean keydown(KeyEvent ev) {
-	    int code = ev.getKeyCode();
+	public boolean keydown(KeyDownEvent ev) {
+	    int code = ev.code;
 	    if(    code != 0
 		&& code != KeyEvent.VK_CONTROL
 		&& code != KeyEvent.VK_SHIFT
@@ -392,7 +412,7 @@ public class KeyBinder {
 		if(code == KeyEvent.VK_DELETE) {
 		    listener.keyBindChanged(bind, new KeyBind(0, 0, bind.action));
 		} else if(code != KeyEvent.VK_ESCAPE) {
-		    listener.keyBindChanged(bind, make(ev, bind.action));
+		    listener.keyBindChanged(bind, make(ev.awt, bind.action));
 		}
 		reqdestroy();
 	    }
@@ -407,7 +427,7 @@ public class KeyBinder {
 	}
 	
 	@Override
-	public boolean mousedown(Coord c, int button) {
+	public boolean mousedown(MouseDownEvent ev) {
 	    reqdestroy();
 	    return true;
 	}

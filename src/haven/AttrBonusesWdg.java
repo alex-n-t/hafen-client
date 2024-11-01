@@ -33,8 +33,8 @@ public class AttrBonusesWdg extends Widget implements ItemInfo.Owner {
     }
 
     @Override
-    public boolean mousewheel(Coord c, int amount) {
-	bar.ch(15 * amount);
+    public boolean mousewheel(MouseWheelEvent ev) {
+	bar.ch(15 * ev.a);
 	return true;
     }
 

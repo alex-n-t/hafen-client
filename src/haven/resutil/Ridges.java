@@ -44,12 +44,21 @@ public class Ridges implements MapMesh.ConsHooks {
     public static final double segh = 8;
     private static final Coord tilesz = MCache.tilesz2;
     private static final int FLAT_RIDGE = 11;
+    static Pipe.Op RIDGE_MAT = makeRidgeMat();
     public final MapMesh m;
     private final MapMesh.MapSurface ms;
     private final boolean[] breaks;
     private Vertex[][] edges, edgec;
     private float[] edgeo;
     private final MPart[] gnd, ridge;
+    
+    static {
+	CFG.COLOR_RIDGE_BOX.observe(cfg -> RIDGE_MAT = makeRidgeMat());
+    }
+    
+    private static Pipe.Op makeRidgeMat() {
+	return Pipe.Op.compose(new MixColor(CFG.COLOR_RIDGE_BOX.get()), Light.lighting.nil);
+    }
 
     public interface RidgeTile {
 	public double breakz();
@@ -353,6 +362,9 @@ public class Ridges implements MapMesh.ConsHooks {
 	}
 	mkfaces(gv, srfi);
 	gnd[ms.ts.o(tc)] = new MPart(tc, tc.add(m.ul), gv, tcx, tcy, srfi);
+	if (CFG.DISPLAY_RIDGE_BOX.get()) {
+	    gnd[ms.ts.o(tc)].mat = RIDGE_MAT;
+	}
 
 	Vertex[] cls = new Vertex[] {ms.new Vertex(close)};
 	if(edgelc(tc, dir))
@@ -383,6 +395,9 @@ public class Ridges implements MapMesh.ConsHooks {
 	}
 	mkfaces(gv, srfi);
 	gnd[ms.ts.o(tc)] = new MPart(tc, tc.add(m.ul), gv, tcx, tcy, srfi);
+	if (CFG.DISPLAY_RIDGE_BOX.get()) {
+	    gnd[ms.ts.o(tc)].mat = RIDGE_MAT;
+	}
 
 	if(edgelc(tc, dir))
 	    ridge[ms.ts.o(tc)] = connect(tc, edges[eo(tc, dir)], edges[eo(tc, dir + 2)]);
@@ -412,6 +427,9 @@ public class Ridges implements MapMesh.ConsHooks {
 	}
 	mkfaces(gv, d1rfi);
 	gnd[ms.ts.o(tc)] = new MPart(tc, tc.add(m.ul), gv, tcx, tcy, d1rfi);
+	if (CFG.DISPLAY_RIDGE_BOX.get()) {
+	    gnd[ms.ts.o(tc)].mat = RIDGE_MAT;
+	}
 
 	if(edgelc(tc, dir))
 	    ridge[ms.ts.o(tc)] = connect(tc, edges[eo(tc, dir)], edges[eo(tc, (dir + 1) % 4)]);

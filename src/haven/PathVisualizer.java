@@ -1,6 +1,7 @@
 package haven;
 
 import haven.render.*;
+import me.ender.gob.KinInfo;
 
 import java.awt.*;
 import java.util.List;

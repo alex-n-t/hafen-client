@@ -113,7 +113,7 @@ public class ItemAutoDrop {
 	}
     }
     
-    public static class CFGWnd extends WindowX implements DTarget2 {
+    public static class CFGWnd extends WindowX implements DTarget {
 	private static final String FILTER_DEFAULT = "Start typing to filter";
 	private static final Comparator<DropItem> BY_NAME = Comparator.comparing(dropItem -> dropItem.name);
 	
@@ -189,8 +189,8 @@ public class ItemAutoDrop {
 	}
 	
 	@Override
-	public boolean drop(WItem target, Coord cc, Coord ul) {
-	    String name = name(target);
+	public boolean drop(Drop ev) {
+	    String name = name(ev.src);
 	    if(name != null) {
 		if(ItemAutoDrop.add(name)) {
 		    addItem(name);
@@ -200,7 +200,7 @@ public class ItemAutoDrop {
 	}
 	
 	@Override
-	public boolean iteminteract(WItem target, Coord cc, Coord ul) {
+	public boolean iteminteract(Interact ev) {
 	    return false;
 	}
 	
@@ -262,15 +262,15 @@ public class ItemAutoDrop {
 	    }
 	    
 	    @Override
-	    public boolean mousedown(Coord c, int button) {
-		int idx = idxat(c);
+	    public boolean mousedown(MouseDownEvent ev) {
+		int idx = idxat(ev.c);
 		if((idx >= 0) && (idx < listitems())) {
-		    Coord ic = c.sub(idxc(idx));
+		    Coord ic = ev.c.sub(idxc(idx));
 		    DropItem item = listitem(idx);
 		    if(ic.x < showc.x + CheckBox.sbox.sz().x) {
-			if(button == 1) {
+			if(ev.b == 1) {
 			    toggle(item.name);
-			} else if(button == 3) {
+			} else if(ev.b == 3) {
 			    ItemAutoDrop.remove(item.name);
 			    list.items.remove(item);
 			    list.needfilter();
@@ -278,7 +278,7 @@ public class ItemAutoDrop {
 			return (true);
 		    }
 		}
-		return (super.mousedown(c, button));
+		return (super.mousedown(ev));
 	    }
 	}
     }

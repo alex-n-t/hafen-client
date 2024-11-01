@@ -26,10 +26,6 @@
 
 package haven;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
 import java.awt.RenderingHints;
 import java.io.*;
 import java.nio.*;
@@ -37,17 +33,14 @@ import java.nio.file.*;
 import java.net.*;
 import java.lang.ref.*;
 import java.lang.reflect.*;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.prefs.*;
+import java.security.*;
 import java.util.*;
 import java.util.function.*;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.image.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Utils {
     public static final java.nio.charset.Charset utf8 = java.nio.charset.Charset.forName("UTF-8");
@@ -77,21 +70,6 @@ public class Utils {
 		    return(null);
 		}
 	    });
-    }
-
-    static void drawgay(BufferedImage t, BufferedImage img, Coord c) {
-	Coord sz = imgsz(img);
-	for(int y = 0; y < sz.y; y++) {
-	    for(int x = 0; x < sz.x; x++) {
-		int p = img.getRGB(x, y);
-		if(Utils.rgbm.getAlpha(p) > 128) {
-		    if((p & 0x00ffffff) == 0x00ff0080)
-			t.setRGB(x + c.x, y + c.y, 0);
-		    else
-			t.setRGB(x + c.x, y + c.y, p);
-		}
-	    }
-	}
     }
 
     public static URI uri(String uri) {
@@ -452,6 +430,10 @@ public class Utils {
 
     public static int iv(Object arg) {
 	return(((Number)arg).intValue());
+    }
+
+    public static long uiv(Object arg) {
+	return(uint32(iv(arg)));
     }
 
     public static float fv(Object arg) {
@@ -1304,6 +1286,10 @@ public class Utils {
 	return(a);
     }
 
+    public static float smoothstep(float d) {
+	return(d * d * (3 - (2 * d)));
+    }
+
     public static double smoothstep(double d) {
 	return(d * d * (3 - (2 * d)));
     }
@@ -1324,6 +1310,11 @@ public class Utils {
 			 ((x.getGreen() * f2) + (y.getGreen() * f1)) / 255,
 			 ((x.getBlue()  * f2) + (y.getBlue()  * f1)) / 255,
 			 ((x.getAlpha() * f2) + (y.getAlpha() * f1)) / 255));
+    }
+
+    public static Color colmul(Color a, Color b) {
+	return(new Color((a.getRed()  * b.getRed() ) / 255, (a.getGreen() * b.getGreen()) / 255,
+			 (a.getBlue() * b.getBlue()) / 255, (a.getAlpha() * b.getAlpha()) / 255));
     }
 
     public static Color blendcol(double a, Color... cols) {
@@ -1570,6 +1561,14 @@ public class Utils {
     }
 
     @SuppressWarnings("unchecked")
+    public static <T> T[] cast(Object[] a, Class<T> cl) {
+	T[] d = (T[])Array.newInstance(cl, a.length);
+	for(int i = 0; i < a.length; i++)
+	    d[i] = cl.cast(a[i]);
+	return(d);
+    }
+
+    @SuppressWarnings("unchecked")
     public static <T> T[] extend(T[] src, int off, int nl) {
 	T[] dst = (T[])Array.newInstance(src.getClass().getComponentType(), nl);
 	System.arraycopy(src, off, dst, 0, Math.min(src.length - off, dst.length));
@@ -1614,6 +1613,19 @@ public class Utils {
 	short[] dst = new short[nl];
 	System.arraycopy(src, 0, dst, 0, Math.min(src.length, dst.length));
 	return(dst);
+    }
+
+    public static byte[] concat(byte[]... parts) {
+	int n = 0;
+	for(byte[] p : parts)
+	    n += p.length;
+	byte[] rv = new byte[n];
+	int o = 0;
+	for(byte[] p : parts) {
+	    System.arraycopy(p, 0, rv, o, p.length);
+	    o += p.length;
+	}
+	return(rv);
     }
 
     public static <T> T el(Iterable<T> c) {
@@ -1786,27 +1798,28 @@ public class Utils {
 	return(buf.toString());
     }
 
-    public static URL urlparam(URL base, String... pars) {
-	/* Why is Java so horribly bad? */
-	String file = base.getFile();
-	int p = file.indexOf('?');
+    public static URI uriparam(URI base, Object... pars) {
 	StringBuilder buf = new StringBuilder();
-	if(p >= 0) {
-	    /* For now, only add; don't augment. Since Java sucks. */
-	    buf.append('&');
-	} else {
-	    buf.append('?');
-	}
+	if(base.getRawQuery() != null)
+	    buf.append(base.getRawQuery());
 	for(int i = 0; i < pars.length; i += 2) {
-	    if(i > 0)
+	    if(buf.length() > 0)
 		buf.append('&');
-	    buf.append(urlencode(pars[i]));
+	    buf.append(urlencode(String.valueOf(pars[i])));
 	    buf.append('=');
-	    buf.append(urlencode(pars[i + 1]));
+	    buf.append(urlencode(String.valueOf(pars[i + 1])));
 	}
 	try {
-	    return(new URL(base.getProtocol(), base.getHost(), base.getPort(), file + buf.toString()));
-	} catch(java.net.MalformedURLException e) {
+	    /* The component constructors for URI don't properly
+	     * preserve quoted characters.
+	     *
+	     * It's all so tiresome. */
+	    String sbase = base.toString();
+	    int p = sbase.indexOf('?');
+	    if(p >= 0)
+		sbase = sbase.substring(0, p);
+	    return(new URI(sbase + '?' + buf.toString()));
+	} catch(URISyntaxException e) {
 	    throw(new RuntimeException(e));
 	}
     }
@@ -1846,7 +1859,7 @@ public class Utils {
 	}
     }
 
-    public static class Range extends AbstractCollection<Integer> {
+    public static class Range extends AbstractList<Integer> {
 	public final int min, max, step;
 
 	public Range(int min, int max, int step) {
@@ -1859,28 +1872,17 @@ public class Utils {
 	    return(Math.max((max - min + step - 1) / step, 0));
 	}
 
-	public Iterator<Integer> iterator() {
-	    return(new Iterator<Integer>() {
-		    private int cur = min;
-
-		    public boolean hasNext() {
-			return((step > 0) ? (cur < max) : (cur > max));
-		    }
-
-		    public Integer next() {
-			if(!hasNext())
-			    throw(new NoSuchElementException());
-			int ret = cur;
-			cur += step;
-			return(ret);
-		    }
-		});
+	public Integer get(int idx) {
+	    int rv = min + (step * idx);
+	    if((rv < min) || (rv >= max))
+		throw(new NoSuchElementException());
+	    return(rv);
 	}
     }
 
-    public static Collection<Integer> range(int min, int max, int step) {return(new Range(min, max, step));}
-    public static Collection<Integer> range(int min, int max) {return(range(min, max, 1));}
-    public static Collection<Integer> range(int max) {return(range(0, max));}
+    public static List<Integer> range(int min, int max, int step) {return(new Range(min, max, step));}
+    public static List<Integer> range(int min, int max) {return(range(min, max, 1));}
+    public static List<Integer> range(int max) {return(range(0, max));}
 
     public static <T> Indir<T> cache(Indir<T> src) {
 	return(new Indir<T>() {
@@ -1893,6 +1895,23 @@ public class Utils {
 			has = true;
 		    }
 		    return(val);
+		}
+	    });
+    }
+
+    public static <V, R> Indir<R> transform(Supplier<? extends V> val, Function<? super V, ? extends R> xf) {
+	return(new Indir<R>() {
+		private V last;
+		private R res;
+		private boolean has = false;
+
+		public R get() {
+		    V v = val.get();
+		    if(!has || !Utils.eq(last, v)) {
+			res = xf.apply(v);
+			last = v;
+		    }
+		    return(res);
 		}
 	    });
     }
@@ -2212,6 +2231,33 @@ public class Utils {
 	}
     }
 
+    @SuppressWarnings("unchecked")
+    public static int compare(Object[] a, Object[] b) {
+	int i = 0;
+	for(i = 0; (i < a.length) && (i < b.length); i++) {
+	    if((a[i] == null) && (b[i] == null)) {
+	    } else if(a[i] == null) {
+		return(-1);
+	    } else if(b[i] == null) {
+		return(1);
+	    } else {
+		if(a[i].getClass() != b[i].getClass()) {
+		    return(a[i].getClass().getName().compareTo(b[i].getClass().getName()));
+		} else if(Comparable.class.isAssignableFrom(a[i].getClass())) {
+		    return(((Comparable)a[i]).compareTo(b[i]));
+		} else {
+		    if(a[i] != b[i])
+			return(sidcmp(a[i], b[i]));
+		}
+	    }
+	}
+	if(a.length < b.length)
+	    return(-1);
+	if(a.length > b.length)
+	    return(1);
+	return(0);
+    }
+
     public static final Comparator<Object> idcmp = new Comparator<Object>() {
 	int eid = 0;
 	final Map<Ref, Long> emerg = new HashMap<Ref, Long>();
@@ -2278,253 +2324,7 @@ public class Utils {
 	    }
 	}
     };
-
-    public static String timestamp() {
-	return new SimpleDateFormat("HH:mm").format(new Date());
-    }
-
-    public static String timestamp(String text) {
-	return String.format("[%s] %s", timestamp(), text);
-    }
-
-    public static String stream2str(InputStream is) {
-	StringBuilder buffer = new StringBuilder();
-	BufferedReader in = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-	String line;
-	boolean first = true;
-	try {
-	    while ((line = in.readLine()) != null) {
-		if(!first) {buffer.append("\n");}
-		buffer.append(line);
-		first = false;
-	    }
-	} catch (IOException ignored) {
-	}
-	return buffer.toString();
-    }
-
-    public static Color hex2color(String hex, Color def){
-	Color c = def;
-	if (hex != null) {
-	    try {
-		int col = (int) Long.parseLong(hex, 16);
-		boolean hasAlpha = (0xff000000 & col) != 0;
-		c = new Color(col, hasAlpha);
-	    } catch (Exception ignored) {}
-	}
-	return c;
-    }
-
-    public static String color2hex(Color col){
-	if(col != null){
-	    return Integer.toHexString(col.getRGB());
-	}
-	return null;
-    }
     
-    private static final DecimalFormat f2sfmt = new DecimalFormat("0");
-    
-    public static String f2s(double f) {return f2s(f, 2);}
-    
-    public static String f2s(double f, int precision) {
-	f2sfmt.setMaximumFractionDigits(precision);
-	return f2sfmt.format(f);
-    }
-
-    //Liang-Barsky algorithm
-    public static Pair<Coord, Coord> clipLine(Coord a, Coord b, Coord ul, Coord br) {
-	// Define the x/y clipping values for the border.
-	double edgeLeft = ul.x;
-	double edgeRight = br.x;
-	double edgeBottom = ul.y;
-	double edgeTop = br.y;
-	
-	// Define the start and end points of the line.
-	double x0src = a.x;
-	double y0src = a.y;
-	double x1src = b.x;
-	double y1src = b.y;
-	
-	double t0 = 0.0;
-	double t1 = 1.0;
-	double xdelta = x1src - x0src;
-	double ydelta = y1src - y0src;
-	double p = 0, q = 0, r;
-	
-	for (int edge = 0; edge < 4; edge++) {   // Traverse through left, right, bottom, top edges.
-	    if(edge == 0) {
-		p = -xdelta;
-		q = -(edgeLeft - x0src);
-	    }
-	    if(edge == 1) {
-		p = xdelta;
-		q = (edgeRight - x0src);
-	    }
-	    if(edge == 2) {
-		p = -ydelta;
-		q = -(edgeBottom - y0src);
-	    }
-	    if(edge == 3) {
-		p = ydelta;
-		q = (edgeTop - y0src);
-	    }
-	    if(p == 0 && q < 0) return null;   // Don't draw line at all. (parallel line outside)
-	    r = q / p;
-	    
-	    if(p < 0) {
-		if(r > t1) return null;         // Don't draw line at all.
-		else if(r > t0) t0 = r;         // Line is clipped!
-	    } else if(p > 0) {
-		if(r < t0) return null;      // Don't draw line at all.
-		else if(r < t1) t1 = r;      // Line is clipped!
-	    }
-	}
-	
-	return new Pair<>(
-	    new Coord((int) (x0src + t0 * xdelta), (int) (y0src + t0 * ydelta)),
-	    new Coord((int) (x0src + t1 * xdelta), (int) (y0src + t1 * ydelta))
-	);
-    }
-    
-    public static Optional<Coord2d> intersect(Pair<Coord2d, Coord2d> lineA, Pair<Coord2d, Coord2d> lineB) {
-	double a1 = lineA.b.y - lineA.a.y;
-	double b1 = lineA.a.x - lineA.b.x;
-	double c1 = a1 * lineA.a.x + b1 * lineA.a.y;
-	
-	double a2 = lineB.b.y - lineB.a.y;
-	double b2 = lineB.a.x - lineB.b.x;
-	double c2 = a2 * lineB.a.x + b2 * lineB.a.y;
-	
-	double delta = a1 * b2 - a2 * b1;
-	if(delta == 0) {
-	    return Optional.empty();
-	}
-	return Optional.of(new Coord2d((float) ((b2 * c1 - b1 * c2) / delta), (float) ((a1 * c2 - a2 * c1) / delta)));
-    }
-    
-    private static final Pattern RESID = Pattern.compile(".*\\[([^,]*),?.*]");
-    private static final Map<String, String> customNames = new HashMap<>();
-    private static boolean customNamesInit = false;
-    
-    public static String prettyResName(Indir<Resource> res) {
-	if(res == null) {return "???";}
-	try {
-	    return prettyResName(res.get());
-	} catch (Resource.Loading ignore) {
-	    
-	}
-	if(res instanceof Resource.Named) {
-	    return prettyResName(((Resource.Named) res).name);
-	}
-	return "???";
-    }
-    
-    public static String prettyResName(Resource res) {
-	if(res == null) {return "???";}
-	Resource.Tooltip tt = res.layer(Resource.tooltip);
-	if(tt != null) {
-	    return tt.t;
-	} else {
-	    return prettyResName(res.name);
-	}
-    }
-    
-    public static String prettyResName(String resname) {
-	if(resname == null) {return "???";}
-	tryInitCustomNames();
-	if(customNames.containsKey(resname)) {
-	    return customNames.get(resname);
-	}
-	Matcher m = RESID.matcher(resname);
-	if(m.matches()) {
-	    resname = m.group(1);
-	}
-	int k = resname.lastIndexOf("/");
-	resname = resname.substring(k + 1);
-	resname = resname.substring(0, 1).toUpperCase() + resname.substring(1);
-	return resname;
-    }
-    
-    private static void tryInitCustomNames() {
-	if(customNamesInit) {return;}
-	customNamesInit = true;
-	try {
-	    Gson gson = new GsonBuilder().create();
-	    customNames.putAll(gson.fromJson(Config.loadJarFile("tile_names.json"), new TypeToken<Map<String, String>>() {
-	    }.getType()));
-	} catch (Exception ignored) {}
-    }
-    
-    public static boolean checkbit(int target, int index) {
-	return (target & (1 << index)) != 0;
-    }
-
-    public static int setbit(int target, int index, boolean value) {
-	if(value) {
-	    return target | (1 << index);
-	} else {
-	    return target & ~(1 << index);
-	}
-    }
-    
-    public static double round(double a, int order){
-	double o = Math.pow(10, order);
-	return Math.round(o * a) / o;
-    }
-    
-    @SuppressWarnings("unchecked")
-    public static <T extends Number> T num2value(Number n, Class<T> type) {
-	if(Integer.class.equals(type)) {
-	    return (T) new Integer(n.intValue());
-	} else if(Long.class.equals(type)) {
-	    return (T) new Long(n.longValue());
-	}
-	return (T) new Float(n.floatValue());
-    }
-    
-    @SafeVarargs
-    public static <T> Optional<T> chainOptionals(Supplier<Optional<T>>... items) {
-	return Arrays.stream(items).map(Supplier::get)
-	    .filter(Optional::isPresent)
-	    .map(Optional::get)
-	    .findFirst();
-    }
-    
-    static String[] units = {"s", "m", "h", "d"};
-    static int[] div = {60, 60, 24};
-    
-    public static String formatTimeLong(int time) {
-	int[] vals = new int[units.length];
-	vals[0] = time;
-	for (int i = 0; i < div.length; i++) {
-	    vals[i + 1] = vals[i] / div[i];
-	    vals[i] = vals[i] % div[i];
-	}
-	StringBuilder buf = new StringBuilder();
-	for (int i = units.length - 1; i >= 0; i--) {
-	    if(vals[i] > 0) {
-		if(buf.length() > 0) {
-		    buf.append(String.format(" %02d", vals[i]));
-		} else {
-		    buf.append(vals[i]);
-		}
-		buf.append(units[i]);
-	    }
-	}
-	return (buf.toString());
-    }
-    
-    public static String formatTimeShort(int time) {
-	if(time >= 60) {
-	    if(time > 3600) {
-		time = time / 60;
-	    }
-	    return String.format("%d:%02d", time / 60, time % 60);
-	} else {
-	    return String.format("%02d", time);
-	}
-    }
-
     static {
 	Console.setscmd("die", new Console.Command() {
 		public void run(Console cons, String[] args) {

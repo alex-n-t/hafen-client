@@ -1,6 +1,7 @@
 import haven.*;
 import haven.render.BaseColor;
 import haven.render.Model;
+import me.ender.ClientUtils;
 import me.ender.minimap.*;
 
 import java.awt.*;
@@ -48,7 +49,7 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
 	if(marker instanceof PMarker) {
 	    col = new BaseColor(((PMarker) marker).color);
 	} else if(marker instanceof SMarker) {
-	    Resource.Spec spec = ((SMarker) marker).res;
+	    Resource.Saved spec = ((SMarker) marker).res;
 	    icon = new Resource.Spec(spec.pool, spec.name, -1);
 	    col = colors[0];
 	} else if(marker instanceof MapWnd2.GobMarker) {
@@ -109,11 +110,12 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
 	Coord ad = sp.b;
 	
 	// gl.glEnable(GL2.GL_POLYGON_SMOOTH); XXXRENDER
-	if(col == null) {
-	    int i = getparent(GameUI.class).chrwdg.getObjectiveIndex(tip);
+	QuestWnd questWnd;
+	if(tip != null && col == null && (questWnd = getQuestWnd()) != null) {
+	    int i = questWnd.getObjectiveIndex(tip);
 	    col = colors[i % colors.length];
 	}
-	g.usestate(col);
+	g.usestate(col != null ? col : colors[0]);
 	Coord tmp = sc;
 	sc = sc.add(g.tx);
 	g.drawp(Model.Mode.TRIANGLES, new float[]{
@@ -197,16 +199,16 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
 	this.gobid = gobid;
     }
     
-    public boolean mousedown(Coord c, int button) {
-	if(lc != null && lc.dist(c) < 20) {
-	    if(button == 1) {
+    public boolean mousedown(MouseDownEvent ev) {
+	if(lc != null && lc.dist(ev.c) < 20) {
+	    if(ev.b == 1) {
 		Gob gob = getGob();
 		if(gob != null) {
 		    ui.gui.map.click(gob, 1);
 		} else {
 		    ui.gui.map.click(tc(), 1);
 		}
-	    } else if(button == 3) {
+	    } else if(ev.b == 3) {
 		if(ui.modctrl && marker != null) {
 		    if(ui.modmeta && marker instanceof PMarker) {
 			ui.gui.mapfile.removeMarker(marker);
@@ -220,10 +222,18 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
 		    }
 		}
 	    }
-	    if(click) {wdgmsg("click", button, ui.modflags());}
+	    if(click) {wdgmsg("click", ev.b, ui.modflags());}
 	    return (true);
 	}
-	return (super.mousedown(c, button));
+	return (super.mousedown(ev));
+    }
+    
+    private QuestWnd getQuestWnd() {
+	GameUI gui = getparent(GameUI.class);
+	if(gui != null && gui.chrwdg != null && gui.chrwdg.quest != null) {
+	    return gui.chrwdg.quest;
+	}
+	return null;
     }
     
     private Gob getGob() {
@@ -320,7 +330,7 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
 	        firsSegment = curseg;
 		firstLine = line;
 	    } else if(curseg == firsSegment) {
-		mc = Utils.intersect(firstLine, line).orElse(mc);
+		mc = ClientUtils.intersect(firstLine, line).orElse(mc);
 		//do not stop triangulation if calculated point diverges too far off from server one
 		if(mc != null && Math.abs(player.rc.angle(mc) - player.rc.angle(b)) > PI / 3) {
 		    mc = null;

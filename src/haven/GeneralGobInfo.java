@@ -1,6 +1,9 @@
 package haven;
 
+import me.ender.ClientUtils;
 import me.ender.GobInfoOpts;
+import me.ender.GobInfoOpts.InfoPart;
+import me.ender.Reflect;
 import me.ender.gob.GobTimerData;
 
 import java.awt.*;
@@ -17,6 +20,9 @@ public class GeneralGobInfo extends GobInfo {
     private static final Color Q_COL = new Color(235, 252, 255, 255);
     private static final Color BARREL_COL = new Color(252, 235, 255, 255);
     private static final Color BG = new Color(0, 0, 0, 84);
+    private static final Map<Pair<Color, String>, Text.Line> TEXT_CACHE = new HashMap<>();
+    public static final int MARGIN = UI.scale(3);
+    public static final int PAD = 0;
     public static Pattern GOB_Q = Pattern.compile("Quality: (\\d+)");
     private static final Map<Long, Integer> gobQ = new LinkedHashMap<Long, Integer>() {
 	@Override
@@ -34,8 +40,10 @@ public class GeneralGobInfo extends GobInfo {
     
     static {
 	POS.put("gfx/terobjs/smelter", 5);
+	POS.put("gfx/terobjs/fineryforge", 8);
 	POS.put("gfx/terobjs/barrel", 6);
 	POS.put("gfx/terobjs/iconsign", 5);
+	POS.put("gfx/terobjs/cheeserack", 17);
     }
 
     protected GeneralGobInfo(Gob owner) {
@@ -69,11 +77,39 @@ public class GeneralGobInfo extends GobInfo {
 	    timer.img(),
 	};
 	
+	renderEquippedOverlays();
+	
 	for (BufferedImage part : parts) {
 	    if(part == null) {continue;}
-	    return new TexI(ItemInfo.catimgsh(UI.scale(3), 0, BG, parts));
+	    return combine(parts);
 	}
 	return null;
+    }
+    
+    private void renderEquippedOverlays() {
+	String res = gob.resid();
+	if(res == null) {return;}
+	
+	for (Gob.Overlay ol : gob.ols) {
+	    if(!ol.name().startsWith("gfx/fx/eq")) {continue;}
+	    Sprite spr = Reflect.getFieldValue(ol.spr, "espr", Sprite.class);
+	    if(spr == null) {continue;}
+	    String name = spr.res.name;
+	    String text = null;
+	    
+	    if(GobInfoOpts.enabled(InfoPart.CHEESE_RACK) && res.startsWith("gfx/terobjs/cheeserack")) {
+		if(name.startsWith("gfx/terobjs/items/cheesetray-")) {
+		    name = name.substring(name.lastIndexOf("-") + 1);
+		    text = ClientUtils.prettyResName(name);
+		}
+	    }
+	    
+	    if(text != null) {
+		spr.setTex2d(combine(text(text, BARREL_COL).img));
+	    } else {
+		spr.setTex2d(null);
+	    }
+	}
     }
     
     @Override
@@ -89,7 +125,7 @@ public class GeneralGobInfo extends GobInfo {
     }
 
     private BufferedImage quality() {
-	if(CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(GobInfoOpts.InfoPart.QUALITY)) {return null;}
+	if(GobInfoOpts.disabled(InfoPart.QUALITY)) {return null;}
 	if(q != 0) {
 	    String text = String.format("$img[gfx/hud/gob/quality,c]%s", RichText.color(String.valueOf(q), Q_COL));
 	    return Utils.outline2(RichText.stdf.render(text).img, Color.BLACK);
@@ -98,7 +134,7 @@ public class GeneralGobInfo extends GobInfo {
     }
     
     private BufferedImage health() {
-	if(CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(GobInfoOpts.InfoPart.HEALTH)) {return null;}
+	if(GobInfoOpts.disabled(InfoPart.HEALTH)) {return null;}
 	health = gob.getattr(GobHealth.class);
 	if(health != null) {
 	    return health.text();
@@ -112,7 +148,7 @@ public class GeneralGobInfo extends GobInfo {
 	scalePercent = -1;
  
 	if(isSpriteKind(gob, "GrowingPlant", "TrellisPlant")) {
-	    if(CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(GobInfoOpts.InfoPart.PLANT_GROWTH)) {return null;}
+	    if(GobInfoOpts.disabled(InfoPart.PLANT_GROWTH)) {return null;}
 	    int maxStage = 0;
 	    for (FastMesh.MeshRes layer : gob.getres().layers(FastMesh.MeshRes.class)) {
 		if(layer.id / 10 > maxStage) {
@@ -124,10 +160,10 @@ public class GeneralGobInfo extends GobInfo {
 		int stage = data.uint8();
 		if(stage > maxStage) {stage = maxStage;}
 		Color c = Utils.blendcol((double) stage / maxStage, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN);
-		line = Text.std.renderstroked(String.format("%d/%d", stage, maxStage), c, Color.BLACK);
+		line = text(String.format("%d/%d", stage, maxStage), c);
 	    }
 	} else if(isSpriteKind(gob, "Tree")) {
-	    if(CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(GobInfoOpts.InfoPart.TREE_GROWTH)) {return null;}
+	    if(GobInfoOpts.disabled(InfoPart.TREE_GROWTH)) {return null;}
 	    Message data = getDrawableData(gob);
 	    if(data != null && !data.eom()) {
 		data.skip(1);
@@ -140,7 +176,7 @@ public class GeneralGobInfo extends GobInfo {
 			growth = (int) (BUSH_MULT * (growth - BUSH_START));
 		    }
 		    Color c = Utils.blendcol(growth / 100.0, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN);
-		    line = Text.std.renderstroked(String.format("%d%%", growth), c, Color.BLACK);
+		    line = text(String.format("%d%%", growth), c);
 		}
 	    }
 	}
@@ -159,26 +195,28 @@ public class GeneralGobInfo extends GobInfo {
     }
     
     public String contents() {
+	if(contents == null) {
+	    contents = getContents(true).orElse("");
+	} 
 	return contents;
     }
-
-    private BufferedImage content() {
-	this.contents = null;
+    
+    private Optional<String> getContents(boolean force) {
 	String res = gob.resid();
-	if(res == null) {return null;}
 	Optional<String> contents = Optional.empty();
+	if(res == null) {return contents;}
 	
 	if(res.startsWith("gfx/terobjs/barrel")) {
-	    if(CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(GobInfoOpts.InfoPart.BARREL)) {return null;}
+	    if(!force && GobInfoOpts.disabled(InfoPart.BARREL)) {return contents;}
 	    contents = gob.ols.stream()
 		.map(Gob.Overlay::name)
 		.filter(name -> name.startsWith("gfx/terobjs/barrel-"))
 		.map(name -> name.substring(name.lastIndexOf("-") + 1))
-		.map(Utils::prettyResName)
+		.map(ClientUtils::prettyResName)
 		.findAny();
 	    
 	} else if(res.startsWith("gfx/terobjs/iconsign")) {
-	    if(CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(GobInfoOpts.InfoPart.DISPLAY_SIGN)) {return null;}
+	    if(!force && GobInfoOpts.disabled(InfoPart.DISPLAY_SIGN)) {return contents;}
 	    Message sdt = gob.sdtm();
 	    if(!sdt.eom()) {
 		int resid = sdt.uint16();
@@ -187,9 +225,19 @@ public class GeneralGobInfo extends GobInfo {
 		}
 		
 		Session session = gob.context(Session.class);
-		contents = Optional.of(Utils.prettyResName(session.getres(resid)));
+		Indir<Resource> cres = session.getres2(resid);
+		if(cres != null) {
+		    contents = Optional.of(ClientUtils.prettyResName(cres));
+		}
 	    }
 	}
+	
+	return contents;
+    }
+
+    private BufferedImage content() {
+	this.contents = null;
+	Optional<String> contents = getContents(false);
 	
 	if(contents.isPresent()) {
 	    this.contents = contents.get();
@@ -197,7 +245,7 @@ public class GeneralGobInfo extends GobInfo {
 	    if(CFG.DISPLAY_GOB_INFO_SHORT.get()) {
 		text = shorten(text);
 	    }
-	    BufferedImage img = Text.std.renderstroked(text, BARREL_COL, Color.black).img;
+	    BufferedImage img = text(text, BARREL_COL).img;
 	    if(img.getWidth() <= UI.scale(60)) {
 		return img;
 	    }
@@ -206,7 +254,7 @@ public class GeneralGobInfo extends GobInfo {
 	    if(parts.length <= 1) {return img;}
 	    
 	    return ItemInfo.catimgs(0, ItemInfo.CENTER, Arrays.stream(parts)
-		.map(p -> Text.std.renderstroked(p, BARREL_COL, Color.black).img)
+		.map(p -> text(p, BARREL_COL).img)
 		.toArray(BufferedImage[]::new));
 	}
 	return null;
@@ -219,6 +267,21 @@ public class GeneralGobInfo extends GobInfo {
 	    return d.sdt.clone();
 	else
 	    return null;
+    }
+    
+    private static Text.Line text(String text, Color col) {
+	Pair<Color, String> key = new Pair<>(col, text);
+	if(TEXT_CACHE.containsKey(key)) {
+	    return TEXT_CACHE.get(key);
+	} else {
+	    Text.Line line = Text.std.renderstroked(text, col, Color.black);
+	    TEXT_CACHE.put(key, line);
+	    return line;
+	}
+    }
+    
+    private static Tex combine(BufferedImage... parts) {
+	return new TexI(ItemInfo.catimgsh(MARGIN, PAD, BG, parts));
     }
     
     private static boolean isSpriteKind(Gob gob, String... kind) {

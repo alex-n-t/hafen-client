@@ -22,12 +22,12 @@ public class QuestHelper extends GameUI.Hidewnd {
 	pack();
     }
     
-    public void processQuest(List<CharWnd.Quest.Condition> conditions, int id, boolean isCredo) {
+    public void processQuest(List<QuestWnd.Quest.Condition> conditions, int id, boolean isCredo) {
 	if(!visible()) {return;}
 	synchronized (taskList) {
 	    taskList.tasks.removeIf(q -> q.id == id);
 	    long left = conditions.stream().filter(q -> q.done != 1).count();
-	    for (CharWnd.Quest.Condition condition : conditions) {
+	    for (QuestWnd.Quest.Condition condition : conditions) {
 		String name = condition.desc;
 		TaskState status = TaskState.ACTIVE;
 		
@@ -96,8 +96,9 @@ public class QuestHelper extends GameUI.Hidewnd {
 	    if(!tvisible()) {return;}
 	    GameUI gui = ui.gui;
 	    if(gui == null || gui.chrwdg == null) {return;}
-	    CharWnd chrwdg = gui.chrwdg;
-	    int currentQuest = Optional.ofNullable(chrwdg.quest).map(CharWnd.Quest.Info::questid).orElse(-1);
+	    Optional<QuestWnd> optQuestWnd = Optional.ofNullable(gui.chrwdg.quest);
+	    int currentQuest = optQuestWnd.map(q -> q.quest)
+		.map(QuestWnd.Quest.Info::questid).orElse(-1);
 	    
 	    if(!refresh) {
 		if(prevQuest != currentQuest) {
@@ -116,20 +117,22 @@ public class QuestHelper extends GameUI.Hidewnd {
 	    lastUpdateTime = System.currentTimeMillis();
 	    synchronized (this) {
 		tasks.clear();
-		
+		if(!optQuestWnd.isPresent()) {return;}
+		QuestWnd questWnd = optQuestWnd.get();
 		boolean changed = false;
-		for (CharWnd.Quest quest : chrwdg.cqst.quests) {
+		List<QuestWnd.Quest> quests = optQuestWnd.map(w -> w.cqst).map(c -> c.quests).orElse(Collections.emptyList());
+		for (QuestWnd.Quest quest : quests) {
 		    //currently selected quest will be selected last
 		    if(currentQuest == quest.id) {continue;}
-		    chrwdg.wdgmsg("qsel", quest.id);
+		    questWnd.wdgmsg("qsel", quest.id);
 		    changed = true;
 		}
 		if(currentQuest >= 0) {
-		    chrwdg.wdgmsg("qsel", currentQuest);
+		    questWnd.wdgmsg("qsel", currentQuest);
 		    //if the only quest in the log is currently selected - send selection again to re-select it
-		    if(!changed) {chrwdg.wdgmsg("qsel", currentQuest);}
+		    if(!changed) {questWnd.wdgmsg("qsel", currentQuest);}
 		} else {
-		    chrwdg.wdgmsg("qsel", (Object) null);
+		    questWnd.wdgmsg("qsel", (Object) null);
 		}
 		Collections.sort(tasks);
 	    }
@@ -162,7 +165,8 @@ public class QuestHelper extends GameUI.Hidewnd {
 	
 	public void change(Task item) {
 	    if(item == null) {return;}
-	    if(ui.gui.chrwdg.quest != null && ui.gui.chrwdg.quest.questid() == item.id) {
+	    QuestWnd.Quest.Info quest = ui.gui.chrwdg.quest.quest;
+	    if(quest != null && quest.questid() == item.id) {
 		ui.gui.chrwdg.wdgmsg("qsel", (Object) null);
 	    } else {
 		ui.gui.chrwdg.wdgmsg("qsel", item.id);
@@ -192,7 +196,7 @@ public class QuestHelper extends GameUI.Hidewnd {
 	    if(markerName == null || gui == null || gui.map == null || gui.mapfile == null) {return null;}
 	    
 	    MiniMap.Location loc = gui.mapfile.playerLocation();
-	    if( loc == null) {return null;}
+	    if(loc == null) {return null;}
 	    
 	    Gob player = gui.map.player();
 	    if(player == null) {return null;}

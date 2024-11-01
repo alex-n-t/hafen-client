@@ -5,7 +5,7 @@ import java.awt.*;
 import static haven.Equipory.*;
 import static haven.Inventory.*;
 
-public class EquipProxy extends DraggableWidget implements DTarget2 {
+public class EquipProxy extends DraggableWidget implements DTarget {
     public static final Color BG_COLOR = new Color(91, 128, 51, 202);
     private Equipory.SLOTS[] slots;
     
@@ -27,16 +27,17 @@ public class EquipProxy extends DraggableWidget implements DTarget2 {
     }
     
     @Override
-    public boolean mousehover(Coord c, boolean on) {
-	Equipory e = ui.gui.equipory;
+    public boolean mousehover(MouseHoverEvent ev, boolean on) {
+	Equipory e = getEquipory();
+	MouseHoverEvent zev = new MouseHoverEvent(ev, Coord.z);
 	if(e != null) {
-	    WItem w = e.slots[slot(c).idx];
+	    WItem w = e.slots[slot(ev.c).idx];
 	    if(w != null) {
 	    	GItem g = w.item;
 		boolean wasNull = g.hovering_pos == null;
-		boolean hovered = w.mousehover(Coord.z, on);
+		boolean hovered = w.mousehover(zev, on);
 		if(hovered && wasNull && (g.contents != null)) {
-		    g.hovering_pos = parentpos(parent, sqroff(c).add(1, 1).mul(sqsz).sub(5, 5).sub(GItem.HoverDeco.hovermarg));
+		    g.hovering_pos = parentpos(parent, sqroff(ev.c).add(1, 1).mul(sqsz).sub(5, 5).sub(GItem.HoverDeco.hovermarg));
 		}
 		if(!hovered) {
 		    g.hovering_pos = null;
@@ -48,21 +49,22 @@ public class EquipProxy extends DraggableWidget implements DTarget2 {
     }
     
     @Override
-    public boolean mousedown(Coord c, int button) {
-	Equipory e = ui.gui.equipory;
+    public boolean mousedown(MouseDownEvent ev) {
+	Equipory e = getEquipory();
+	MouseDownEvent zev = new MouseDownEvent(ev, Coord.z);
 	if(e != null) {
-	    WItem w = e.slots[slot(c).idx];
+	    WItem w = e.slots[slot(ev.c).idx];
 	    if(w != null) {
-		w.mousedown(Coord.z, button);
+		w.mousedown(zev);
 		return true;
 	    }
 	}
-	return super.mousedown(c, button);
+	return super.mousedown(ev);
     }
     
     @Override
     public void draw(GOut g) {
-	Equipory equipory = ui.gui.equipory;
+	Equipory equipory = getEquipory();
 	if(equipory != null) {
 	    int k = 0;
 	    g.chcolor(BG_COLOR);
@@ -86,7 +88,7 @@ public class EquipProxy extends DraggableWidget implements DTarget2 {
     
     @Override
     public Object tooltip(Coord c, Widget prev) {
-	Equipory e = ui.gui.equipory;
+	Equipory e = getEquipory();
 	if(e != null) {
 	    Equipory.SLOTS slot = slot(c);
 	    WItem w = e.slots[slot.idx];
@@ -100,22 +102,29 @@ public class EquipProxy extends DraggableWidget implements DTarget2 {
     }
     
     @Override
-    public boolean drop(WItem target, Coord cc, Coord ul) {
-	Equipory e = ui.gui.equipory;
+    public boolean drop(Drop ev) {
+	Equipory e = getEquipory();
 	if(e != null) {
-	    e.wdgmsg("drop", slot(cc).idx);
+	    e.wdgmsg("drop", slot(ev.c).idx);
 	    return true;
 	}
 	return false;
     }
     
+    private Equipory getEquipory() {
+	if(ui != null && ui.gui != null) {
+	    return ui.gui.equipory;
+	}
+	return null;
+    }
+    
     @Override
-    public boolean iteminteract(WItem target, Coord cc, Coord ul) {
-	Equipory e = ui.gui.equipory;
+    public boolean iteminteract(Interact ev) {
+	Equipory e = getEquipory();
 	if(e != null) {
-	    WItem w = e.slots[slot(cc).idx];
+	    WItem w = e.slots[slot(ev.c).idx];
 	    if(w != null) {
-		return w.iteminteract(target, cc, ul);
+		return w.iteminteract(ev);
 	    }
 	}
 	return false;

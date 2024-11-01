@@ -46,10 +46,15 @@ public class MainFrame extends java.awt.Frame implements Console.Directory {
     DisplayMode fsmode = null, prefs = null;
     Coord prefssz = null;
 	
-    static {
+    public static void initawt() {
 	try {
+	    System.setProperty("apple.awt.application.name", "Haven & Hearth");
 	    javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
 	} catch(Exception e) {}
+    }
+
+    static {
+	initawt();
     }
 	
     DisplayMode findmode(int w, int h) {
@@ -169,6 +174,12 @@ public class MainFrame extends java.awt.Frame implements Console.Directory {
 	    throw(new Error(e));
 	}
 	setIconImage(icon);
+	try {
+	    Class<?> ctb = Class.forName("java.awt.Taskbar");
+	    Object tb = ctb.getMethod("getTaskbar").invoke(null);
+	    ctb.getMethod("setIconImage", Image.class).invoke(tb, icon);
+	} catch(Exception e) {
+	}
     }
 
     private UIPanel renderer() {
@@ -413,6 +424,7 @@ public class MainFrame extends java.awt.Frame implements Console.Directory {
     }
 
     private static void main2(String[] args) {
+	initfullscreen.set(CFG.VIDEO_FULL_SCREEN.get());
 	Config.cmdline(args);
 	status("start");
 	try {
@@ -443,16 +455,16 @@ public class MainFrame extends java.awt.Frame implements Console.Directory {
     public static void main(final String[] args) {
 	/* Set up the error handler as early as humanly possible. */
 	ThreadGroup g = new ThreadGroup("Haven main group");
-	String ed = Utils.getprop("haven.errorurl", "");;
+	String ed = Config.get().getprop("haven.errorurl", "");
 	if(ed.equals("stderr")) {
 	    g = new haven.error.SimpleHandler("Haven main group", true);
 	} else {
 	    URL errordest = null;
 	    try {
 		if(!(ed = Utils.getprop("haven.errorurl", "")).equals("")) {
-		    errordest = new java.net.URL(ed);
+		    errordest = new java.net.URI(ed).toURL();
 		}
-	    } catch (java.net.MalformedURLException e) {
+	    } catch (java.net.MalformedURLException | java.net.URISyntaxException e) {
 	    }
 	    final haven.error.ErrorHandler hg = new haven.error.ErrorHandler(errordest);
 	    hg.sethandler(new haven.error.ErrorGui(null) {

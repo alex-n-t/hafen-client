@@ -26,13 +26,13 @@
 
 package haven;
 
+import me.ender.ClientUtils;
 import me.ender.Reflect;
 
 import java.io.*;
 import java.util.*;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextHitInfo;
 import java.awt.image.BufferedImage;
@@ -164,7 +164,7 @@ public class ChatUI extends Widget {
 	    
 	    public String message() {
 		if(Reflect.is(this, "haven.res.ui.rchan.RealmChannel$PNamedMessage")) {
-		    return Utils.timestamp(String.format("%s: %s", Reflect.getFieldValueString(this, "cn"), Reflect.getFieldValueString(this, "text")));
+		    return ClientUtils.timestamp(String.format("%s: %s", Reflect.getFieldValueString(this, "cn"), Reflect.getFieldValueString(this, "text")));
 		}
 		return null;
 	    }
@@ -284,7 +284,7 @@ public class ChatUI extends Widget {
 
 	    public SimpleMessage(String text, Color col) {
 		if(CFG.SHOW_CHAT_TIMESTAMP.get()){
-		    text = Utils.timestamp(text);
+		    text = ClientUtils.timestamp(text);
 		}
 		this.text = text;
 		this.col = col;
@@ -505,8 +505,8 @@ public class ChatUI extends Widget {
 	    dy = ty + (Math.pow(2, -dt * 40) * (dy - ty));
 	}
 
-	public boolean mousewheel(Coord c, int amount) {
-	    sb.ch(amount * 45);
+	public boolean mousewheel(MouseWheelEvent ev) {
+	    sb.ch(ev.a * 45);
 	    return(true);
 	}
 
@@ -624,14 +624,18 @@ public class ChatUI extends Widget {
 	private CharPos selorig, lasthit, selstart, selend;
 	private UI.Grab grab;
 	private boolean dragging;
-	public boolean mousedown(Coord c, int btn) {
-	    if(super.mousedown(c, btn))
+	public boolean mousedown(MouseDownEvent ev) {
+	    if(ev.propagate(this) || super.mousedown(ev))
 		return(true);
 	    if(grab != null)
 		return(true);
-	    CharPos ch = charat(c);
+	    CharPos ch = charat(ev.c);
 	    selorig = ch;
-	    if(btn == 1) {
+	    if(ch != null) {
+		if(ch.rm.msg.mousedown(this, ch, ev.c, ev.b))
+		    return(true);
+	    }
+	    if(ev.b == 1) {
 		selstart = selend = null;
 		if(ch != null) {
 		    lasthit = ch;
@@ -639,16 +643,14 @@ public class ChatUI extends Widget {
 		    grab = ui.grabmouse(this);
 		}
 		return(true);
-	    } else {
-		if(ch != null)
-		    ch.rm.msg.mousedown(this, ch, c, btn);
 	    }
 	    return(true);
 	}
 
-	public void mousemove(Coord c) {
+	public void mousemove(MouseMoveEvent ev) {
+	    super.mousemove(ev);
 	    if(grab != null) {
-		CharPos ch = charat(c);
+		CharPos ch = charat(ev.c);
 		if((ch != null) && !ch.equals(lasthit)) {
 		    lasthit = ch;
 		    if(!dragging && !ch.equals(selorig))
@@ -662,9 +664,33 @@ public class ChatUI extends Widget {
 			selstart = selend = null;
 		    }
 		}
-	    } else {
-		super.mousemove(c);
 	    }
+	}
+
+	public boolean mouseup(MouseUpEvent ev) {
+	    if(ev.propagate(this) || super.mouseup(ev))
+		return(true);
+	    if((ev.b == 1) && (grab != null)) {
+		grab.remove();
+		grab = null;
+		dragging = false;
+		if(selstart != null) {
+		    selected(selstart, selend);
+		    return(true);
+		}
+	    }
+	    CharPos ch = charat(ev.c);
+	    if(ch != null) {
+		if(ch.rm.msg.mouseup(this, ch, ev.c, ev.b))
+		    return(true);
+		if(!dragging && (selorig != null) && ch.equals(selorig)) {
+		    if(ch.rm.msg.clicked(this, ch, ev.c, ev.b))
+			return(true);
+		    if(clicked(selorig, ev.b))
+			return(true);
+		}
+	    }
+	    return(true);
 	}
 
 	protected void selected(CharPos start, CharPos end) {
@@ -724,43 +750,23 @@ public class ChatUI extends Widget {
 	    } catch(IllegalStateException e) {}
 	}
 
-	protected void clicked(CharPos pos) {
-	    AttributedCharacterIterator inf = pos.part.ti();
-	    inf.setIndex(pos.ch.getCharIndex() + pos.part.start);
-	    URI uri = (URI)inf.getAttribute(ChatAttribute.HYPERLINK);
-	    if(uri != null) {
-		try {
-		    WebBrowser.sshow(uri.toURL());
-		} catch(java.net.MalformedURLException e) {
-		    getparent(GameUI.class).error("Could not follow link.");
-		} catch(WebBrowser.BrowserException e) {
-		    getparent(GameUI.class).error("Could not launch web browser.");
-		}
-	    }
-	}
-
-	public boolean mouseup(Coord c, int btn) {
-	    if(super.mouseup(c, btn))
-		return(true);
+	protected boolean clicked(CharPos pos, int btn) {
 	    if(btn == 1) {
-		if(grab != null) {
-		    if(selstart != null)
-			selected(selstart, selend);
-		    else
-			clicked(selorig);
-		    grab.remove();
-		    grab = null;
-		    dragging = false;
+		AttributedCharacterIterator inf = pos.part.ti();
+		inf.setIndex(pos.ch.getCharIndex() + pos.part.start);
+		URI uri = (URI)inf.getAttribute(ChatAttribute.HYPERLINK);
+		if(uri != null) {
+		    try {
+			WebBrowser.sshow(uri.toURL());
+		    } catch(java.net.MalformedURLException e) {
+			getparent(GameUI.class).error("Could not follow link.");
+		    } catch(WebBrowser.BrowserException e) {
+			getparent(GameUI.class).error("Could not launch web browser.");
+		    }
 		}
-	    } else {
-		CharPos ch = charat(c);
-		if(ch != null) {
-		    ch.rm.msg.mouseup(this, ch, c, btn);
-		    if((selorig != null) && ch.equals(selorig))
-			ch.rm.msg.clicked(this, ch, c, btn);
-		}
+		return(true);
 	    }
-	    return(true);
+	    return(false);
 	}
 
 	public void select() {
@@ -867,7 +873,7 @@ public class ChatUI extends Widget {
 			hpos = history.size();
 		    }
 
-		    public boolean keydown(KeyEvent ev) {
+		    public boolean keydown(KeyDownEvent ev) {
 			if(ConsoleHost.kb_histprev.key().match(ev)) {
 			    if(hpos > 0) {
 				if(hpos == history.size())
@@ -924,7 +930,7 @@ public class ChatUI extends Widget {
 		    Color col = null;
 		    if(args.length > 1) col = (Color) args[1];
 		    if(col == null) col = Color.WHITE;
-		    int urgency = (args.length > 2) ? (Integer) args[2] : 0;
+		    int urgency = (args.length > 2) ? Utils.iv(args[2]) : 0;
 		    Message cmsg = new SimpleMessage(line, col);
 		    append(cmsg, urgency);
 		}
@@ -942,6 +948,8 @@ public class ChatUI extends Widget {
 	public final int urgency;
 	private final String name;
 	private final Map<Integer, Color> pc = new HashMap<Integer, Color>();
+	private Map<Integer, Boolean> muted = null;
+	private Integer mutewait = null;
 
 	public class NamedMessage extends Message {
 	    public final int from;
@@ -989,6 +997,25 @@ public class ChatUI extends Widget {
 	    public String message() {
 		return format(nm());
 	    }
+
+	    public boolean clicked(Channel chan, CharPos pos, Coord c, int btn) {
+		if((btn == 3) && (muted != null)) {
+		    Boolean muted = MultiChat.this.muted.get(from);
+		    if(muted == null) {
+			mutewait = from;
+			wdgmsg("muted", from);
+		    } else {
+			mutemenu(from, muted);
+		    }
+		    return(true);
+		}
+		return(super.clicked(chan, pos, c, btn));
+	    }
+	}
+
+	private void mutemenu(int pl, boolean cur) {
+	    SListMenu.Action ma = SListMenu.Action.of(cur ? "Unmute" : "Mute", () -> wdgmsg("mute", pl, cur ? 0 : 1));
+	    SListMenu.of(UI.scale(250, 120), null, Arrays.asList(ma)).addat(ui.root, ui.mc);
 	}
 
 	public class MyMessage extends SimpleMessage {
@@ -1022,15 +1049,25 @@ public class ChatUI extends Widget {
 
 	public void uimsg(String msg, Object... args) {
 	    if(msg == "msg") {
-		Integer from = (Integer) args[0];
-		String line = (String) args[1];
+		Number from = (Number)args[0];
+		String line = (String)args[1];
 		if(process(line)) {
 		    if(from == null) {
 			append(new MyMessage(line), -1);
 		    } else {
-			Message cmsg = new NamedMessage(from, line, fromcolor(from));
+			Message cmsg = new NamedMessage(from.intValue(), line, fromcolor(from.intValue()));
 			append(cmsg, urgency);
 		    }
+		}
+	    } else if(msg == "mutable") {
+		this.muted = Utils.bv(args[0]) ? new HashMap<>() : null;
+	    } else if(msg == "muted") {
+		int pl = Utils.iv(args[0]);
+		boolean muted = Utils.bv(args[1]);
+		this.muted.put(pl, muted);
+		if((mutewait != null) && (mutewait == pl)) {
+		    mutewait = null;
+		    mutemenu(pl, muted);
 		}
 	    } else {
 		super.uimsg(msg, args);
@@ -1049,8 +1086,8 @@ public class ChatUI extends Widget {
 
 	public void uimsg(String msg, Object... args) {
 	    if(msg == "msg") {
-		Integer from = (Integer)args[0];
-		long gobid = Utils.uint32((Integer)args[1]);
+		Number from = (Number)args[0];
+		long gobid = Utils.uiv(args[1]);
 		String line = (String)args[2];
 		if(process(line)) {
 		    Color col = Color.WHITE;
@@ -1062,7 +1099,7 @@ public class ChatUI extends Widget {
 		    if(from == null) {
 			append(new MyMessage(line), -1);
 		    } else {
-			Message cmsg = new NamedMessage(from, line, Utils.blendcol(col, Color.WHITE, 0.5));
+			Message cmsg = new NamedMessage(from.intValue(), line, Utils.blendcol(col, Color.WHITE, 0.5));
 			append(cmsg, urgency);
 		    }
 		}
@@ -1074,10 +1111,37 @@ public class ChatUI extends Widget {
     
     public static class PrivChat extends EntryChannel {
 	private final int other;
+	private boolean muted;
 	
+	public PrivChat(boolean closable, int other) {
+	    super(closable);
+	    this.other = other;
+	}
+
+	private void menu() {
+	    SListMenu.Action ma = SListMenu.Action.of(muted ? "Unmute" : "Mute", () -> wdgmsg("mute", muted ? 0 : 1));
+	    SListMenu.of(UI.scale(250, 120), null, Arrays.asList(ma)).addat(ui.root, ui.mc);
+	}
+
+	public boolean selclicked(Coord c, int btn) {
+	    if(btn == 3) {
+		menu();
+		return(true);
+	    }
+	    return(super.selclicked(c, btn));
+	}
+
 	public class InMessage extends SimpleMessage {
 	    public InMessage(String text) {
 		super(">> " + text, new Color(255, 128, 128, 255));
+	    }
+
+	    public boolean clicked(Channel chan, CharPos pos, Coord c, int btn) {
+		if(btn == 3) {
+		    menu();
+		    return(true);
+		}
+		return(super.clicked(chan, pos, c, btn));
 	    }
 	}
 
@@ -1085,11 +1149,6 @@ public class ChatUI extends Widget {
 	    public OutMessage(String text) {
 		super("<< " + text, new Color(128, 128, 255, 255));
 	    }
-	}
-
-	public PrivChat(boolean closable, int other) {
-	    super(closable);
-	    this.other = other;
 	}
 
 	public void uimsg(String msg, Object... args) {
@@ -1108,6 +1167,8 @@ public class ChatUI extends Widget {
 		String err = (String)args[0];
 		Message cmsg = new SimpleMessage(err, Color.RED);
 		append(cmsg, 3);
+	    } else if(msg == "muted") {
+		this.muted = Utils.bv(args[0]);
 	    } else {
 		super.uimsg(msg, args);
 	    }
@@ -1128,7 +1189,7 @@ public class ChatUI extends Widget {
 	    String name = (String)args[0];
 	    Channel ret = new SimpleChat(false, name);
 	    if(args.length > 1)
-		ret.icon(ui.sess.getres((Integer)args[1]));
+		ret.icon(ui.sess.getresv(args[1]));
 	    return(ret);
 	}
     }
@@ -1136,10 +1197,10 @@ public class ChatUI extends Widget {
     public static class $MChat implements Factory {
 	public Widget create(UI ui, Object[] args) {
 	    String name = (String)args[0];
-	    int urgency = (Integer)args[1];
+	    int urgency = Utils.iv(args[1]);
 	    Channel ret = new MultiChat(false, name, urgency);
 	    if(args.length > 2)
-		ret.icon(ui.sess.getres((Integer)args[2]));
+		ret.icon(ui.sess.getresv(args[2]));
 	    return(ret);
 	}
     }
@@ -1148,17 +1209,17 @@ public class ChatUI extends Widget {
 	public Widget create(UI ui, Object[] args) {
 	    Channel ret = new PartyChat();
 	    if(args.length > 0)
-		ret.icon(ui.sess.getres((Integer)args[0]));
+		ret.icon(ui.sess.getresv(args[0]));
 	    return(ret);
 	}
     }
     @RName("pmchat")
     public static class $PMChat implements Factory {
 	public Widget create(UI ui, Object[] args) {
-	    int other = (Integer)args[0];
+	    int other = Utils.iv(args[0]);
 	    Channel ret = new PrivChat(true, other);
 	    if(args.length > 1)
-		ret.icon(ui.sess.getres((Integer)args[1]));
+		ret.icon(ui.sess.getresv(args[1]));
 	    return(ret);
 	}
     }
@@ -1385,26 +1446,26 @@ public class ChatUI extends Widget {
 	    return(null);
 	}
 
-	public boolean mousedown(Coord c, int button) {
-	    Channel chan = bypos(c);
+	public boolean mousedown(MouseDownEvent ev) {
+	    Channel chan = bypos(ev.c);
 	    cstart = chan;
 	    if(chan != null) {
-		if(button == 1) {
+		if(ev.b == 1) {
 		    select(chan);
 		} else {
-		    chan.selmousedown(c, button);
+		    chan.selmousedown(ev.c, ev.b);
 		}
 	    }
 	    return(true);
 	}
 
-	public boolean mouseup(Coord c, int button) {
-	    Channel chan = bypos(c);
+	public boolean mouseup(MouseUpEvent ev) {
+	    Channel chan = bypos(ev.c);
 	    if(chan != null) {
-		if(button != 1) {
-		    chan.selmouseup(c, button);
+		if(ev.b != 1) {
+		    chan.selmouseup(ev.c, ev.b);
 		    if(cstart == chan)
-			chan.selclicked(c, button);
+			chan.selclicked(ev.c, ev.b);
 		}
 	    }
 	    cstart = null;
@@ -1416,13 +1477,13 @@ public class ChatUI extends Widget {
 	    return(Math.max(Math.min(s, maxh), 0));
 	}
 
-	public boolean mousewheel(Coord c, int amount) {
+	public boolean mousewheel(MouseWheelEvent ev) {
 	    if(!ui.modshift) {
-		ts = clips(ts + (amount * UI.scale(40)));
+		ts = clips(ts + (ev.a * UI.scale(40)));
 	    } else {
-		if(amount < 0)
+		if(ev.a < 0)
 		    up();
-		else if(amount > 0)
+		else if(ev.a > 0)
 		    down();
 	    }
 	    return(true);
@@ -1565,6 +1626,11 @@ public class ChatUI extends Widget {
 	    sel.resize(new Coord(this.sz.x - marg.x - sel.c.x, this.sz.y - sel.c.y));
     }
 
+    public void presize() {
+	if(sz.y > parent.sz.y - UI.scale(100))
+	    hresize(Math.max(UI.scale(minh), parent.sz.y - UI.scale(100)));
+    }
+
     public boolean targetshow = false;
     public void sshow(boolean show) {
 	clearanims(Spring.class);
@@ -1574,6 +1640,7 @@ public class ChatUI extends Widget {
 
     public void hresize(int h) {
 	clearanims(Spring.class);
+	resize(sz.x, h);
     }
 
     public void resize(int w) {
@@ -1619,12 +1686,12 @@ public class ChatUI extends Widget {
 	    cancel();
 	}
 
-	public boolean key(KeyEvent ev) {
+	public boolean key(KbdEvent ev) {
 	    if(key_esc.match(ev)) {
 		cancel();
 		return(true);
 	    } else {
-		return(buf.key(ev));
+		return(buf.key(ev.awt));
 	    }
 	}
     }
@@ -1632,40 +1699,39 @@ public class ChatUI extends Widget {
     private UI.Grab dm = null;
     private Coord doff;
     private static final int minh = 111;
-    public boolean mousedown(Coord c, int button) {
+    public boolean mousedown(MouseDownEvent ev) {
 	int bmfx = (sz.x - bmf.sz().x) / 2;
-	if((button == 1) && (c.y < bmf.sz().y) && (c.x >= bmfx) && (c.x <= (bmfx + bmf.sz().x))) {
+	Coord c= ev.c;
+	if((ev.b == 1) && (c.y < bmf.sz().y) && (c.x >= bmfx) && (c.x <= (bmfx + bmf.sz().x))) {
 	    dm = ui.grabmouse(this);
 	    doff = c;
 	    return(true);
 	} else {
-	    return(super.mousedown(c, button));
+	    return(super.mousedown(ev));
 	}
     }
 
-    public void mousemove(Coord c) {
-	if(dm != null) {
-	    resize(sz.x, Math.max(UI.scale(minh), sz.y + doff.y - c.y));
-	} else {
-	    super.mousemove(c);
-	}
+    public void mousemove(MouseMoveEvent ev) {
+	super.mousemove(ev);
+	if(dm != null)
+	    resize(sz.x, Math.max(UI.scale(minh), Math.min(parent.sz.y - UI.scale(100), sz.y + doff.y - ev.c.y)));
     }
 
-    public boolean mouseup(Coord c, int button) {
+    public boolean mouseup(MouseUpEvent ev) {
 	if(dm != null) {
 	    dm.remove();
 	    dm = null;
 	    Utils.setprefi("chatsize", UI.unscale(sz.y));
 	    return(true);
 	} else {
-	    return(super.mouseup(c, button));
+	    return(super.mouseup(ev));
 	}
     }
 
-    public boolean keydown(KeyEvent ev) {
-	boolean M = (ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0;
+    public boolean keydown(KeyDownEvent ev) {
+	boolean M = (ev.mods & KeyMatch.M) != 0;
 	if(qline != null) {
-	    if(M && (ev.getKeyCode() == KeyEvent.VK_UP)) {
+	    if(M && (ev.code == ev.awt.VK_UP)) {
 		Channel prev = this.sel;
 		while(chansel.up()) {
 		    if(this.sel instanceof EntryChannel)
@@ -1677,7 +1743,7 @@ public class ChatUI extends Widget {
 		}
 		qline = new QuickLine((EntryChannel)sel);
 		return(true);
-	    } else if(M && (ev.getKeyCode() == KeyEvent.VK_DOWN)) {
+	    } else if(M && (ev.code == ev.awt.VK_DOWN)) {
 		Channel prev = this.sel;
 		while(chansel.down()) {
 		    if(this.sel instanceof EntryChannel)
@@ -1693,10 +1759,10 @@ public class ChatUI extends Widget {
 	    qline.key(ev);
 	    return(true);
 	} else {
-	    if(M && (ev.getKeyCode() == KeyEvent.VK_UP)) {
+	    if(M && (ev.code == ev.awt.VK_UP)) {
 		chansel.up();
 		return(true);
-	    } else if(M && (ev.getKeyCode() == KeyEvent.VK_DOWN)) {
+	    } else if(M && (ev.code == ev.awt.VK_DOWN)) {
 		chansel.down();
 		return(true);
 	    }
@@ -1704,8 +1770,8 @@ public class ChatUI extends Widget {
 	}
     }
 
-    public static final KeyBinding kb_quick = KeyBinding.get("chat-quick", KeyMatch.forcode(KeyEvent.VK_ENTER, 0));
-    public boolean globtype(char key, KeyEvent ev) {
+    public static final KeyBinding kb_quick = KeyBinding.get("chat-quick", KeyMatch.forcode(java.awt.event.KeyEvent.VK_ENTER, 0));
+    public boolean globtype(GlobKeyEvent ev) {
 	if(kb_quick.key().match(ev)) {
 	    if(!visible && (sel instanceof EntryChannel)) {
 		qgrab = ui.grabkeys(this);
@@ -1713,6 +1779,6 @@ public class ChatUI extends Widget {
 		return(true);
 	    }
 	}
-	return(super.globtype(key, ev));
+	return(super.globtype(ev));
     }
 }

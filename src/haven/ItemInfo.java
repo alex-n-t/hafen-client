@@ -281,7 +281,7 @@ public abstract class ItemInfo {
 	}
 
 	public void layout(Layout l) {
-	    BufferedImage t = tipimg((l.width == 0) ? UI.scale(200) : l.width);
+	    BufferedImage t = tipimg((l.width == 0) ? Math.max(UI.scale(200), l.cmp.sz.x) : l.width);
 	    if(t != null)
 		l.cmp.add(t, new Coord(0, l.cmp.sz.y + UI.scale(10)));
 	}
@@ -507,14 +507,12 @@ public abstract class ItemInfo {
 		    inf = ((InfoFactory)a[0]).build(owner, raw, a);
 		} else {
 		    Resource ttres;
-		    if(a[0] instanceof Integer) {
-			ttres = rr.getres((Integer)a[0]).get();
-		    } else if(a[0] instanceof Resource) {
+		    if(a[0] instanceof Resource) {
 			ttres = (Resource)a[0];
 		    } else if(a[0] instanceof Indir) {
 			ttres = (Resource)((Indir)a[0]).get();
 		    } else {
-			throw(new ClassCastException("Unexpected info specification " + a[0].getClass()));
+			ttres = rr.getresv(a[0]).get();
 		    }
 		    InfoFactory f = ttres.getcode(InfoFactory.class, true);
 		    inf = f.build(owner, raw, a);
@@ -613,7 +611,7 @@ public abstract class ItemInfo {
     
     @SuppressWarnings("unchecked")
     public static Map<Resource, Integer> getBonuses(List<ItemInfo> infos, Map<String, Glob.CAttr> attrs) {
-	List<ItemInfo> slotInfos = ItemInfo.findall("ISlots", infos);
+	List<ItemInfo> slotInfos = ItemInfo.findall(ItemData.INFO_CLASS_SLOTS, infos);
 	List<ItemInfo> gilding = ItemInfo.findall(ItemData.INFO_CLASS_GILDING, infos);
 	Map<Resource, Integer> bonuses = new HashMap<>();
 	try {
@@ -651,7 +649,7 @@ public abstract class ItemInfo {
     }
     
     public static List<Pair<Resource, Integer>> getInputs(List<ItemInfo> infos) {
-	List<ItemInfo> inputInfos = ItemInfo.findall("Inputs", infos);
+	List<ItemInfo> inputInfos = ItemInfo.findall("haven.res.ui.tt.inputs.Inputs", infos);
 	List<Pair<Resource, Integer>> result = new LinkedList<>();
 	try {
 	    for (ItemInfo info : inputInfos) {

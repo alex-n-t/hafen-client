@@ -3,7 +3,9 @@ package me.ender.gob;
 import haven.Window;
 import haven.*;
 import haven.rx.Reactor;
+import me.ender.ClientUtils;
 import me.ender.GobInfoOpts;
+import me.ender.GobInfoOpts.InfoPart;
 import me.ender.RichUText;
 import me.ender.WindowDetector;
 
@@ -14,7 +16,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GobTimerData {
-    private static Gob interacted = null; //TODO: expand to allow multiple gob/window types, not just smelters
+    private static Gob interacted = null;
+    private static String awaitWnd = null;
     private static final Map<Long, GobTimerData> MAP = new ConcurrentHashMap<>();
     private final long id;
     
@@ -26,6 +29,10 @@ public class GobTimerData {
 	    String name = target.resid();
 	    if("gfx/terobjs/smelter".equals(name)) {
 		interacted = target;
+		awaitWnd = WindowDetector.WND_SMELTER;
+	    } else if("gfx/terobjs/fineryforge".equals(name)) {
+		interacted = target;
+		awaitWnd = WindowDetector.WND_FINERY_FORGE;
 	    } else {
 		interacted = null;
 	    }
@@ -33,7 +40,7 @@ public class GobTimerData {
 	
 	Reactor.WINDOW.subscribe(pair -> {
 	    Gob g = interacted;
-	    if(Window.ON_PACK.equals(pair.b) && g != null && WindowDetector.isWindowType(pair.a, WindowDetector.WND_SMELTER)) {
+	    if(Window.ON_PACK.equals(pair.b) && g != null && WindowDetector.isWindowType(pair.a, awaitWnd)) {
 		g.info.timer.wnd = pair.a;
 		interacted = null;
 	    }
@@ -45,7 +52,7 @@ public class GobTimerData {
     private long lastUpdateTs = 0;
     private final RichUText<Integer> text = new RichUText<Integer>(RichText.stdf) {
 	public String text(Integer v) {
-	    return v == null ? null : String.format("$img[gfx/hud/gob/timer,c]%s", Utils.formatTimeShort(v));
+	    return v == null ? null : String.format("$img[gfx/hud/gob/timer,c]%s", ClientUtils.formatTimeShort(v));
 	}
 	
 	@Override
@@ -73,7 +80,7 @@ public class GobTimerData {
     
     public boolean update() {
 	if(wnd != null) {
-	    if(wnd.disposed()) {
+	    if(wnd.disposed() || wnd.closed()) {
 		wnd = null;
 	    } else {
 		lastUpdateTs = System.currentTimeMillis();
@@ -98,7 +105,7 @@ public class GobTimerData {
     }
     
     public BufferedImage img() {
-	if(CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(GobInfoOpts.InfoPart.TIMER)) {return null;}
+	if(GobInfoOpts.disabled(InfoPart.TIMER)) {return null;}
 	return Optional.ofNullable(text.get()).map(t -> t.back).orElse(null);
     }
     

@@ -62,6 +62,13 @@ public class FColor {
     public FColor(Color c) {
 	this(c, 1);
     }
+    
+    public static FColor fromColorAndAlpha(Color c, float alpha) {
+	return new FColor(c.getRed() / 255.0f,
+	    c.getGreen() / 255.0f,
+	    c.getBlue() / 255.0f,
+	    alpha);
+    }
 
     public float[] to3a() {
 	return(new float[] {r, g, b});
@@ -93,6 +100,14 @@ public class FColor {
 			  (this.g * A) + (that.g * B),
 			  (this.b * A) + (that.b * B),
 			  (this.a * A) + (that.a * B)));
+    }
+
+    public FColor preblend(FColor that) {
+	float ac = this.a + that.a - (this.a * that.a);
+	return(new FColor((((that.r * that.a) - (this.r * that.a)) / ac) + this.r,
+			  (((that.g * that.a) - (this.g * that.a)) / ac) + this.g,
+			  (((that.b * that.a) - (this.b * that.a)) / ac) + this.b,
+			  ac));
     }
 
     public int hashCode() {

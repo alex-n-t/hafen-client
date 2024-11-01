@@ -14,6 +14,7 @@ public class GobInfoOpts extends WindowX {
 	HEALTH("Object health"),
 	BARREL("Barrel contents"),
 	DISPLAY_SIGN("Display sign contents"),
+	CHEESE_RACK("Cheese rack contents"),
 	QUALITY("Quality"),
 	TIMER("Timer");
 	
@@ -68,5 +69,19 @@ public class GobInfoOpts extends WindowX {
     public void destroy() {
 	super.destroy();
 	instance = null;
+    }
+    
+    public static boolean enabled(InfoPart part) {return !CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(part);}
+    
+    public static boolean disabled(InfoPart part) {return CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get().contains(part);}
+    
+    public static void toggle(InfoPart part) {
+	Set<InfoPart> parts = CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.get();
+	if(parts.contains(part)) {
+	    parts.remove(part);
+	} else {
+	    parts.add(part);
+	}
+	CFG.DISPLAY_GOB_INFO_DISABLED_PARTS.set(parts);
     }
 }
