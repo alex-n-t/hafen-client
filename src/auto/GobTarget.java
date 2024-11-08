@@ -5,7 +5,7 @@ import haven.GobTag;
 
 public class GobTarget implements ITarget {
     
-    final Gob gob;
+    public final Gob gob;
     
     public GobTarget(Gob gob) {
 	this.gob = gob;

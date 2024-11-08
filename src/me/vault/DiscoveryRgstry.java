@@ -3,6 +3,7 @@ package me.vault;
 import java.util.HashSet;
 import java.util.Set;
 
+import auto.GobTarget;
 import haven.Gob;
 import haven.GobTag;
 import haven.OCache;
@@ -17,11 +18,14 @@ public class DiscoveryRgstry {
 		discovered = new HashSet<String>();
 		Reactor.FLOWER_CHOICE.subscribe(
 			choice->{
+				Gob gob = null;
+				if (!(choice.target instanceof GobTarget)) return;
+				if ((gob = ((GobTarget)choice.target).gob) == null) return;
 				try {
-				if (choice.target.gob!=null && choice.opt != null && choice.target.gob.getres() != null 
-						&& choice.target.gob.anyOf(GobTag.TREE,GobTag.BUSH) 
+				if (choice.opt != null && gob.resid() != null 
+						&& gob.anyOf(GobTag.TREE,GobTag.BUSH) 
 						&& (choice.opt.contains("Pick") || choice.opt.contains("Clear"))) 
-					discover(choice.target.gob.getres().name);
+					discover(gob.resid());
 				} catch(Exception ignore) {}
 			}
 		);
@@ -34,8 +38,8 @@ public class DiscoveryRgstry {
 		}
 	}
 	
-	public void updateDiscoverableGobs(String name) {
-		oc.stream().filter(g->g.anyOf(GobTag.TREE,GobTag.BUSH) && (name == null || name.equals(g.getres().name))).forEach(Gob::infoUpdated);
+	public void updateDiscoverableGobs(String id) {
+		oc.stream().filter(g->g.anyOf(GobTag.TREE,GobTag.BUSH) && (id == null || id.equals(g.resid()))).forEach(Gob::infoUpdated);
 	}
 	
 	public boolean discovered(String name) {

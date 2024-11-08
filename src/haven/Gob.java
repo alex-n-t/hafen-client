@@ -100,6 +100,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	public final int id;
 	public final Gob gob;
 	public final Sprite.Mill<?> sm;
+	public Indir<Resource> res;
 	public Sprite spr;
 	public boolean delign = false, old = false;
 	private Collection<RenderTree.Slot> slots = null;
@@ -109,7 +110,6 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    this.gob = gob;
 	    this.id = id;
 	    this.sm = sm;
-	    this.spr = null;
 	}
 
 	public Overlay(Gob gob, Sprite.Mill<?> sm) {
@@ -118,6 +118,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 
 	public Overlay(Gob gob, int id, Indir<Resource> res, Message sdt) {
 	    this(gob, id, owner -> Sprite.create(owner, res.get(), sdt));
+	    this.res = res;
 	}
 
 	public Overlay(Gob gob, Sprite spr) {
