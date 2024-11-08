@@ -74,4 +74,8 @@ public class IMeter extends LayerMeter {
 	} catch(Loading l) {
 	}
     }
+
+    public double meter(int idx) {
+	return meters.size() > idx ? meters.get(idx).a : -1;
+    }
 }

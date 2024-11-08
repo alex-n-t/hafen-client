@@ -104,11 +104,13 @@ public class Actions {
 	    gui.error("You must be near tile or barrel with fresh water to refill drinks!");
 	    return;
 	}
-	
-	List<ITarget> targets = Stream.of(INVENTORY_CONTAINED(gui), BELT_CONTAINED(gui))
-	    .flatMap(x -> x.get().stream())
-	    .filter(InvHelper::isDrinkContainer)
-	    .filter(InvHelper::isNotFull)
+
+	List<ITarget> targets = Stream.of(
+		INVENTORY_CONTAINED(gui).get().stream().filter(InvHelper::isDrinkContainer),
+		BELT_CONTAINED(gui).get().stream().filter(InvHelper::isDrinkContainer),
+		HANDS_CONTAINED(gui).get().stream().filter(InvHelper::isBucket)
+	    ).flatMap(x -> x)
+	    .filter(x -> InvHelper.canBeFilledWith(x, ItemData.WATER))
 	    .map(ContainedTarget::new)
 	    .collect(Collectors.toList());
 	
@@ -161,8 +163,8 @@ public class Actions {
     public static void drink(GameUI gui) {
 	Collection<Supplier<List<WItem>>> everywhere = Arrays.asList(HANDS(gui), INVENTORY(gui), BELT(gui));
 	ClientUtils.chainOptionals(
-	    () -> findFirstThatContains("Tea", everywhere),
-	    () -> findFirstThatContains("Water", everywhere)
+	    () -> findFirstMatching(HAS_TEA, everywhere),
+	    () -> findFirstMatching(HAS_WATER, everywhere)
 	).ifPresent(Actions::drink);
     }
     
@@ -170,6 +172,18 @@ public class Actions {
 	Bot.process(Targets.of(item))
 	    .actions(ITarget::rclick, BotUtil.selectFlower("Drink"))
 	    .start(item.ui, true);
+    }
+
+    public static void craftCount(Makewindow make, int count) {
+	Bot.execute((target, bot) -> {
+	    int remaining = count;
+	    while (remaining > 0) {
+		if(make.disposed()) {bot.cancel();}
+		make.wdgmsg("make", 0);
+		if(!BotUtil.waitProgress(bot, 1000, 60000)) {bot.cancel();}
+		remaining--;
+	    }
+	}).start(make.ui, true);
     }
     
     public static void aggroOnePVE(GameUI gui) {aggroOne(gui, false);}

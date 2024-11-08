@@ -26,10 +26,7 @@
 
 package haven;
 
-import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import me.ender.ui.ValueEntry;
 
 import java.awt.Color;
 
@@ -50,7 +47,7 @@ public class ISBox extends Widget implements DTarget {
     private final Indir<Resource> res;
     private Text label;
 
-    private Value value;
+    private ValueEntry value;
     private Button take;
 
     private int rem;
@@ -86,9 +83,8 @@ public class ISBox extends Widget implements DTarget {
 	if(parent instanceof Window) {
 	    boolean isStockpile = "Stockpile".equals(((Window) parent).caption());
 	    if(isStockpile) {
-		value = new Value(UI.scale(50), "");
+		value = new ValueEntry(UI.scale(50), "", this::take);
 		add(value, UI.scale(45, 41));
-		value.canactivate = true;
 
 		take = new Button(UI.scale(40), "Take", this::take);
 		add(take, UI.scale(100, 39));
@@ -175,22 +171,9 @@ public class ISBox extends Widget implements DTarget {
         }
     }
     
-    @Override
-    public void wdgmsg(Widget sender, String msg, Object... args) {
-	if(sender == value) {
-	    take();
-	} else {
-	    super.wdgmsg(sender, msg, args);
-	}
-    }
-    
     private void take() {
-	int amount = rem;
-	try {
-	    amount = Integer.parseInt(value.text());
-	} catch (Exception ignored) {
-	}
-	if(amount > rem) {
+	int amount = value.value();
+	if(amount > rem || amount <= 0) {
 	    amount = rem;
 	}
 	if(amount > 0) {
@@ -198,30 +181,4 @@ public class ISBox extends Widget implements DTarget {
 	}
     }
 
-    private static class Value extends TextEntry {
-	private static final Set<Integer> ALLOWED_KEYS = new HashSet<Integer>(Arrays.asList(
-		KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3, KeyEvent.VK_4,
-		KeyEvent.VK_5, KeyEvent.VK_6, KeyEvent.VK_7, KeyEvent.VK_8, KeyEvent.VK_9,
-		KeyEvent.VK_NUMPAD0, KeyEvent.VK_NUMPAD1, KeyEvent.VK_NUMPAD2, KeyEvent.VK_NUMPAD3, KeyEvent.VK_NUMPAD4,
-		KeyEvent.VK_NUMPAD5, KeyEvent.VK_NUMPAD6, KeyEvent.VK_NUMPAD7, KeyEvent.VK_NUMPAD8, KeyEvent.VK_NUMPAD9,
-		KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT,
-		KeyEvent.VK_ENTER, KeyEvent.VK_BACK_SPACE, KeyEvent.VK_DELETE
-	));
-
-	public Value(int w, String deftext) {
-	    super(w, deftext);
-	}
-
-	@Override
-	public boolean keydown(KeyDownEvent ev) {
-	    int keyCode = ev.code;
-	    if(keyCode == 0) {
-		keyCode = ev.awt.getKeyChar();
-	    }
-	    if (ALLOWED_KEYS.contains(keyCode)) {
-		return super.keydown(ev);
-	    }
-	    return false;
-	}
-    }
 }

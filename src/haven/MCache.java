@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import haven.render.*;
 import me.vault.TileFact;
 import me.vault.dao.TileFactDao;
+import me.ender.minimap.Minesweeper;
 
 /* XXX: This whole file is a bit of a mess and could use a bit of a
  * rewrite some rainy day. Synchronization especially is quite hairy. */
@@ -883,6 +884,17 @@ public class MCache implements MapSource {
 	    return(ret);
 	}
     }
+    
+    public Grid getgrid(long id) {
+	synchronized (grids) {
+	    for (Grid grid : grids.values()) {
+		if(grid.id == id) {
+		    return grid;
+		}
+	    }
+	}
+	return null;
+    }
 
     public Grid getgridt(Coord tc) {
 	return(getgrid(tc.div(cmaps)));
@@ -1144,9 +1156,11 @@ public class MCache implements MapSource {
 	    }
 	    gridwait.wnotify();
 	}
+	Minesweeper.trim(sess, null);
     }
 
     public void trim(Coord ul, Coord lr) {
+	List<Long> removed = new LinkedList<>();
 	synchronized(grids) {
 	    synchronized(req) {
 		for(Iterator<Map.Entry<Coord, Grid>> i = grids.entrySet().iterator(); i.hasNext();) {
@@ -1154,6 +1168,7 @@ public class MCache implements MapSource {
 		    Coord gc = e.getKey();
 		    Grid g = e.getValue();
 		    if((gc.x < ul.x) || (gc.y < ul.y) || (gc.x > lr.x) || (gc.y > lr.y)) {
+			removed.add(g.id);
 			g.dispose();
 			i.remove();
 		    }
@@ -1166,6 +1181,7 @@ public class MCache implements MapSource {
 	    }
 	    gridwait.wnotify();
 	}
+	Minesweeper.trim(sess, removed);
     }
 
     public void request(Coord gc) {

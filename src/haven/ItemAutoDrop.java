@@ -3,6 +3,7 @@ package haven;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import me.ender.ui.CFGBox;
 import rx.functions.Action0;
 
 import java.awt.*;
@@ -141,7 +142,7 @@ public class ItemAutoDrop {
 	    filter = adda(new Label(FILTER_DEFAULT), ur, 1, 1);
 	    
 	    Coord p = list.pos("bl").addys(10);
-	    p = add(new OptWnd.CFGBox("Don't drop filtered items", CFG.AUTO_DROP_RESPECT_FILTER).set(CFGWnd::respectFilterChanged), p).pos("bl").addys(10);
+	    p = add(new CFGBox("Don't drop filtered items", CFG.AUTO_DROP_RESPECT_FILTER).set(CFGWnd::respectFilterChanged), p).pos("bl").addys(10);
 	    p = add(new Label("Drop item on this window to add it to list"), p).pos("bl");
 	    add(new Label("Right-click item to remove it"), p);
 	    

@@ -74,7 +74,7 @@ public class Targets {
 	
 	@Override
 	public boolean disposed() {
-	    return true;
+	    return false;
 	}
     }
 }

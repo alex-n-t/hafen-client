@@ -1,6 +1,7 @@
 package haven;
 
 import auto.Actions;
+import me.ender.CustomCursors;
 import me.ender.GobInfoOpts;
 
 public enum Action {
@@ -27,8 +28,8 @@ public enum Action {
 	Config.center_tile = !Config.center_tile;
 	gui.ui.message(String.format("Tile centering turned %s", Config.center_tile ? "ON" : "OFF"), GameUI.MsgType.INFO);
     }, "Toggle tile centering"),
-    TOGGLE_INSPECT(gui -> gui.map.toggleInspectMode(), "Toggle inspect mode"),
-    TRACK_OBJECT(gui -> gui.map.toggleTrackingMode(), "Track object"),
+    TOGGLE_INSPECT(gui -> CustomCursors.toggleInspectMode(gui.map), "Toggle inspect mode"),
+    TRACK_OBJECT(gui -> CustomCursors.toggleTrackingMode(gui.map), "Track object"),
     BOT_PICK_ALL_HERBS(Actions::pickup, "Auto-pick stuff", "Will automatically pickup all herbs/mussels/clay/frogs/grasshoppers etc. in radius that can be changed in Options->General."),
     BOT_OPEN_GATE(Actions::openGate, "Toggle closest gate", "Will right click on closest gate in 3 tile radius."),
     TOGGLE_PEACE(GameUI::togglePeace, "Toggle Peace", "Toggle peace for current target"),
@@ -53,7 +54,8 @@ public enum Action {
     FUEL_SMELTER_12(gui -> Actions.fuelGob(gui, "terobjs/smelter", "Coal", 12)),
     FUEL_OVEN_4(gui -> Actions.fuelGob(gui, "terobjs/oven", "Branch", 4)),
     TOGGLE_GOB_INFO_PLANTS(gui -> GobInfoOpts.toggle(GobInfoOpts.InfoPart.PLANT_GROWTH)),
-    TOGGLE_GOB_INFO_TREES(gui -> GobInfoOpts.toggle(GobInfoOpts.InfoPart.TREE_GROWTH)),
+    TOGGLE_GOB_INFO_TREE_GROWTH(gui -> GobInfoOpts.toggle(GobInfoOpts.InfoPart.TREE_GROWTH)),
+    TOGGLE_GOB_INFO_TREE_CONTENT(gui -> GobInfoOpts.toggle(GobInfoOpts.InfoPart.TREE_CONTENTS)),
     TOGGLE_GOB_INFO_HEALTH(gui -> GobInfoOpts.toggle(GobInfoOpts.InfoPart.HEALTH)),
     TOGGLE_GOB_INFO_BARREL(gui -> GobInfoOpts.toggle(GobInfoOpts.InfoPart.BARREL)),
     TOGGLE_GOB_INFO_SIGN(gui -> GobInfoOpts.toggle(GobInfoOpts.InfoPart.DISPLAY_SIGN)),

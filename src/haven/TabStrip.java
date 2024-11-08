@@ -24,6 +24,10 @@ public class TabStrip<T> extends Widget {
 	if(callback != null) {callback.call(button.tag);}
     }
 
+    public Button<T> selected() {return selected;}
+    
+    public T selectedTag() {return selected.tag;}
+
     public int getSelectedButtonIndex() {
 	return buttons.indexOf(selected);
     }

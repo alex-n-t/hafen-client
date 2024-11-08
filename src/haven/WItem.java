@@ -28,8 +28,13 @@ package haven;
 
 import haven.QualityList.SingleType;
 import haven.render.*;
+import haven.res.ui.tt.level.Level;
+import haven.res.ui.tt.slot.Slotted;
+import haven.res.ui.tt.slots.ISlots;
+import haven.res.ui.tt.wear.Wear;
 import haven.resutil.Curiosity;
 import me.ender.ClientUtils;
+import me.ender.ItemHelpers;
 import me.ender.Reflect;
 
 import java.awt.*;
@@ -58,7 +63,7 @@ public class WItem extends Widget implements DTarget {
     private Message csdt = Message.nil;
     private final List<Action3<WItem, Coord, Integer>> rClickListeners = new LinkedList<>();
     private boolean checkDrop = false;
-    private final CFG.Observer<Boolean> resetTooltip = cfg -> longtip = null;
+    private final CFG.Observer<Boolean> resetTooltip = cfg -> clearLongTip();
     private final Action0 itemMatched = this::itemMatched;
     
     public WItem(GItem item) {
@@ -124,7 +129,7 @@ public class WItem extends Widget implements DTarget {
 	    shorttip = longtip = null;
 	    ttinfo = info;
 	}
-	if(now - hoverstart < 1.0) {
+	if(now - hoverstart < 1.0 && !CFG.UI_INSTANT_LONG_TIPS.get()) {
 	    if(shorttip == null)
 		shorttip = new ShortTip(info);
 	    return(shorttip);
@@ -176,26 +181,12 @@ public class WItem extends Widget implements DTarget {
 	    GItem.InfoOverlay<?>[] ret = buf.toArray(new GItem.InfoOverlay<?>[0]);
 	    return(() -> ret);
 	});
-    
-    public final AttrCache<Pair<Double, Double>> fullness = new AttrCache<>(this::info, info -> {
-	Pair<Double, Double> result = null;
-	GItem.InfoOverlay<?>[] ols = itemols.get();
-	for (GItem.InfoOverlay<?> ol : ols) {
-	    if(Reflect.is(ol.inf, "haven.res.ui.tt.level.Level")) {
-		result = new Pair<>(
-		    Reflect.getFieldValueDouble(ol.inf, "cur"),
-		    Reflect.getFieldValueDouble(ol.inf, "max")
-		);
-		break;
-	    }
-	}
-	final Pair<Double, Double> t = result;
-	return () -> t;
-    });
+
+    public final AttrCache<Level> fullness = new AttrCache<>(this::info, info -> () -> ItemInfo.find(Level.class, info));
     
     public final AttrCache<Double> itemmeter = new AttrCache<Double>(this::info, AttrCache.map1(GItem.MeterInfo.class, minf -> minf::meter));
     
-    public final AttrCache<ItemInfo.Contents.Content> contains;
+    public final AttrCache<ItemData.Content> contains;
     
     public final AttrCache<QualityList> itemq;
     
@@ -209,9 +200,9 @@ public class WItem extends Widget implements DTarget {
     }));
     
     public final AttrCache<Tex> durability = new AttrCache<Tex>(this::info, AttrCache.cache(info -> {
-	Pair<Integer, Integer> wear = ItemInfo.getWear(info);
+	Wear wear = ItemInfo.getWear(info);
 	if(wear == null) return (null);
-	return Text.renderstroked(String.valueOf(wear.b - wear.a), DURABILITY_COLOR, Color.BLACK).tex();
+	return Text.renderstroked(String.valueOf(wear.m - wear.d), DURABILITY_COLOR, Color.BLACK).tex();
     })) {
 	@Override
 	public Tex get() {
@@ -220,9 +211,9 @@ public class WItem extends Widget implements DTarget {
     };
     
     public final AttrCache<Pair<Double, Color>> wear = new AttrCache<>(this::info, AttrCache.cache(info->{
-	Pair<Integer, Integer> wear = ItemInfo.getWear(info);
+	Wear wear = ItemInfo.getWear(info);
 	if(wear == null) return (null);
-	double bar = (float) (wear.b - wear.a) / wear.b;
+	double bar = (float) (wear.m - wear.d) / wear.m;
 	return new Pair<>(bar, Utils.blendcol(bar, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN));
     }));
     
@@ -242,14 +233,14 @@ public class WItem extends Widget implements DTarget {
 	}
     };
     
-    public final AttrCache<List<ItemInfo>> gilding = new AttrCache<List<ItemInfo>>(this::info, AttrCache.cache(info -> ItemInfo.findall(ItemData.INFO_CLASS_GILDING, info)));
+    public final AttrCache<List<Slotted>> gilding = new AttrCache<>(this::info, AttrCache.cache(info -> ItemInfo.findall(Slotted.class, info)));
     
-    public final AttrCache<List<ItemInfo>> slots = new AttrCache<List<ItemInfo>>(this::info, AttrCache.cache(info -> ItemInfo.findall(ItemData.INFO_CLASS_SLOTS, info)));
+    public final AttrCache<List<ISlots>> slots = new AttrCache<>(this::info, AttrCache.cache(info -> ItemInfo.findall(ISlots.class, info)));
 
     public final AttrCache<Boolean> gildable = new AttrCache<Boolean>(this::info, AttrCache.cache(info -> {
-	List<ItemInfo> slots = ItemInfo.findall(ItemData.INFO_CLASS_SLOTS, info);
-	for(ItemInfo slot : slots) {
-	    if(Reflect.getFieldValueInt(slot, "left") > 0) {
+	List<ISlots> slots = ItemInfo.findall(ISlots.class, info);
+	for(ISlots slot : slots) {
+	    if(slot.left > 0) {
 		return true;
 	    }
 	}
@@ -369,7 +360,7 @@ public class WItem extends Widget implements DTarget {
 	
 	if(!Objects.equals(tip, cachedTipValue)) {
 	    cachedTipValue = tip;
-	    longtip = null;
+	    clearLongTip();
 	}
 	if(value != null) {
 	    if(!Objects.equals(value, cachedStudyValue)) {
@@ -454,11 +445,15 @@ public class WItem extends Widget implements DTarget {
 	return CFG.Q_SHOW_SINGLE.get() ? SingleType.Quality : null;
     }
 
+    public void clearLongTip() {longtip = null;}
+
     public boolean mousedown(MouseDownEvent ev) {
 	if(checkXfer(ev.b)) {
 	    return true;
 	} else if(ev.b == 1) {
-	    item.wdgmsg("take", ev.c);
+	    if(ItemHelpers.canTake(this)) {
+		item.wdgmsg("take", ev.c);
+	    }
 	    return true;
 	} else if(ev.b == 3) {
 	    synchronized (rClickListeners) {

@@ -26,6 +26,7 @@
 
 package haven;
 
+import auto.BotUtil;
 import haven.render.*;
 import haven.res.gfx.fx.msrad.MSRad;
 import integrations.mapv4.MappingClient;
@@ -777,8 +778,8 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	Moving m = getattr(Moving.class);
 	if(m != null)
 	    m.move(c);
-	if(Boolean.TRUE.equals(isMe()) && CFG.AUTOMAP_TRACK.get()) {
-	    MappingClient.getInstance().CheckGridCoord(c);
+	if(Boolean.TRUE.equals(isMe()) && CFG.AUTOMAP_TRACK.get() && MappingClient.initialized()) {
+	    MappingClient.getInstance().CheckGridCoord(Gob.this, c);
 	    MappingClient.getInstance().Track(id, c);
 	}
 	this.rc = c;
@@ -1631,7 +1632,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    id = MarkerSprite.SPEED_BUFF;
 	} else if(CFG.DISPLAY_AURA_RABBIT.get() && is(GobTag.RABBIT) && !is(GobTag.DEAD)) {
 	    id = MarkerSprite.RABBIT;
-	} else if(CFG.DISPLAY_AURA_CRITTERS.get() && is(GobTag.CRITTER) && !anyOf(GobTag.DEAD, GobTag.KO)) {
+	} else if(CFG.DISPLAY_AURA_CRITTERS.get() && is(GobTag.CRITTER) && !anyOf(GobTag.DEAD, GobTag.KO) && BotUtil.isOnRadar(this)) {
 	    id = MarkerSprite.CRITTER;
 	}
 	

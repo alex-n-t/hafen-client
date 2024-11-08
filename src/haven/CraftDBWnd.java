@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import haven.MenuGrid.Pagina;
 import haven.rx.Reactor;
+import me.ender.ui.ICraftParent;
 import rx.Subscription;
 
 import java.awt.*;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 import static haven.CraftDBWnd.Mode.*;
 import static haven.ItemFilter.*;
 
-public class CraftDBWnd extends WindowX implements DTarget {
+public class CraftDBWnd extends WindowX implements DTarget, ICraftParent {
     private static final int PANEL_H = UI.scale(52);
     private static final Coord WND_SZ = UI.scale(635, 360).addy(PANEL_H);
     private static final Coord ICON_SZ = UI.scale(20, 20);
@@ -526,6 +527,7 @@ public class CraftDBWnd extends WindowX implements DTarget {
     
     @Override
     public boolean keydown(KeyDownEvent ev) {
+	if(super.keydown(ev)) {return true;}
 	if(ignoredKey(ev.awt)) {
 	    return false;
 	}
@@ -577,6 +579,18 @@ public class CraftDBWnd extends WindowX implements DTarget {
 	    || code == KeyEvent.VK_ALT
 	    || code == KeyEvent.VK_META
 	    || code == KeyEvent.VK_TAB;
+    }
+
+    @Override
+    public void setCraftAmount(int amount) {
+	if(current == null) {return;}
+	ICraftParent.CraftAmounts.put(current.res().name, amount);
+    }
+
+    @Override
+    public int getCraftAmount() {
+	if(current == null) {return -1;}
+	return ICraftParent.CraftAmounts.getOrDefault(current.res().name, -1);
     }
     
     private static class RecipeListBox extends Listbox<Pagina> {

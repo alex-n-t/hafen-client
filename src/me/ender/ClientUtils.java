@@ -50,7 +50,7 @@ public class ClientUtils {
     }
     
     public static String prettyResName(String resname) {
-	if(resname == null) {return "???";}
+	if(resname == null || resname.isEmpty()) {return "???";}
 	tryInitCustomNames();
 	if(customNames.containsKey(resname)) {
 	    return customNames.get(resname);
@@ -62,7 +62,6 @@ public class ClientUtils {
 	}
 	int k = resname.lastIndexOf("/");
 	resname = resname.substring(k + 1);
-	resname = resname.substring(0, 1).toUpperCase() + resname.substring(1);
 	
 	//handle logs
 	if(fullname.contains("terobjs/trees/") && resname.endsWith("log")) {
@@ -71,12 +70,16 @@ public class ClientUtils {
 		resname = resname.substring(0, resname.length() - 4) + " Tree";
 	    }
 	    resname += " Log";
+	} else if(fullname.startsWith(ResName.BARREL_WITH_CONTENTS)) {
+	    resname = fullname.substring(fullname.lastIndexOf("-") + 1);
 	}
 	
 	//handle flour
 	if(resname.endsWith("flour")) {
 	    resname = resname.substring(0, resname.length() - 5) + " Flour";
 	}
+
+	resname = resname.substring(0, 1).toUpperCase() + resname.substring(1);
 	
 	return resname;
     }
@@ -86,7 +89,7 @@ public class ClientUtils {
 	customNamesInit = true;
 	try {
 	    Gson gson = new GsonBuilder().create();
-	    customNames.putAll(gson.fromJson(Config.loadJarFile("tile_names.json"), new TypeToken<Map<String, String>>() {
+	    customNames.putAll(gson.fromJson(Config.loadJarFile("res_names.json"), new TypeToken<Map<String, String>>() {
 	    }.getType()));
 	} catch (Exception ignored) {}
     }

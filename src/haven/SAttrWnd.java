@@ -29,6 +29,8 @@ package haven;
 import java.util.*;
 import java.awt.Color;
 import haven.resutil.Curiosity;
+import me.ender.ui.CFGBox;
+
 import static haven.CharWnd.*;
 import static haven.ExtInventory.*;
 import static haven.PUtils.*;
@@ -173,7 +175,7 @@ public class SAttrWnd extends Widget {
 			pos("cbr").subs(2, 2), 1.0, 1.0);
 	    plbl = adda(new Label("Learning points:"), pval.pos("ul").subs(0, 2).xs(2), 0.0, 1.0);
 	    this.inv.locked = CFG.LOCK_STUDY.get();
-	    add(new OptWnd.CFGBox("Lock study", CFG.LOCK_STUDY) {
+	    add(new CFGBox("Lock study", CFG.LOCK_STUDY) {
 		@Override
 		public void set(boolean a) {
 		    super.set(a);

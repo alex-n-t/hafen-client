@@ -171,7 +171,8 @@ public class ToolBelt extends DraggableWidget implements DTarget, DropTarget {
     
     @Override
     public boolean globtype(GlobKeyEvent ev) {
-	if(!visible || beltkeys == null ||  ui.modflags() != 0) { return false;}
+	//do we need to skip if CTRL (and only it) is held, like we do for normal tool belt?
+	if(!visible || beltkeys == null) { return false;}
 	for (int i = 0; i < beltkeys.length; i++) {
 	    if(ev.code == beltkeys[i]) {
 		keyact(slot(i));

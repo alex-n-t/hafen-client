@@ -32,7 +32,6 @@ import rx.functions.Action0;
 import java.util.*;
 import haven.render.*;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.function.Consumer;
 
@@ -210,10 +209,10 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	testMatch();
     }
     
-    public final ItemInfo.AttrCache<ItemInfo.Contents.Content> contains = new ItemInfo.AttrCache<>(this::info, ItemInfo.AttrCache.cache(ItemInfo::getContent), ItemInfo.Contents.Content.EMPTY);
+    public final ItemInfo.AttrCache<ItemData.Content> contains = new ItemInfo.AttrCache<>(this::info, ItemInfo.AttrCache.cache(ItemInfo::getContent), ItemData.Content.EMPTY);
     
     public final ItemInfo.AttrCache<QualityList> itemq = new ItemInfo.AttrCache<>(this::info, ItemInfo.AttrCache.cache(info -> {
-	ItemInfo.Contents.Content content = contains.get();
+	ItemData.Content content = contains.get();
 	if(!content.empty() && !content.q.isEmpty()) {
 	    return content.q;
 	}
@@ -235,7 +234,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	float result = 1;
 	ItemInfo.Name name = ItemInfo.find(ItemInfo.Name.class, info);
 	if(name != null) {
-	    ItemInfo.Contents.Content content = ItemInfo.Contents.content(name.original);
+	    ItemData.Content content = ItemData.Content.parse(name.original);
 	    if(!content.empty()) {
 		result = content.count;
 	    } else {
@@ -253,7 +252,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	String result = "???";
 	if(name != null) {
 	    result = name.original;
-	    ItemInfo.Contents.Content content = ItemInfo.Contents.content(name.original);
+	    ItemData.Content content = ItemData.Content.parse(name.original);
 	    if(!content.empty()) {result = content.name();}
 	    
 	    content = contains.get();
@@ -448,7 +447,10 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
     public void drop() {
 	onBound(widget -> wdgmsg("drop", Coord.z));
     }
-    
+
+    public void transfer() {
+	onBound(widget -> wdgmsg("transfer", Coord.z, 1));
+    }
 
     private Widget contparent() {
 	/* XXX: This is a bit weird, but I'm not sure what the alternative is... */

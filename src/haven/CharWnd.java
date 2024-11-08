@@ -35,6 +35,8 @@ import java.util.stream.IntStream;
 
 import haven.resutil.FoodInfo;
 import haven.resutil.Curiosity;
+import me.ender.ui.DrinkMeter;
+
 import static haven.PUtils.*;
 
 public class CharWnd extends WindowX {
@@ -256,6 +258,10 @@ public class CharWnd extends WindowX {
 	if((place == "tab") || /* XXX: Remove me! */ Utils.eq(args[0], Coord.of(47, 47))) {
 	    if(child instanceof BAttrWnd) {
 		battr = battrtab.add((BAttrWnd)child, Coord.z);
+		//TODO: find better place
+		if(CFG.HUNGER_METER.get()) {HungerMeter.add(ui);}
+		if(CFG.FEP_METER.get()) {FEPMeter.add(ui);}
+		if(CFG.DRINKS_METER.get()) {DrinkMeter.add(ui);}
 	    } else if(child instanceof SAttrWnd) {
 		sattr = sattrtab.add((SAttrWnd)child, Coord.z);
 	    } else if(child instanceof SkillWnd) {

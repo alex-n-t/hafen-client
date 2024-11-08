@@ -28,4 +28,14 @@ public class HungerMeter extends Widget {
     public Object tooltip(Coord c, Widget prev) {
 	return glut.tooltip(c, prev);
     }
+
+    public static void add(UI ui) {
+	if(ui.gui == null || ui.gui.chrwdg == null) {return;}
+	ui.gui.addcmeter(new HungerMeter(ui.gui.chrwdg.battr.glut));
+    }
+
+    public static void rem(UI ui) {
+	if(ui.gui == null) {return;}
+	ui.gui.delcmeter(HungerMeter.class);
+    }
 }

@@ -1,3 +1,58 @@
+$size[14]{$u{Update for 08.11.24:}
+  * merger loftar's changes
+  * updated tree contents for Beech, Poplar and Willow
+ 
+$size[14]{$u{Update for 07.11.24:}
+  * don't add fep multipliers to food tooltips in crafting menus
+  * added minesweeper cursor - hold SHIFT while activating minesweeper display - allows marking tiles as safe or dangerous
+  * fixed buffs being covered by meters if there's too many of them
+  * added option to show drinks meter (Option -> UI -> Show drinks meter) - it shows how much tea and water you have
+ 
+$size[14]{$u{Update for 06.11.24:}
+  * added option to show growth scale for big trees (Options -> Display -> Show gob info cog)
+  * added ability to specify how many items to craft
+ 
+$size[14]{$u{Update for 05.11.24:}
+  * added various FEP modifiers to food tooltips - satiation, hunger, low energy, verified and/or subbed account
+  * fixed drink refill not seeing water barrels
+  * added beech nuts to tree contents
+  * improved (but not fully fixed) detection of friendlies as enemies on login
+  * added option to show full item tooltip instantly (Options -> UI -> Instant full tooltips)
+  * fixed item filter not working for symbel stats
+ 
+$size[14]{$u{Update for 04.11.24:}
+  * fixed AttrMod errors caused by player having VERY old resource cache
+  * fixed mapper crash during character creation
+  * fixed crash on viewing map icons on 1.15 UI scale
+  * do not try queueing path if cursor is not default
+  * added option to auto drop all parasites (leeches and ticks)
+  * added "Steal" and "Drop" buttons to equipment screen of other characters
+  * added option to preserve cutlery
+ 
+$size[14]{$u{Update for 03.11.24:}
+  * allow drink refill to work on buckets in hands
+  * added 'Xtended -> Minesweeper' to menu grid - stores amount of dust fallen when mining if you were present to witness it and can show those numbers when toggled on
+  * added option to export/import minesweeper data when trying to export/import map
+  * made Display Flavor objects option apply instantly
+  * added menu action to toggle flavor objects
+  * added menu action to toggle flat terrain
+ 
+$size[14]{$u{Update for 02.11.24:}
+  * returned path queueing to ALT+LClick
+  * changed object/place highlight to CTRL+ALT+LClick
+  * fixed Craft window not updating selected recipe when recipe is selected from input list
+ 
+$size[14]{$u{Update for 01.11.24:}
+  * added option to display tree contents (seeds, leaves, bough, bark) (Options -> Display -> cog near Show object info)
+  * made ALT+Click highlight spots on map too, not only gobs
+  * made ALT+Click send message in private chat, if open, otherwise sends to party chat or area chat, regardless of currently active chat
+  * changed movement queueing to SHIFT+LClick
+  * fixed world lighting not updating as time passes
+  * merged PR with KO translation update
+  * merged PR with ZH translation
+  * merged PR with mapper tweak to not upload character creation room
+  * fixed not-full-but-with-some-water kuksa being not detected for drink refills
+ 
 $size[14]{$u{Update for 25.10.24:}
   * merged loftar's changes
   * fixed map window reacting to hotkeys while hidden

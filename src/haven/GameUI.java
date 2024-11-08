@@ -74,6 +74,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     public Equipory equipory;
     public CharWnd chrwdg;
     public MapWnd2 mapfile;
+    public Minesweeper minesweeper;
     public TileHighlight.TileHighlightCFG tileHighlight;
     private Widget qqview;
     public BuddyWnd buddies;
@@ -922,11 +923,21 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 
     private void updcmeters() {
 	int i = meters.size();
+	Widget last = null;
 	for (Widget meter : cmeters) {
-	    int x = ( i % 3) * (IMeter.fsz.x + 5);
-	    int y = (i / 3) * (IMeter.fsz.y + 2);
-	    meter.c = new Coord(portrait.c.x + portrait.sz.x + 10 + x, portrait.c.y + y);
+	    int x = ( i % 3) * (IMeter.fsz.x + UI.scale(5));
+	    int y = (i / 3) * (IMeter.fsz.y + UI.scale(2));
+	    meter.c = new Coord(portrait.c.x + portrait.sz.x + UI.scale(10) + x, portrait.c.y + y);
+	    last = meter;
 	    i++;
+	}
+
+	if(last == null && !meters.isEmpty()) {
+	    last = meters.get(meters.size() - 1);
+	}
+	if(last != null) {
+	    buffs.c.y = last.c.y + last.sz.y + UI.scale(2);
+
 	}
     }
 
@@ -1048,7 +1059,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 		MapFile file;
 		try {
 		    file = MapFile.load(mapstore, mapfilename());
-		    if(CFG.AUTOMAP_UPLOAD.get()) {
+		    if(CFG.AUTOMAP_UPLOAD.get() && MappingClient.initialized()) {
 			MappingClient.getInstance().ProcessMap(file, (m) -> {
 			    if(m instanceof PMarker) {
 				return CFG.AUTOMAP_MARKERS.get().stream()
@@ -1069,6 +1080,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 		mapfile = new MapWnd2(file, map, Utils.getprefc("wndsz-map", UI.scale(new Coord(700, 500))), "Map");
 		mapfile.show(Utils.getprefb("wndvis-map", false));
 		add(mapfile, Utils.getprefc("wndc-map", new Coord(50, 50)));
+		minesweeper = new Minesweeper(file);		
 	    }
 	    placemmap();
 	} else if(place == "menu") {
@@ -1823,17 +1835,26 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     public void presize() {
 	resize(parent.sz);
     }
-    
+
     public void setDetectGob(Gob gob) {
-        detectGob = gob;
+	detectGob = gob;
     }
     
-    public void msg(String msg, Color color, Color logcol) {
+    public static interface LogMessage extends UI.Notice {
+	public ChatUI.Channel.Message logmessage();
+    }
+
+    public void msg(UI.Notice msg) {
+	ChatUI.Channel.Message logged;
+	if(msg instanceof LogMessage)
+	    logged = ((LogMessage)msg).logmessage();
+	else
+	    logged = new ChatUI.Channel.SimpleMessage(msg.message(), msg.color());
 	msgtime = Utils.rtime();
-	lastmsg = RootWidget.msgfoundry.render(msg, color);
+	lastmsg = RootWidget.msgfoundry.render(msg.message(), msg.color());
 	Gob g = detectGob;
 	if(g != null) {
-	    Matcher m = GeneralGobInfo.GOB_Q.matcher(msg);
+	    Matcher m = GeneralGobInfo.GOB_Q.matcher(msg.message());
 	    if(m.matches()) {
 		try {
 		    int q = Integer.parseInt(m.group(1));
@@ -1842,20 +1863,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 		detectGob = null;
 	    }
 	}
-	syslog.append(msg, logcol);
-    }
-
-    public void msg(String msg, Color color) {
-	msg(msg, color, color);
-    }
-    
-    public void msg(String msg, Color color, boolean sfx) {
-	msg(msg, color, sfx ? UI.MessageWidget.msgsfx : null);
-    }
-    
-    public void msg(String msg, Color color, Audio.Clip sfx) {
-	msg(msg, color, color);
-	ui.sfxrl(sfx);
+	syslog.append(logged);
+	ui.sfxrl(msg.sfx());
     }
 
     public void error(String msg) {
@@ -1863,12 +1872,12 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     }
     
     public void msg(String msg, MsgType type) {
-	msg(msg, type.color, type.sfx);
+	msg(new UI.SimpleMessage(msg, type.color, type.sfx));
     }
     
     public enum MsgType {
-	INFO(Color.WHITE, UI.MessageWidget.msgsfx), GOOD(Color.GREEN), BAD(Color.RED),
-	ERROR(new Color(192, 0, 0), new Color(255, 0, 0), UI.MessageWidget.errsfx);
+	INFO(Color.WHITE, UI.InfoMessage.sfx), GOOD(Color.GREEN), BAD(Color.RED),
+	ERROR(new Color(192, 0, 0), new Color(255, 0, 0), UI.ErrorMessage.sfx);
 	
 	public final Color color, logcol;
 	public final Audio.Clip sfx;

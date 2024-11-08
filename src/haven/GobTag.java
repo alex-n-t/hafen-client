@@ -97,6 +97,7 @@ public enum GobTag {
         "/items/hoppedcow",
         "/items/mandrakespirited",
 	"/jellyfish",
+        "/kritter/tick/tick",
 	"/ladybug",
 	"/lobster",
         "/magpie",
@@ -200,7 +201,7 @@ public enum GobTag {
             }
     
             if(name.startsWith("gfx/terobjs/trees")) {
-                if(name.endsWith("log") || name.endsWith("oldtrunk")) {
+                if(name.endsWith("log") || name.endsWith("oldtrunk") || name.contains("/driftwood")) {
                     tags.add(LOG);
                 } else if(name.contains("stump")) {
                     tags.add(STUMP);
@@ -246,7 +247,7 @@ public enum GobTag {
                     System.out.println(name);
                 }
                 if(name.contains("/bat")) {
-                    if(equipory == null || !equipory.has("/batcape")) {
+                    if(equipory == null || !equipory.hasBatCape()) {
                         tags.add(AGGRESSIVE);
                     }
                 }
@@ -288,7 +289,7 @@ public enum GobTag {
                 tags.add(SPEED);
             }
             
-            if("Water".equals(gob.contents())) {
+            if(ItemData.WATER.equalsIgnoreCase(gob.contents())) {
                 tags.add(HAS_WATER);
             }
             

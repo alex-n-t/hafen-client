@@ -53,6 +53,7 @@ import haven.render.Render;
 
 public class UI {
     public static int MOD_SHIFT = KeyMatch.S, MOD_CTRL = KeyMatch.C, MOD_META = KeyMatch.M, MOD_SUPER = KeyMatch.SUPER;
+    public static int MOD_CTRL_ALT = MOD_CTRL | MOD_META;
     enum KeyMod {
         SHIFT(MOD_SHIFT), CTRL(MOD_CTRL), ALT(MOD_META);
     
@@ -723,11 +724,78 @@ public class UI {
 	submitcmd(new Command(new UiMessage(id, msg, args)).dep(id, true));
     }
 
-    public static interface MessageWidget {
-	public static final Audio.Clip errsfx = Audio.resclip(Resource.local().loadwait("sfx/error"));
-	public static final Audio.Clip msgsfx = Audio.resclip(Resource.local().loadwait("sfx/msg"));
+    public static interface Notice {
+	public String message();
+	public default Color color() {return(Color.WHITE);}
+	public default Audio.Clip sfx() {return(null);}
 
-	public void msg(String msg, Color color, Audio.Clip sfx);
+	public static class FactMaker extends Resource.PublishedCode.Instancer.Chain<Factory> {
+	    public FactMaker() {super(Factory.class);}
+	    {
+		add(new Direct<>(Factory.class));
+		add(new StaticCall<>(Factory.class, "mkmessage", Notice.class, new Class<?>[] {OwnerContext.class, Object[].class},
+				     (make) -> (owner, args) -> make.apply(new Object[] {owner, args})));
+		add(new Construct<>(Factory.class, Notice.class, new Class<?>[] {OwnerContext.class, Object[].class},
+				     (cons) -> (owner, args) -> cons.apply(new Object[] {owner, args})));
+	    }
+	}
+
+	@Resource.PublishedCode(name = "msg")
+	public static interface Factory {
+	    public Notice format(OwnerContext owner, Object... args);
+	}
+    }
+
+    public static class SimpleMessage implements Notice {
+	public static final Audio.Clip nosfx = () -> null;
+	public String msg;
+	public Color color;
+	public Audio.Clip sfx;
+
+	public SimpleMessage(String msg, Color color, Audio.Clip sfx) {
+	    this.msg = msg;
+	    this.color = color;
+	    this.sfx = sfx;
+	}
+	public SimpleMessage(String msg) {
+	    this(msg, null, null);
+	}
+
+	public String message() {return(msg);}
+	public Color color() {return((color == null) ? defcolor() : color);}
+	public Audio.Clip sfx() {
+	    if(sfx == null)
+		return(defsfx());
+	    if(sfx == nosfx)
+		return(null);
+	    return(sfx);
+	}
+
+	protected Color defcolor() {return(Color.WHITE);}
+	protected Audio.Clip defsfx() {return(null);}
+    }
+
+    public static class ErrorMessage extends SimpleMessage {
+	public static final Color color = new Color(192, 0, 0);
+	public static final Audio.Clip sfx = Audio.resclip(Resource.local().loadwait("sfx/error"));
+
+	public ErrorMessage(String msg) {super(msg);}
+
+	protected Color defcolor() {return(color);}
+	protected Audio.Clip defsfx() {return(sfx);}
+    }
+
+    public static class InfoMessage extends SimpleMessage {
+	public static final Audio.Clip sfx = Audio.resclip(Resource.local().loadwait("sfx/msg"));
+
+	public InfoMessage(String msg) {super(msg);}
+	public InfoMessage(String msg, Color color, Audio.Clip sfx) {super(msg, color, sfx);}
+
+	protected Audio.Clip defsfx() {return(sfx);}
+    }
+
+    public static interface MessageWidget {
+	public void msg(Notice msg);
 
 	public static MessageWidget find(Widget w) {
 	    for(Widget ch = w.child; ch != null; ch = ch.next) {
@@ -741,21 +809,23 @@ public class UI {
 	}
     }
 
-    public void msg(String msg, Color color, Audio.Clip sfx) {
-	Reactor.IMSG.onNext(msg);
-	if(color == null)
-	    color = Color.WHITE;
+    public void msg(Notice msg) {
+	Reactor.IMSG.onNext(msg.message());
 	MessageWidget h = MessageWidget.find(root);
 	if(h != null)
-	    h.msg(msg, color, sfx);
+	    h.msg(msg);
+    }
+
+    public void msg(String msg, Color color, Audio.Clip sfx) {
+	msg(new SimpleMessage(msg, color, sfx));
     }
 
     public void error(String msg) {
-	msg(msg, new Color(192, 0, 0), MessageWidget.errsfx);
+	msg(new ErrorMessage(msg));
     }
 
     public void msg(String msg) {
-	msg(msg, Color.WHITE, MessageWidget.msgsfx);
+	msg(new InfoMessage(msg));
     }
 
     private void setmods(InputEvent ev) {
@@ -876,28 +946,25 @@ public class UI {
 	       (modmeta  ? MOD_META  : 0) |
 	       (modsuper ? MOD_SUPER : 0));
     }
+    
+    /**Returns true if mods are EXACTLY as specified*/
+    public boolean modflags(int mods) {
+	return modflags() == mods;
+    }
 
     public void message(String str, GameUI.MsgType type) {
-	if((cons!=null) && (gui!=null)){
+	if((cons != null) && (gui != null)) {
 	    gui.msg(str, type);
 	}
     }
 
-    public void message(String str, Color msgColor) {
-	if((cons != null) && (gui != null)) {
-	    gui.msg(str, msgColor);
-	}
-    }
-    
     public void message(String str, Color msgColor, boolean sfx) {
-	if((cons != null) && (gui != null)) {
-	    gui.msg(str, msgColor, sfx);
-	}
+	message(str, msgColor,sfx ? InfoMessage.sfx : null);
     }
     
     public void message(String str, Color msgColor, Audio.Clip sfx) {
 	if((cons != null) && (gui != null)) {
-	    gui.msg(str, msgColor, sfx);
+	    new SimpleMessage(str, msgColor, sfx);
 	}
     }
 

@@ -34,6 +34,7 @@ import me.ender.CustomPagina;
 import me.ender.CustomPaginaAction;
 import me.ender.GobInfoOpts;
 import me.ender.GobInfoOpts.InfoPart;
+import me.ender.minimap.Minesweeper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -486,6 +487,10 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 	return(ret);
     }
 
+    private void announce(Pagina pag) {
+	ui.loader.defer(() -> ui.msg("New discovery: " + pag.button().name(), Color.WHITE, null), null);
+    }
+
     public MenuGrid() {
 	super(bgsz.mul(gsz).add(1, 1));
 	initCustomPaginae();
@@ -736,8 +741,10 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 			    pag.sdt = data;
 			    pag.invalidate();
 			}
-			if((fl & 8) != 0)
+			if((fl & 8) != 0) {
 			    pag.anew = 2;
+			    announce(pag);
+			}
 			Object[] rawinfo = ((fl & 16) != 0) ? (Object[])args[a++] : new Object[0];
 			if(!Arrays.deepEquals(pag.rawinfo, rawinfo)) {
 			    pag.rawinfo = rawinfo;
@@ -882,6 +889,9 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 	makeLocal("paginae/add/craftlist", Action.OPEN_QUICK_CRAFT);
 	makeLocal("paginae/add/autobot", Action.BOT_PICK_ALL_HERBS);
 	makeLocal("paginae/add/hide_trees", Action.TOGGLE_HIDE_TREES, CFG.HIDE_TREES::get);
+	makeLocal("paginae/add/minesweeper", Minesweeper::paginaAction, CFG.SHOW_MINESWEEPER_OVERLAY::get);
+	makeLocal("paginae/add/toggles/flat_terrain", CFG.FLAT_TERRAIN);
+	makeLocal("paginae/add/toggles/flavor", CFG.DISPLAY_FLAVOR);
 	makeLocal("paginae/add/refill_drinks", Action.ACT_REFILL_DRINKS);
 	makeLocal("paginae/add/quest_help", Action.OPEN_QUEST_HELP);
 	makeLocal("paginae/add/inspect", Action.TOGGLE_INSPECT);
@@ -893,7 +903,8 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 	makeLocal("paginae/add/auto/aggro_one_pvp", Action.AGGRO_ONE_PVP);
 	makeLocal("paginae/add/auto/aggro_all", Action.AGGRO_ALL);
 	makeLocal("paginae/add/info/plant-growth", Action.TOGGLE_GOB_INFO_PLANTS, () -> GobInfoOpts.enabled(InfoPart.PLANT_GROWTH));
-	makeLocal("paginae/add/info/tree-growth", Action.TOGGLE_GOB_INFO_TREES, () -> GobInfoOpts.enabled(InfoPart.TREE_GROWTH));
+	makeLocal("paginae/add/info/tree-growth", Action.TOGGLE_GOB_INFO_TREE_GROWTH, () -> GobInfoOpts.enabled(InfoPart.TREE_GROWTH));
+	makeLocal("paginae/add/info/tree-content", Action.TOGGLE_GOB_INFO_TREE_CONTENT, () -> GobInfoOpts.enabled(InfoPart.TREE_CONTENTS));
 	makeLocal("paginae/add/info/health", Action.TOGGLE_GOB_INFO_HEALTH, () -> GobInfoOpts.enabled(InfoPart.HEALTH));
 	makeLocal("paginae/add/info/barrel", Action.TOGGLE_GOB_INFO_BARREL, () -> GobInfoOpts.enabled(InfoPart.BARREL));
 	makeLocal("paginae/add/info/sign", Action.TOGGLE_GOB_INFO_SIGN, () -> GobInfoOpts.enabled(InfoPart.DISPLAY_SIGN));
@@ -912,9 +923,19 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
     private void makeLocal(String path, Action action) {
 	makeLocal(path, action, null);
     }
+
+    private void makeLocal(String path, CFG<Boolean> cfg) {
+	makeLocal(path, (ctx, iact) -> {
+	    cfg.set(!cfg.get());
+	    return true;
+	}, cfg::get);
+    }
     
     private void makeLocal(String path, Action action, Supplier<Boolean> toggleState) {
-	makeLocal(path, ctx -> action.run(ctx.context(UI.class).gui), toggleState);
+	makeLocal(path, (ctx, iact) -> {
+	    action.run(ctx.context(UI.class).gui);
+	    return true;
+	}, toggleState);
     }
     
 }

@@ -26,6 +26,7 @@
 
 package haven;
 
+import me.ender.ChatCommands;
 import me.ender.ClientUtils;
 import me.ender.Reflect;
 
@@ -55,7 +56,7 @@ public class ChatUI extends Widget {
     };
     public Channel sel = null;
     public int urgency = 0;
-    private final Selector chansel;
+    public final Selector chansel;
     private Coord base = Coord.z;
     private QuickLine qline = null;
     private final LinkedList<Notification> notifs = new LinkedList<Notification>();
@@ -132,18 +133,7 @@ public class ChatUI extends Widget {
 	private PrintWriter log;
 	
 	public boolean process(String msg) {
-	    Pattern highlight = Pattern.compile("^@(-?\\d+)$");
-	    Matcher matcher = highlight.matcher(msg);
-	    if(matcher.matches()){
-		try {
-		    Gob gob = ui.gui.map.glob.oc.getgob(Long.parseLong(matcher.group(1)));
-		    if (gob != null) {
-			gob.highlight();
-			return false;
-		    }
-		} catch (Exception ignored){}
-	    }
-	    return true;
+	    return !ChatCommands.processCommand(ui, msg);
 	}
 	/* Deprecated? */
 	public final List<Message> msgs = new AbstractList<Message>() {
@@ -1253,7 +1243,7 @@ public class ChatUI extends Widget {
     
     private static final Tex chandiv = Resource.loadtex("gfx/hud/chat-cdiv");
     private static final Tex chanseld = Resource.loadtex("gfx/hud/chat-csel");
-    private class Selector extends Widget {
+    public class Selector extends Widget {
 	public final BufferedImage ctex = Resource.loadimg("gfx/hud/chantex");
 	public final Text.Foundry tf = new Text.Foundry(Text.serif.deriveFont(Font.BOLD, UI.scale(12))).aa(true);
 	public final Color[] uc = {
@@ -1262,7 +1252,7 @@ public class ChatUI extends Widget {
 	    new Color(255, 128, 0),
 	    new Color(255, 0, 0),
 	};
-	private final List<DarkChannel> chls = new ArrayList<DarkChannel>();
+	public final List<DarkChannel> chls = new ArrayList<DarkChannel>();
 	private final int iconsz = UI.scale(16), ellw = tf.strsize("...").x, maxnmw = selw - iconsz;
 	private final int offset = chandiv.sz().y + chanseld.sz().y;
 	private int ts = 0;
@@ -1297,7 +1287,7 @@ public class ChatUI extends Widget {
 		show(si);
 	}
 
-	private class DarkChannel {
+	public class DarkChannel {
 	    public final Channel chan;
 	    public Text rname;
 	    public Tex ricon;

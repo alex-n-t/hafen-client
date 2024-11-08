@@ -26,7 +26,10 @@
 
 package haven;
 
+import auto.Actions;
 import me.ender.Reflect;
+import me.ender.ui.ICraftParent;
+import me.ender.ui.ValueEntry;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -145,12 +148,17 @@ public class Makewindow extends Widget {
 
     public static final KeyBinding kb_make = KeyBinding.get("make/one", KeyMatch.forcode(java.awt.event.KeyEvent.VK_ENTER, 0));
     public static final KeyBinding kb_makeall = KeyBinding.get("make/all", KeyMatch.forcode(java.awt.event.KeyEvent.VK_ENTER, KeyMatch.C));
+    ValueEntry amount;
     public Makewindow(String rcpnm) {
 	int inputW = add(new Label("Input:"), new Coord(0, UI.scale(8))).sz.x;
 	int resultW = add(new Label("Result:"), new Coord(0, outy + UI.scale(8))).sz.x;
 	xoff = Math.max(inputW, resultW) + UI.scale(10);
-	add(new Button(UI.scale(85), "Craft"), UI.scale(new Coord(230, 75))).action(() -> wdgmsg("make", 0)).setgkey(kb_make);
-	add(new Button(UI.scale(85), "Craft All"), UI.scale(new Coord(325, 75))).action(() -> wdgmsg("make", 1)).setgkey(kb_makeall);
+	Coord pos = UI.scale(235, 75);
+	pos = add(new Button(UI.scale(65), "Craft"), pos).action(() -> wdgmsg("make", 0)).setgkey(kb_make).pos("ur").adds(5, 0);
+	pos = add(new Button(UI.scale(65), "Craft…"), pos).action(this::craftMultiple).setgkey(kb_makeall).pos("ur").adds(5, 1);
+	amount = add(new ValueEntry(UI.scale(30), this::craftMultiple), pos);
+	amount.clearOnFocus = true;
+	amount.update = this::amountChanged;
 	pack();
 	this.rcpnm = rcpnm;
     }
@@ -328,7 +336,11 @@ public class Makewindow extends Widget {
 		if(!rpag.isEmpty()) {
 		    SListMenu.of(UI.scale(250, 120), rpag,
 				 pag -> pag.button().name(), pag -> pag.button().img(),
-				 pag -> pag.button().use(new MenuGrid.Interaction(1, ui.modflags())))
+			    pag -> {
+				pag.button().use(new MenuGrid.Interaction(1, ui.modflags()));
+				CraftDBWnd db = getparent(CraftDBWnd.class);
+				if(db != null) {db.select(pag, false);}
+			    })
 			.addat(this, cc.add(UI.scale(5, 5))).tick(dt);
 		}
 		cc = null;
@@ -498,6 +510,31 @@ public class Makewindow extends Widget {
 	public void propagate(List<ItemInfo> buf, Owner outer) {
 	    if(ItemInfo.find(MakePrep.class, buf) == null)
 		buf.add(new MakePrep(outer));
+	}
+    }
+    
+    @Override
+    protected void added() {
+	super.added();
+	Window wnd;
+	if((wnd = getparent(Window.class)) instanceof ICraftParent) {
+	    amount.value(((ICraftParent) wnd).getCraftAmount());
+	}
+    }
+
+    private void amountChanged() {
+	Window wnd;
+	if((wnd = getparent(Window.class)) instanceof ICraftParent) {
+	    ((ICraftParent) wnd).setCraftAmount(amount.value());
+	}
+    }
+    
+    private void craftMultiple() {
+	int count = amount.value();
+	if(count <= 0) {
+	    wdgmsg("make", 1);
+	} else {
+	    Actions.craftCount(this, count);
 	}
     }
 }

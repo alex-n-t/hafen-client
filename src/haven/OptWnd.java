@@ -33,6 +33,9 @@ import haven.render.*;
 import me.ender.CFGColorBtn;
 import me.ender.GobInfoOpts;
 import me.ender.CustomOptPanels;
+import me.ender.ui.CFGBox;
+import me.ender.ui.CFGSlider;
+import me.ender.ui.DrinkMeter;
 
 import java.awt.event.KeyEvent;
 import java.util.Set;
@@ -41,7 +44,6 @@ import static haven.Text.*;
 
 public class OptWnd extends WindowX {
     public static final Coord PANEL_POS = new Coord(220, 30);
-    public static final Coord Q_TYPE_PADDING = new Coord(3, 0);
     private final Panel display, general, camera, shortcuts, mapping, uipanel, combat;
     private final Panel color;
     public final Panel main;
@@ -977,20 +979,18 @@ public class OptWnd extends WindowX {
 	panel.add(new CFGBox("Container decal pickup protection", CFG.DECAL_SHIFT_PICKUP, "Require holding CTRL or SHIFT to pickup decals placed on containers."), new Coord(x, y));
     
 	y += STEP;
-	panel.add(new CFGBox("Enable path queueing", CFG.QUEUE_PATHS, "ALT+LClick will queue movement"), x, y);
+	panel.add(new CFGBox("Enable path queueing", CFG.QUEUE_PATHS, "ALT+LClick in world or on minimap will queue movement"), x, y);
     
 	y += STEP;
 	Coord tsz = panel.add(new Label("Default speed:"), x, y).sz;
 	panel.adda(new Speedget.SpeedSelector(UI.scale(100)), new Coord(x + tsz.x + UI.scale(5), y + tsz.y / 2), 0, 0.5);
     
 	y += 2 * STEP;
-	Label label = panel.add(new Label(String.format("Auto pickup radius: %.2f", CFG.AUTO_PICK_RADIUS.get() / 11.0)), x, y);
+	Label label = panel.add(new Label(""), x, y);
 	y += UI.scale(15);
-	panel.add(new CFGHSlider(UI.scale(150), CFG.AUTO_PICK_RADIUS, 33, 352) {
+	panel.add(new CFGSlider(UI.scale(150), 33, 352, CFG.AUTO_PICK_RADIUS, label, "Auto pickup radius: %.02f") {
 	    @Override
-	    public void changed() {
-		label.settext(String.format("Auto pickup radius: %.02f", val / 11.0));
-	    }
+	    protected void updateLabel() {this.label.settext(String.format(format, val / 11.0));}
 	}, x, y);
     
 	y += STEP;
@@ -1107,7 +1107,7 @@ public class OptWnd extends WindowX {
 	panel.add(new CFGBox("Disable transition between tiles", CFG.NO_TILE_TRANSITION), x, y);
     
 	y += STEP;
-	panel.add(new CFGBox("Make terrain flat", CFG.FLAT_TERRAIN), x, y);
+	panel.add(new CFGBox("Make terrain flat", CFG.FLAT_TERRAIN, null, true), x, y);
 	
 	y += STEP;
 	panel.add(new CFGBox("Colorize ridge tiles", CFG.DISPLAY_RIDGE_BOX, "Makes it easier to properly approach ridge for climbing"), x, y);
@@ -1182,11 +1182,11 @@ public class OptWnd extends WindowX {
 	
 	x += UI.scale(250);
 	y = START;
-	
-	y = addSlider(CFG.DISPLAY_SCALE_CUPBOARDS, "Cupboard scale", "Scale cupboard vertically, changes are applied on open/close of cupboard or zone reload.", panel, x, y, STEP);
-	
+
+	y = addSlider(CFG.DISPLAY_SCALE_CUPBOARDS, 15, 100, "Cupboard scale: %d%%", "Scale cupboard vertically, changes are applied on open/close of cupboard or zone reload.", panel, x, y, STEP);
+
 	y += STEP;
-	y = addSlider(CFG.DISPLAY_SCALE_WALLS, "Wall scale", "Scale palisade and brick wall vertically, changes are applied on zone reload.", panel, x, y, STEP);
+	y = addSlider(CFG.DISPLAY_SCALE_WALLS, 15, 100, "Wall scale: %d%%", "Scale palisade and brick wall vertically, changes are applied on zone reload.", panel, x, y, STEP);
 	
 	y += STEP;
 	panel.add(new CFGBox("Cupboard use default materials", CFG.DISPLAY_NO_MAT_CUPBOARDS, "All cupboards will have default look", true), x, y);
@@ -1217,24 +1217,13 @@ public class OptWnd extends WindowX {
 	panel.pack();
 	title.c.x = (panel.sz.x - title.sz.x) / 2;
     }
-    
-    private int addSlider(CFG<Integer> cfg, String text, String tip, Panel panel, int x, int y, int STEP) {
-	final Label label = panel.add(new Label(text), x, y);
+
+    private int addSlider(CFG<Integer> cfg, int min, int max, String format, String tip, Panel panel, int x, int y, int STEP) {
+	final Label label = panel.add(new Label(""), x, y);
 	label.settip(tip);
 	
 	y += STEP;
-	panel.add(new HSlider(UI.scale(200), 15, 100, cfg.get()) {
-	    protected void attach(UI ui) {
-		super.attach(ui);
-		val = cfg.get();
-		label.settext(String.format("%s: %d%%", text, val));
-	    }
-	    
-	    public void changed() {
-		cfg.set(val);
-		label.settext(String.format("%s: %d%%", text, val));
-	    }
-	}, x, y).settip(tip);
+	panel.add(new CFGSlider(UI.scale(200), min, max, cfg, label, format), x, y).settip(tip);
 	
 	return y;
     }
@@ -1292,13 +1281,7 @@ public class OptWnd extends WindowX {
 	    @Override
 	    public void set(boolean a) {
 		super.set(a);
-		if(ui.gui != null && ui.gui.chrwdg != null) {
-		    if(a) {
-			ui.gui.addcmeter(new FEPMeter(ui.gui.chrwdg.battr.feps));
-		    } else {
-			ui.gui.delcmeter(FEPMeter.class);
-		    }
-		}
+		if(a) {FEPMeter.add(ui);} else {FEPMeter.rem(ui);}
 	    }
 	}, x, y);
     
@@ -1307,21 +1290,27 @@ public class OptWnd extends WindowX {
 	    @Override
 	    public void set(boolean a) {
 		super.set(a);
-		if(ui.gui != null && ui.gui.chrwdg != null) {
-		    if(a) {
-			ui.gui.addcmeter(new HungerMeter(ui.gui.chrwdg.battr.glut));
-		    } else {
-			ui.gui.delcmeter(HungerMeter.class);
-		    }
-		}
+		if(a) {HungerMeter.add(ui);} else {HungerMeter.rem(ui);}
+	    }
+	}, x, y);
+
+	y += STEP;
+	panel.add(new CFGBox("Show drinks meter", CFG.DRINKS_METER, "Will show how much tea and water you have") {
+	    @Override
+	    public void set(boolean a) {
+		super.set(a);
+		if(a) {DrinkMeter.add(ui);} else {DrinkMeter.rem(ui);}
 	    }
 	}, x, y);
 	
 	y += STEP;
 	panel.add(new CFGBox("Show timestamps in chat messages", CFG.SHOW_CHAT_TIMESTAMP), new Coord(x, y));
-    
+
 	y += STEP;
-	panel.add(new CFGBox("Show food categories", CFG.DISPLAY_FOD_CATEGORIES, "Shows list of food categories in the tooltip", true), x, y);
+	panel.add(new CFGBox("Instant full tooltips", CFG.UI_INSTANT_LONG_TIPS, "Items will show full tooltip immediately", true), x, y);
+
+	y += STEP;
+	panel.add(new CFGBox("Show food categories", CFG.DISPLAY_FOOD_CATEGORIES, "Shows list of food categories in the tooltip", true), x, y);
     
 	y += STEP;
 	panel.add(new CFGBox("Show biomes on minimap", CFG.MMAP_SHOW_BIOMES), x, y);
@@ -1335,12 +1324,7 @@ public class OptWnd extends WindowX {
 	y += STEP;
 	Label label = panel.add(new Label(String.format("Minimum rows in list inventory: %d", CFG.UI_EXT_INV_MIN_ROWS.get())), x, y);
 	y += UI.scale(15);
-	panel.add(new CFGHSlider(UI.scale(150), CFG.UI_EXT_INV_MIN_ROWS, 3, 15) {
-	    @Override
-	    public void changed() {
-		label.settext(String.format("Minimum rows in list inventory: %d", val));
-	    }
-	}, x, y);
+	panel.add(new CFGSlider(UI.scale(150), 3, 15, CFG.UI_EXT_INV_MIN_ROWS, label, "Minimum rows in list inventory: %d"), x, y);
 	
 	y += STEP;
 	panel.add(new CFGBox("Unpack stacks in list inventory", CFG.UI_STACK_EXT_INV_UNPACK, "Show stacked items 'unpacked' in extra inventory's list"), x, y);
@@ -1513,97 +1497,4 @@ public class OptWnd extends WindowX {
 	chpanel(main);
 	super.show();
     }
-
-    public static class CFGBox extends CheckBox implements CFG.Observer<Boolean> {
-
-	protected final CFG<Boolean> cfg;
-
-	public CFGBox(String lbl, CFG<Boolean> cfg) {
-	    this(lbl, cfg, null, false);
-	}
-
-	public CFGBox(String lbl, CFG<Boolean> cfg, String tip) {
-	    this(lbl, cfg, tip, false);
-	}
-
-	public CFGBox(String lbl, CFG<Boolean> cfg, String tip, boolean observe) {
-	    super(lbl);
-	    set = null;
-	    this.cfg = cfg;
-	    defval();
-	    if(tip != null) {
-		tooltip = Text.render(tip).tex();
-	    }
-	    if(observe){ cfg.observe(this); }
-	}
-
-	protected void defval() {
-	    a = cfg.get();
-	}
-
-	@Override
-	public void set(boolean a) {
-	    this.a = a;
-	    cfg.set(a);
-	    if(set != null) {set.accept(a);}
-	}
-
-	@Override
-	public void destroy() {
-	    cfg.unobserve(this);
-	    super.destroy();
-	}
-
-	@Override
-	public void updated(CFG<Boolean> cfg) {
-	    a = cfg.get();
-	}
-    }
-    
-    public static class CFGHSlider extends HSlider {
-	private final CFG<Integer> cfg;
-	
-	public CFGHSlider(int w, CFG<Integer> cfg, int min, int max) {
-	    super(w, min, max, cfg.get());
-	    this.cfg = cfg;
-	}
-	
-	@Override
-	public void released() {
-	    cfg.set(val);
-	}
-    }
-
-    public class QualityBox extends Dropbox<QualityList.SingleType> {
-	protected final CFG<QualityList.SingleType> cfg;
-
-	public QualityBox(int w, int listh, int itemh, CFG<QualityList.SingleType> cfg) {
-	    super(w, listh, itemh);
-	    this.cfg = cfg;
-	    this.sel = cfg.get();
-	}
-
-	@Override
-	protected QualityList.SingleType listitem(int i) {
-	    return QualityList.SingleType.values()[i];
-	}
-
-	@Override
-	protected int listitems() {
-	    return QualityList.SingleType.values().length;
-	}
-
-	@Override
-	protected void drawitem(GOut g, QualityList.SingleType item, int i) {
-	    g.image(item.tex(), Q_TYPE_PADDING);
-	}
-
-	@Override
-	public void change(QualityList.SingleType item) {
-	    super.change(item);
-	    if(item != null) {
-		cfg.set(item);
-	    }
-	}
-    };
 }

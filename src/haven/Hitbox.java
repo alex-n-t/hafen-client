@@ -34,8 +34,8 @@ public class Hitbox extends SlottedNode implements Rendered {
     }
     
     private static void updateColors(CFG<Color> cfg) {
-	FILLED = Pipe.Op.compose(new BaseColor(CFG.COLOR_HBOX_FILLED.get()), NO_CULL, MixColor.slot.nil, MapMesh.postmap);
-	SOLID = Pipe.Op.compose(new BaseColor(CFG.COLOR_HBOX_SOLID.get()), new States.LineWidth(SOLID_WIDTH), MixColor.slot.nil, Rendered.last);
+	FILLED = Pipe.Op.compose(new BaseColor(CFG.COLOR_HBOX_FILLED.get()), NO_CULL, MixColor.slot.nil, MapMesh.postmap, Location.noscale);
+	SOLID = Pipe.Op.compose(new BaseColor(CFG.COLOR_HBOX_SOLID.get()), new States.LineWidth(SOLID_WIDTH), MixColor.slot.nil, Rendered.last, Location.noscale);
 	PASSABLE = Pipe.Op.compose(new BaseColor(CFG.COLOR_HBOX_PASSABLE.get()), new States.LineWidth(PASSABLE_WIDTH), MixColor.slot.nil, Rendered.last);
 	SOLID_TOP = Pipe.Op.compose(SOLID, TOP);
 	PASSABLE_TOP = Pipe.Op.compose(PASSABLE, TOP);
@@ -58,7 +58,7 @@ public class Hitbox extends SlottedNode implements Rendered {
     @Override
     public void added(RenderTree.Slot slot) {
 	super.added(slot);
-	slot.ostate(state(state));
+	slot.ostate(state);
 	updateState();
     }
     
@@ -109,7 +109,6 @@ public class Hitbox extends SlottedNode implements Rendered {
 	    } catch (Loading ignored) {}
 	    if(newState != state) {
 		state = newState;
-		newState = state(state);
 		for (RenderTree.Slot slot : slots) {
 		    slot.ostate(newState);
 		}
@@ -244,16 +243,6 @@ public class Hitbox extends SlottedNode implements Rendered {
 	    return Resource.remote().loadwait("gfx/kritter/reindeer/reindeer");
 	}
 	return res;
-    }
-    
-    private Pipe.Op state(Pipe.Op state) {
-	float scale = gob.scale();
-	if(scale <= 0 || scale >= 1) {return state;}
-	return Pipe.Op.compose(state, scale(scale));
-    }
-    
-    private static Pipe.Op scale(float scale) {
-	return Location.scale(1 / scale);
     }
     
     public static void toggle(GameUI gui) {

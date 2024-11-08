@@ -80,7 +80,7 @@ public class Bot implements Defer.Callable<Void> {
 	task.callback(() -> callback.call(task.cancelled(), message));
     }
     
-    private void checkCancelled() throws InterruptedException {
+    void checkCancelled() throws InterruptedException {
 	if(cancelled) {
 	    throw new InterruptedException();
 	}

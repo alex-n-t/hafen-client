@@ -1,15 +1,17 @@
 package haven;
 
 import haven.MenuGrid.Pagina;
+import me.ender.ui.ICraftParent;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static haven.TabStrip.frame;
 
-public class CraftWindow extends GameUI.Hidewnd {
+public class CraftWindow extends GameUI.Hidewnd implements ICraftParent {
     private final TabStrip<Pagina> tabStrip;
     private final Map<String, TabStrip.Button<Pagina>> tabs = new HashMap<>();
+    private String currentCraft;
     private Widget makeWidget;
 
     public CraftWindow() {
@@ -40,22 +42,24 @@ public class CraftWindow extends GameUI.Hidewnd {
 
     @Override
     public <T extends Widget> T add(T child) {
-	child = super.add(child);
 	if(child instanceof Makewindow) {
 	    Pagina lastCraft = ui.gui.menu.lastCraft;
 	    if(lastCraft != null) {
 		addTab(lastCraft);
 	    }
+	    Pagina tag = tabStrip.selectedTag();
+	    currentCraft = tag == null ? null : tag.res.get().name;
 	    makeWidget = child;
 	    makeWidget.c = new Coord(5, tabStrip.sz.y + 5);
 	    makeWidget.resize(Math.max(makeWidget.sz.x, tabStrip.sz.x), makeWidget.sz.y);
 	}
-	return child;
+	return super.add(child);
     }
 
     @Override
     public void cdestroy(Widget w) {
 	if(makeWidget == w) {
+	    currentCraft = null;
 	    makeWidget = null;
 	    if(visible) {hide();}
 	}
@@ -114,5 +118,17 @@ public class CraftWindow extends GameUI.Hidewnd {
     private void removeTab(int index) {
 	TabStrip.Button<Pagina> removed = tabStrip.remove(index);
 	tabs.values().remove(removed);
+    }
+
+    @Override
+    public void setCraftAmount(int amount) {
+	if(currentCraft == null) {return;}
+	ICraftParent.CraftAmounts.put(currentCraft, amount);
+    }
+
+    @Override
+    public int getCraftAmount() {
+	if(currentCraft == null) {return -1;}
+	return ICraftParent.CraftAmounts.getOrDefault(currentCraft, -1);
     }
 }

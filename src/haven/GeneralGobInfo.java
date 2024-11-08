@@ -3,7 +3,10 @@ package haven;
 import me.ender.ClientUtils;
 import me.ender.GobInfoOpts;
 import me.ender.GobInfoOpts.InfoPart;
+import me.ender.GobInfoOpts.TreeSubPart;
 import me.ender.Reflect;
+import me.ender.ResName;
+import me.ender.gob.GobContents;
 import me.ender.gob.GobTimerData;
 
 import java.awt.*;
@@ -45,7 +48,7 @@ public class GeneralGobInfo extends GobInfo {
 	POS.put("gfx/terobjs/iconsign", 5);
 	POS.put("gfx/terobjs/cheeserack", 17);
     }
-
+    
     protected GeneralGobInfo(Gob owner) {
 	super(owner);
 	q = gobQ.getOrDefault(gob.id, 0);
@@ -63,15 +66,17 @@ public class GeneralGobInfo extends GobInfo {
     protected boolean enabled() {
 	return CFG.DISPLAY_GOB_INFO.get();
     }
-
+    
     @Override
     protected Tex render() {
-	if(gob == null || gob.getres() == null) {return null;}
+	String resid;
+	if(gob == null || (resid = gob.resid()) == null) {return null;}
 	
-	up(POS.getOrDefault(gob.resid(), 1));
+	up(POS.getOrDefault(resid, 1));
 	BufferedImage[] parts = new BufferedImage[]{
 	    growth(),
 	    health(),
+	    icons(),
 	    content(),
 	    quality(),
 	    timer.img(),
@@ -123,7 +128,7 @@ public class GeneralGobInfo extends GobInfo {
 	health = null;
 	super.dispose();
     }
-
+    
     private BufferedImage quality() {
 	if(GobInfoOpts.disabled(InfoPart.QUALITY)) {return null;}
 	if(q != 0) {
@@ -139,14 +144,14 @@ public class GeneralGobInfo extends GobInfo {
 	if(health != null) {
 	    return health.text();
 	}
-
+	
 	return null;
     }
-
+    
     private BufferedImage growth() {
 	Text.Line line = null;
 	scalePercent = -1;
- 
+	
 	if(isSpriteKind(gob, "GrowingPlant", "TrellisPlant")) {
 	    if(GobInfoOpts.disabled(InfoPart.PLANT_GROWTH)) {return null;}
 	    int maxStage = 0;
@@ -164,27 +169,30 @@ public class GeneralGobInfo extends GobInfo {
 	    }
 	} else if(isSpriteKind(gob, "Tree")) {
 	    if(GobInfoOpts.disabled(InfoPart.TREE_GROWTH)) {return null;}
-	    Message data = getDrawableData(gob);
-	    if(data != null && !data.eom()) {
-		data.skip(1);
-		scalePercent = data.eom() ? -1 : data.uint8();
-		if(scalePercent < 100 && scalePercent >= 0) {
-		    int growth = scalePercent;
-		    if(gob.is(GobTag.TREE)) {
-			growth = (int) (TREE_MULT * (growth - TREE_START));
-		    } else if(gob.is(GobTag.BUSH)) {
-			growth = (int) (BUSH_MULT * (growth - BUSH_START));
-		    }
-		    Color c = Utils.blendcol(growth / 100.0, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN);
-		    line = text(String.format("%d%%", growth), c);
+	    scalePercent = getTreeScale(gob);
+	    if(scalePercent >= 0 && (scalePercent < 100 || (CFG.DISPLAY_GOB_INFO_TREE_SHOW_BIG.get() && scalePercent >= CFG.DISPLAY_GOB_INFO_TREE_SHOW_BIG_THRESHOLD.get()))) {
+		int growth = scalePercent;
+		if(gob.is(GobTag.TREE)) {
+		    growth = (int) (TREE_MULT * (growth - TREE_START));
+		} else if(gob.is(GobTag.BUSH)) {
+		    growth = (int) (BUSH_MULT * (growth - BUSH_START));
 		}
+		Color c = Utils.blendcol(growth / 100.0, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN);
+		line = text(String.format("%d%%", growth), c);
 	    }
 	}
-
+	
 	if(line != null) {
 	    return line.img;
 	}
 	return null;
+    }
+    
+    private static int getTreeScale(Gob gob) {
+	Message data = getDrawableData(gob);
+	if(data == null || data.eom()) {return -1;}
+	data.skip(1);
+	return data.eom() ? -1 : data.uint8();
     }
     
     public float growthScale() {
@@ -197,7 +205,7 @@ public class GeneralGobInfo extends GobInfo {
     public String contents() {
 	if(contents == null) {
 	    contents = getContents(true).orElse("");
-	} 
+	}
 	return contents;
     }
     
@@ -210,8 +218,7 @@ public class GeneralGobInfo extends GobInfo {
 	    if(!force && GobInfoOpts.disabled(InfoPart.BARREL)) {return contents;}
 	    contents = gob.ols.stream()
 		.map(Gob.Overlay::name)
-		.filter(name -> name.startsWith("gfx/terobjs/barrel-"))
-		.map(name -> name.substring(name.lastIndexOf("-") + 1))
+		.filter(name -> name.startsWith(ResName.BARREL_WITH_CONTENTS))
 		.map(ClientUtils::prettyResName)
 		.findAny();
 	    
@@ -234,7 +241,7 @@ public class GeneralGobInfo extends GobInfo {
 	
 	return contents;
     }
-
+    
     private BufferedImage content() {
 	this.contents = null;
 	Optional<String> contents = getContents(false);
@@ -258,6 +265,54 @@ public class GeneralGobInfo extends GobInfo {
 		.toArray(BufferedImage[]::new));
 	}
 	return null;
+    }
+    
+    private BufferedImage icons() {
+	boolean seed = false;
+	boolean leaf = false;
+	boolean skip = true;
+	
+	GobContents.GobData data = GobContents.getData(gob);
+	if(data == null) {return null;}
+	
+	if(isSpriteKind(gob, "Tree")) {
+	    int sdt = gob.sdt();
+	    seed = (sdt & 1) != 1;
+	    leaf = (sdt & 2) != 2;
+	    
+	    int scale = getTreeScale(gob);
+	    skip = GobInfoOpts.disabled(InfoPart.TREE_CONTENTS)
+		|| (CFG.DISPLAY_GOB_INFO_TREE_HIDE_GROWING_PARTS.get() && scale >= 0 && scale < 100);
+	}
+	
+	if(skip) {return null;}
+	
+	BufferedImage[] parts = {
+	    seed && GobInfoOpts.enabled(TreeSubPart.SEEDS) ? getIcon(data.Seed) : null,
+	    leaf && GobInfoOpts.enabled(TreeSubPart.LEAVES) ? getIcon(data.Leaf) : null,
+	    GobInfoOpts.enabled(TreeSubPart.BARK) ? getIcon(data.Bark) : null,
+	    GobInfoOpts.enabled(TreeSubPart.BOUGH) ? getIcon(data.Bough) : null,
+	};
+	
+	for (BufferedImage part : parts) {
+	    if(part == null) {continue;}
+	    return ItemInfo.catimgs(1, parts);
+	}
+	return null;
+    }
+    
+    private static final Map<String, BufferedImage> iconCache = new HashMap<>();
+    
+    private static BufferedImage getIcon(String name) {
+	if(name == null) {return null;}
+	if(iconCache.containsKey(name)) {
+	    return iconCache.get(name);
+	}
+	
+	BufferedImage img = Resource.remote().loadwait(name).layer(Resource.imgc).img;
+	img = PUtils.convolvedown(img, UI.scale(20, 20), CharWnd.iconfilter);
+	iconCache.put(name, img);
+	return img;
     }
     
     private static Message getDrawableData(Gob gob) {
@@ -308,7 +363,7 @@ public class GeneralGobInfo extends GobInfo {
     private static String shorten(String text) {
 	return text.replaceAll(" Hide|Dried |Bar of | Leaf| Leaves", "");
     }
-
+    
     @Override
     public String toString() {
 	Resource res = gob.getres();

@@ -38,4 +38,14 @@ public class FEPMeter extends Widget {
     public Object tooltip(Coord c, Widget prev) {
 	return food.tooltip(c, prev);
     }
+
+    public static void add(UI ui) {
+	if(ui.gui == null || ui.gui.chrwdg == null) {return;}
+	ui.gui.addcmeter(new FEPMeter(ui.gui.chrwdg.battr.feps));
+    }
+
+    public static void rem(UI ui) {
+	if(ui.gui == null) {return;}
+	ui.gui.delcmeter(FEPMeter.class);
+    }
 }

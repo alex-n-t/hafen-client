@@ -150,6 +150,18 @@ public class Charlist extends Widget {
 	}, UI.scale(100, 553));
     }
 
+    @Override
+    protected void attached() {
+	super.attached();
+	try {
+	    CharacterInfo character = ui.sess.character;
+	    if (character != null) {
+		character.updateAccountStatus(parent.children(Img.class));
+	    }
+	} catch (Exception ignore) {
+	}
+    }
+
     private int scrolltgt = -1;
     private double scrollval = -1;
     public void tick(double dt) {

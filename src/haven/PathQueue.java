@@ -28,6 +28,7 @@ public class PathQueue {
     }
     
     public boolean add(Coord2d p) {
+	if(!isDefaultCursor()) {return true;}
 	boolean start = false;
 	synchronized (queue) {
 	    if(passenger) {return false;}
@@ -40,6 +41,7 @@ public class PathQueue {
     }
     
     public void start(Coord2d p) {
+	if(!isDefaultCursor()) {return;}
 	synchronized (queue) {
 	    if(passenger) {return;}
 	    queue.clear();
@@ -241,5 +243,9 @@ public class PathQueue {
 	    }
 	}
 	Debug.log.printf("id:'%d' %s - %s%n", gob.id, action, type);
+    }
+
+    private boolean isDefaultCursor() {
+	return RootWidget.defcurs == map.ui.getcurs(map.ui.mc);
     }
 }

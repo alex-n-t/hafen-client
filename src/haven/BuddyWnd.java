@@ -638,7 +638,23 @@ public class BuddyWnd extends Widget implements Iterable<BuddyWnd.Buddy> {
 	    super.uimsg(msg, args);
 	}
     }
-    
+
+    private int lastSeq = -1;
+    private double wait = -1;
+    @Override
+    public void tick(double dt) {
+	super.tick(dt);
+	if(lastSeq != serial) {
+	    wait = 0.05;
+	    lastSeq = serial;
+	} else 	if(wait > 0) {
+	    wait -= dt;
+	    if(wait <= 0) {
+		ui.sess.glob.oc.gobAction(Gob::tagsUpdated);
+	    }
+	}
+    }
+
     public void hide() {
 	if(menu != null) {
 	    ui.destroy(menu);

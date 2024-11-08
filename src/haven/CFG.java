@@ -23,6 +23,10 @@ public class CFG<T> {
     public static final CFG<Boolean> DISPLAY_GOB_INFO = new CFG<>("display.gob_info", false);
     public static final CFG<Boolean> DISPLAY_DISCOVERY_EXP_INFO = new CFG<>("display.discovery_exp_info", false);
     public static final CFG<Set<GobInfoOpts.InfoPart>> DISPLAY_GOB_INFO_DISABLED_PARTS = new CFG<>("display.gob_info_disabled_parts", new HashSet<>(), new TypeToken<Set<GobInfoOpts.InfoPart>>(){});
+    public static final CFG<Set<GobInfoOpts.TreeSubPart>> DISPLAY_GOB_INFO_TREE_ENABLED_PARTS = new CFG<>("display.gob_info_tree_enabled_parts", new HashSet<>(Arrays.asList(GobInfoOpts.TreeSubPart.SEEDS, GobInfoOpts.TreeSubPart.LEAVES)), new TypeToken<Set<GobInfoOpts.TreeSubPart>>(){});
+    public static final CFG<Boolean> DISPLAY_GOB_INFO_TREE_HIDE_GROWING_PARTS = new CFG<>("display.gob_info_tree_hide_growing_parts", true);
+    public static final CFG<Boolean> DISPLAY_GOB_INFO_TREE_SHOW_BIG = new CFG<>("display.gob_info_tree_show_big", true);
+    public static final CFG<Integer> DISPLAY_GOB_INFO_TREE_SHOW_BIG_THRESHOLD = new CFG<>("display.gob_info_show_big_threshold", 110);
     public static final CFG<Boolean> DISPLAY_GOB_INFO_SHORT = new CFG<>("display.gob_info_shorten_content", false);
     public static final CFG<Boolean> DISPLAY_GOB_HITBOX_FILLED = new CFG<>("display.gob_hitbox_filled", false);
     public static final CFG<Boolean> DISPLAY_GOB_HITBOX = new CFG<>("display.gob_hitbox", false);
@@ -32,8 +36,10 @@ public class CFG<T> {
     public static final CFG<Boolean> QUEUE_PATHS = new CFG<>("general.queue_path", false);
     public static final CFG<Boolean> HIDE_TREES = new CFG<>("display.hide_gobs", false);
     public static final CFG<Boolean> SKIP_HIDING_RADAR_TREES = new CFG<>("display.skip_hide_radar_gobs", false);
-    public static final CFG<Boolean> DISPLAY_FOD_CATEGORIES = new CFG<>("display.food_category", true);
+    public static final CFG<Boolean> DISPLAY_FOOD_CATEGORIES = new CFG<>("display.food_category", true);
+    public static final CFG<Boolean> UI_INSTANT_LONG_TIPS = new CFG<>("ui.instant_long_tips", false);
     public static final CFG<Boolean> SHOW_GOB_RADIUS = new CFG<>("display.show_gob_radius", false);
+    public static final CFG<Boolean> SHOW_MINESWEEPER_OVERLAY = new CFG<>("display.minesweeper_overlay", false);
     public static final CFG<Boolean> SHOW_MINE_SUPPORT_AS_OVERLAY = new CFG<>("display.mine_support_overlay", true);
     public static final CFG<Boolean> SHOW_CONTAINER_FULLNESS = new CFG<>("display.container_status", false);
     public static final CFG<Boolean> SHOW_PROGRESS_COLOR = new CFG<>("display.progress_coloring", false);
@@ -57,6 +63,8 @@ public class CFG<T> {
     public static final CFG<Boolean> AUTO_PICK_ONLY_RADAR = new CFG<>("general.auto_pick_radar", true);
     public static final CFG<Integer> AUTO_PICK_RADIUS = new CFG<>("general.auto_pick_radius", 55);
     public static final CFG<Boolean> AUTO_DROP_RESPECT_FILTER = new CFG<>("general.auto_drop.filter", true);
+    public static final CFG<Boolean> AUTO_DROP_PARASITES = new CFG<>("general.auto_drop_parasites", false);
+    public static final CFG<Boolean> PRESERVE_SYMBEL = new CFG<>("general.preserve_symbel", false);
     
     public static final CFG<Theme> THEME = new CFG<>("ui.theme", Theme.Pretty);
     public static final CFG<Boolean> FORCE_HW_CURSOR = new CFG<>("ui.force_hw_cursor", false);
@@ -112,6 +120,7 @@ public class CFG<T> {
     public static final CFG<Boolean> PROGRESS_NUMBER = new CFG<>("ui.progress_number", false);
     public static final CFG<Boolean> FEP_METER = new CFG<>("ui.fep_meter", false);
     public static final CFG<Boolean> HUNGER_METER = new CFG<>("ui.hunger_meter", false);
+    public static final CFG<Boolean> DRINKS_METER = new CFG<>("ui.drinks_meter", false);
     public static final CFG<Boolean> SHOW_BOT_MESSAGES = new CFG<>("ui.hide_bot_messages", true);
     
     //Color settings

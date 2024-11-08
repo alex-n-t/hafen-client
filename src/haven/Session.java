@@ -337,7 +337,7 @@ public class Session implements Resource.Resolver {
 	};
 
     public Session(SocketAddress server, String username, byte[] cookie, Object... args) throws InterruptedException {
-	this.character = new CharacterInfo();
+	this.character = new CharacterInfo(this);
 	this.conn = new Connection(server, username);
 	this.username = username;
 	this.glob = new Glob(this);

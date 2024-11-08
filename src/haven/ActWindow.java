@@ -69,6 +69,7 @@ public class ActWindow extends GameUI.Hidewnd {
     @Override
     public void show() {
 	super.show();
+	pagseq = 0;
 	filter.settext("");
 	filtered.change(0);
 	filtered.showsel();

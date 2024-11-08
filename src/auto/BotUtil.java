@@ -46,6 +46,26 @@ public class BotUtil {
 	return result;
     }
     
+    /**returns true if wait was successful*/
+    static boolean waitProgress(Bot bot, long startTimeout, long finishTimeout) throws InterruptedException {
+	GameUI gui = bot.ui.gui;
+	long wait = startTimeout;
+	while (gui.prog == null) {
+	    wait -= 10;
+	    pause(10);
+	    if(wait < 0) {return false;}
+	    bot.checkCancelled();
+	}
+	wait = finishTimeout;
+	while (gui.prog != null) {
+	    wait -= 10;
+	    pause(10);
+	    if(wait < 0) {return false;}
+	    bot.checkCancelled();
+	}
+	return true;
+    }
+    
     private static <T> T doWaitLoad(Supplier<T> action) {
 	T result = null;
 	boolean ready = false;
@@ -77,7 +97,7 @@ public class BotUtil {
 	synchronized (waiter) { waiter.notifyAll(); }
     }
     
-    static boolean isOnRadar(Gob gob) {
+    public static boolean isOnRadar(Gob gob) {
 	if(!CFG.AUTO_PICK_ONLY_RADAR.get()) {return true;}
 	Boolean onRadar = gob.isOnRadar();
 	return onRadar == null || onRadar;

@@ -11,7 +11,7 @@ public class StatMeterWdg extends DraggableWidget {
     public static final String STAMINA = "stam";
     private static final Coord BAR_SZ = UI.scale(150, 20);
     private static final Color FRAME_COL = new Color(255, 255, 255, 111);
-    private static final Text.Foundry TEXT_FND = new Text.Foundry(Text.sansbold, 12).aa(true);
+    private static final Text.Foundry TEXT_FND = new Text.Foundry(Text.sansbold, 12);
     
     private final String name;
     protected boolean hover = false;
@@ -54,7 +54,7 @@ public class StatMeterWdg extends DraggableWidget {
     protected double meter(int idx) {
 	IMeter imeter = imeter();
 	if(imeter == null) {return -1;}
-	return imeter.meters.size() > idx ? imeter.meters.get(idx).a : -1;
+	return imeter.meter(idx);
     }
     
     @Override

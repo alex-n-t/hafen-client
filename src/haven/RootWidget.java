@@ -26,6 +26,8 @@
 
 package haven;
 
+import me.ender.gob.GobEffects;
+
 import java.util.*;
 import java.awt.Color;
 
@@ -36,12 +38,14 @@ public class RootWidget extends ConsoleHost implements UI.MessageWidget, Widget.
     Profile guprof, grprof, ggprof;
     private Text lastmsg;
     private double msgtime;
+    public final GobEffects effects;
 	
     
     public RootWidget(UI ui, Coord sz) {
 	super(ui, new Coord(0, 0), sz);
 	setfocusctl(true);
 	hasfocus = true;
+	effects = new GobEffects(ui);
     }
 	
     public boolean getcurs(CursorQuery ev) {
@@ -111,18 +115,26 @@ public class RootWidget extends ConsoleHost implements UI.MessageWidget, Widget.
 	    } else {
 		ui.loader.defer(() -> {
 			int a = 0;
-			String text = (String)args[a++];
-			Color color = Color.WHITE;
+			UI.SimpleMessage info = new UI.InfoMessage((String)args[a++]);
 			if(args[a] instanceof Color)
-			    color = (Color)args[a++];
-			Audio.Clip sfx = msgsfx;
+			    info.color = (Color)args[a++];
 			if(args.length > a) {
 			    Indir<Resource> res = ui.sess.getresv(args[a++]);
-			    sfx = (res == null) ? null : Audio.resclip(res.get());
+			    info.sfx = (res == null) ? null : Audio.resclip(res.get());
 			}
-			ui.msg(text, color, sfx);
+			ui.msg(info);
 		    }, null);
 	    }
+	} else if(msg == "msg2") {
+	    ui.loader.defer(() -> {
+		    Resource res = ui.sess.getresv(args[0]).get();
+		    UI.Notice.Factory fac = res.getcode(UI.Notice.Factory.class, true);
+		    ui.msg(fac.format(new OwnerContext() {
+			    public <T> T context(Class<T> cl) {
+				return(wdgctx.context(cl, RootWidget.this));
+			    }
+			}, Utils.splice(args, 1)));
+		}, null);
 	} else if(msg == "sfx") {
 	    int a = 0;
 	    Indir<Resource> resid = ui.sess.getresv(args[a++]);
@@ -149,6 +161,9 @@ public class RootWidget extends ConsoleHost implements UI.MessageWidget, Widget.
 	} else {
 	    super.uimsg(msg, args);
 	}
+	if(msg == "curs") {
+	    ui.sess.character.updateCursor(cursor);
+	}
     }
 
     public void msg(String msg, Color color) {
@@ -156,11 +171,17 @@ public class RootWidget extends ConsoleHost implements UI.MessageWidget, Widget.
 	msgtime = Utils.rtime();
     }
 
-    public void msg(String msg, Color color, Audio.Clip sfx) {
-	msg(msg, color);
-	ui.sfxrl(sfx);
+    public void msg(UI.Notice msg) {
+	msg(msg.message(), msg.color());
+	ui.sfxrl(msg.sfx());
     }
-
+    
+    @Override
+    public void tick(double dt) {
+	effects.tick(dt);
+	super.tick(dt);
+    }
+    
     public void error(String msg) {
 	ui.error(msg);
     }

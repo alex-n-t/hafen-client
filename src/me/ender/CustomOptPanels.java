@@ -1,6 +1,8 @@
 package me.ender;
 
 import haven.*;
+import me.ender.ui.CFGBox;
+import me.ender.ui.CFGSlider;
 
 import static haven.OptWnd.*;
 
@@ -138,12 +140,7 @@ public class CustomOptPanels {
 	y += STEP;
 	Label label = panel.add(new Label(String.format("Combat info vertical offset: %d", CFG.SHOW_COMBAT_INFO_HEIGHT.get())), x + H_STEP, y);
 	y += UI.scale(15);
-	panel.add(new CFGHSlider(UI.scale(150), CFG.SHOW_COMBAT_INFO_HEIGHT, 1, 35) {
-	    @Override
-	    public void changed() {
-		label.settext(String.format("Combat info vertical offset: %d", val));
-	    }
-	}, x + H_STEP, y);
+	panel.add(new CFGSlider(UI.scale(150), 1, 35, CFG.SHOW_COMBAT_INFO_HEIGHT, label, "Combat info vertical offset: %d"), x + H_STEP, y);
 	
 	y += STEP;
 	panel.add(new CFGBox("Simplified combat openings", CFG.SIMPLE_COMBAT_OPENINGS, "Show openings as solid colors with numbers"), x, y);
