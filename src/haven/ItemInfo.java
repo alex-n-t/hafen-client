@@ -577,7 +577,9 @@ public abstract class ItemInfo {
 	    if(str != null && name != null && !q.isEmpty() && GobTag.ofType(name.original, mining_tools)) {
 		double miningStrength = str.comp * q.single().value;
 		if(name.original.equals("Pickaxe")) {
-		    miningStrength = 2 * miningStrength;
+		    miningStrength *= 2;
+		} else if(!name.original.equals("Stone Axe")) {
+		    miningStrength *= 1.5d;
 		}
 		bonuses.put(mining, (int) Math.sqrt(miningStrength));
 	    }
