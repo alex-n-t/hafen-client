@@ -1,3 +1,8 @@
+$size[14]{$u{Update for 13.11.24:}
+  * fixed mining strength display for metal axes
+  * removed unnecessary "of" from some vanilla inspect tooltips
+  * improved vanilla inspect tooltip for stockpiles
+ 
 $size[14]{$u{Update for 12.11.24:}
   * merged loftar's changes
   * added some missing biomes
