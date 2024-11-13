@@ -8,6 +8,8 @@ public class ResName {
     public static final String PARCHMENT_DECAL = "gfx/terobjs/items/parchment-decal";
     public static final String CURSOR_EAT = "gfx/hud/curs/eat";
     public static final String CURSOR_STUDY = "gfx/hud/curs/study";
+    public static final String STOCKPILE = "/stockpile-";
+
     public static final Collection<String> DECALS = Arrays.asList(
 	PARCHMENT_DECAL,
 	"gfx/terobjs/items/decal-chest"
