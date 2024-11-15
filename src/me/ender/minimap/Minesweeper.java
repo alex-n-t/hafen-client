@@ -125,7 +125,9 @@ public class Minesweeper {
 	    for (int i = 0; i < newValues.length; i++) {
 		byte newValue = newValues[i];
 		if(newValue == 0) {continue;}
-		setValue(curValues, i, (byte) (newValue & COUNT_MASK), (byte) (newValue & FLAGS_MASK));
+		byte count = (byte) (newValue & COUNT_MASK);
+		if(count == 0) {count = NO_COUNT;}
+		setValue(curValues, i, count, (byte) (newValue & FLAGS_MASK));
 	    }
 	    storeGrid(grid, curValues);
 	} else {
