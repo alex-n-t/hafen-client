@@ -17,9 +17,9 @@ public class Village extends Polity {
 
     public Village(String name) {
 	super("Village", name);
-	Widget prev = add(new Img(CharWnd.catf.render("Village").tex()));
+	Widget prev = add(new Img(CharWnd.catf.i10n_label("Village").tex()));
 	
-	prev = add(new Label(name, nmf), prev.pos("bl").adds(0, 5));
+	prev = add(new Label.Untranslated(name, nmf), prev.pos("bl").adds(0, 5));
 	prev = add(new AuthMeter(new Coord(width, UI.scale(20))), prev.pos("bl").adds(0, 2));
 	prev = add(new Label("Groups:"), prev.pos("bl").adds(0, 15));
 	gsel = add(new BuddyWnd.GroupSelector(-1) {

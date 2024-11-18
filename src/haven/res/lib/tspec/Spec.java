@@ -7,7 +7,8 @@ import java.util.*;
 @FromResource(name = "lib/tspec", version = 5)
 public class Spec implements GSprite.Owner, ItemInfo.SpriteOwner {
     private static final Object[] definfo = {
-	new Object[] {Loading.waitfor(Resource.classres(Spec.class).pool.load("ui/tt/defn", 7))},
+	//use Resource.remote() instead of Resource.classres().pool in case `ui/tt/defn` is removed from local jar
+	new Object[] {Loading.waitfor(Resource.remote().load("ui/tt/defn", 7))},
     };
     public final Object[] info;
     public final ResData res;

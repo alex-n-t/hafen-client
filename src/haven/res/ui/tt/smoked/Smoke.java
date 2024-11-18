@@ -25,7 +25,7 @@ public class Smoke extends ItemInfo.Tip {
 	int a = 1;
 	String name;
 	if(args[a] instanceof String) {
-	    name = (String)args[a++];
+	    name = L10N.ingredient((String)args[a++]);
 	} else if(args[a] instanceof Integer) {
 	    Indir<Resource> res = owner.context(Resource.Resolver.class).getres((Integer)args[a++]);
 	    Message sdt = Message.nil;
@@ -50,7 +50,7 @@ public class Smoke extends ItemInfo.Tip {
 	public BufferedImage tipimg() {
 	    StringBuilder buf = new StringBuilder();
 	    Collections.sort(all, (a, b) -> a.name.compareTo(b.name));
-	    buf.append("Smoked with ");
+	    buf.append(L10N.tooltip("Smoked with "));
 	    buf.append(all.get(0).descr());
 	    if(all.size() > 2) {
 		for(int i = 1; i < all.size() - 1; i++) {
@@ -59,10 +59,10 @@ public class Smoke extends ItemInfo.Tip {
 		}
 	    }
 	    if(all.size() > 1) {
-		buf.append(" and ");
+		buf.append(L10N.tooltip(" and "));
 		buf.append(all.get(all.size() - 1).descr());
 	    }
-	    return(RichText.render(buf.toString(), 250).img);
+	    return(RichText.render(buf.toString(), UI.scale(250)).img);
 	}
     }
     public static final Layout.ID<Line> id = Line::new;
