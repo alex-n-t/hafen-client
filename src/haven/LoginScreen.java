@@ -65,7 +65,6 @@ public class LoginScreen extends Widget {
 	case "native":
 	    login = new Credbox();
 	    accounts = add(new AccountList(10));
-	    adda(new StatusLabel(hostname, 0.5), bgc.x, bg.sz().y, 0.5, 1);
 	    break;
 	case "steam":
 	    login = new Steambox();
