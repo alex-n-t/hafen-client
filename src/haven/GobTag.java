@@ -292,6 +292,12 @@ public enum GobTag {
                 boolean bars = (sdt & 0b0011_1000) != 0;
                 if(bars) {tags.add(READY);}
                 if(lit) {tags.add(LIT);}
+            } else if(name.equals(ResName.FINERY_FORGE)) {
+                tags.add(PROGRESSING);
+                tags.add(SMELTER);
+                //TODO: read sdt flags
+                boolean lit = true;
+                if(lit) {tags.add(LIT);}
             } else if(name.endsWith("/beehive")) {
                 tags.add(PROGRESSING);
                 //sdt bits: 0 - honey, 1 - bees?, 2 - wax
