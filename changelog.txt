@@ -1,5 +1,53 @@
+$size[14]{$u{Update for 25.11.24:}
+  * merged loftar's code
+  * added Cold Cut to Black Eye treatments
+  * show tiles under damaged (25% HP and lower) mine support in different color
+ 
+$size[14]{$u{Update for 23.11.24:}
+  * merged loftar's code
+  * fixed gob circles/rings being under water if flat terrain is on
+ 
+$size[14]{$u{Update for 20.11.24:}
+  * merged loftar's code
+  * fixed some custom messages (notably animal warnings) not being displayed
+  * made damage tooltip enhancement work for cutthroat knuckles
+  * fixed error when applying sketch to change building materials
+ 
+$size[14]{$u{Update for 18.11.24:}
+  * merged loftar's code
+  * added pouches support for drink. refill drinks and drink meter
+ 
+$size[14]{$u{Update for 15.11.24:}
+  * fixed minesweper import removing numbers from tiles in some cases
+ 
+$size[14]{$u{Update for 13.11.24:}
+  * fixed mining strength display for metal axes
+  * removed unnecessary "of" from some vanilla inspect tooltips
+  * improved vanilla inspect tooltip for stockpiles
+ 
+$size[14]{$u{Update for 12.11.24:}
+  * merged loftar's changes
+  * added some missing biomes
+ 
+$size[14]{$u{Update for 10.11.24:}
+  * fixed bat cape detection for bats aggro
+  * improved minesweeper cursor - added 3rd marker type and allow markers be placed together with numbers
+  * fixed numbers toolbelt not switching by ALT+<Number>
+  * removed default key binds for pouches (ALT+1 and ALT+2) as they clashed with changing of current tool belt
+  * fixed minesweeper numbers from behind camera being shown
+  * fixed big tree threshold being calculated incorrectly
+  * if 'Highlight finished objects' is turned on Stack Furnace will show metal bar icon when it finishes smelting
+  * if 'Highlight finished objects' is turned on Stack Furnace will show snowflake icon when it needs to be heated by using bellows 
+ 
+$size[14]{$u{Update for 09.11.24:}
+  * added second floating equipment widget - for pouches and back
+  * floating equipment widgets can be toggled on or off in the Options -> UI -> Show hands and belt widget and Show pouches and back widget
+  * added mount the closest horse action - Xtended -> Automation -> Mount horse, default key bind - CTRL+Q
+  * fixed some messages (notably player/animal warnings) not being displayed
+  * added Willow Weep to wound treatments
+ 
 $size[14]{$u{Update for 08.11.24:}
-  * merger loftar's changes
+  * merged loftar's changes
   * updated tree contents for Beech, Poplar and Willow
  
 $size[14]{$u{Update for 07.11.24:}

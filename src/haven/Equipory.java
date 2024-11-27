@@ -307,19 +307,19 @@ public class Equipory extends Widget implements DTarget {
     public boolean hasBatCape() {
 	//look into making this caching flexible if we ever use this for more than bat capes
 	if(seq != batSeq) {
-	    hasBatCape = has("/batcape");
-	    batSeq = seq;
+	    try {
+		hasBatCape = has("/batcape");
+		batSeq = seq;
+	    } catch (Loading ignored) {
+		return false;
+	    }
 	}
 	return hasBatCape;
     }
 
-    public boolean has(String name) {
+    public boolean has(String name) throws Loading {
 	for (GItem item : wmap.keySet()) {
-	    try {
-		return item.resname().contains(name);
-	    } catch (Loading ignored) {
-		return false;
-	    }
+	    if(item.resname().contains(name)) {return true;}
 	}
 	return false;
     }
@@ -337,7 +337,7 @@ public class Equipory extends Widget implements DTarget {
 	try {
 	    String name = item.resname();
 	    if(name.contains("/leech") || name.contains("/tick")) {
-		item.wdgmsg("drop", Coord.z);
+		item.drop();
 	    }
 	    return true;
 	} catch (Loading ignored) {

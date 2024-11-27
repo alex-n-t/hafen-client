@@ -1180,7 +1180,7 @@ public class MiniMap extends Widget {
 	    if(newbiome == null) {newbiome = "???";}
 	    if(!newbiome.equals(biome)) {
 		biome = newbiome;
-		biometex = Text.renderstroked(ClientUtils.prettyResName(biome)).tex();
+		biometex = Text.renderstroked(L10N.biome(ClientUtils.prettyResName(biome))).tex();
 	    }
 	} catch (Loading ignored) {}
     }

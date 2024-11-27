@@ -106,6 +106,7 @@ public class Actions {
 	}
 
 	List<ITarget> targets = Stream.of(
+		POUCHES_CONTAINED(gui).get().stream().filter(InvHelper::isDrinkContainer),
 		INVENTORY_CONTAINED(gui).get().stream().filter(InvHelper::isDrinkContainer),
 		BELT_CONTAINED(gui).get().stream().filter(InvHelper::isDrinkContainer),
 		HANDS_CONTAINED(gui).get().stream().filter(InvHelper::isBucket)
@@ -161,7 +162,7 @@ public class Actions {
     }
     
     public static void drink(GameUI gui) {
-	Collection<Supplier<List<WItem>>> everywhere = Arrays.asList(HANDS(gui), INVENTORY(gui), BELT(gui));
+	Collection<Supplier<List<WItem>>> everywhere = Arrays.asList(HANDS(gui), POUCHES(gui), INVENTORY(gui), BELT(gui));
 	ClientUtils.chainOptionals(
 	    () -> findFirstMatching(HAS_TEA, everywhere),
 	    () -> findFirstMatching(HAS_WATER, everywhere)
@@ -185,6 +186,33 @@ public class Actions {
 	    }
 	}).start(make.ui, true);
     }
+
+    public static void mountClosestHorse(GameUI gui) {
+	List<ITarget> targets = getGobs(gui, 1, PositionHelper.byDistanceToPlayer,
+	    gob -> gob.anyOf(GobTag.MARE, GobTag.STALLION)
+		&& !gob.anyOf(GobTag.DEAD, GobTag.KO)
+		&& gob.occupants.isEmpty());
+
+	Bot.process(targets).actions(
+	    (target, bot) -> {
+		Gob gob = ((GobTarget) target).gob;
+
+		if(PositionHelper.distanceToPlayer(gob) < 20) {return;}
+		
+		Coord mc = gob.rc.floor(OCache.posres);
+		bot.ui.gui.menu.wdgmsg("act", "pose", "whistle", 0, mc, 0, gob.id, mc, 0, -1);
+
+		//wait for horse to be close
+		long timeout = 3000;
+		while (timeout > 0 && !gob.disposed() && PositionHelper.distanceToPlayer(gob) > 15.0) {
+		    BotUtil.pause(20);
+		    timeout -= 20;
+		}
+	    },
+	    ITarget::rclick,
+	    BotUtil.selectFlower("Giddyup!")
+	).start(gui.ui, true);
+    }
     
     public static void aggroOnePVE(GameUI gui) {aggroOne(gui, false);}
     
@@ -202,6 +230,15 @@ public class Actions {
     
     public static void aggroAll(GameUI gui) {
 	aggro(gui, getNearest(gui, Integer.MAX_VALUE, 165, gobIs(GobTag.PLAYER), gobIs(GobTag.AGGRO_TARGET), GobHelper::isNotFriendlySteed));
+    }
+
+    public static void reAggroKritter(GameUI gui, long gobId) {
+	Gob target = gui.map.glob.oc.getgob(gobId);
+	if(target == null || target.anyOf(GobTag.KO, GobTag.DEAD)) {return;}
+	if(PositionHelper.distanceToPlayer(target) > 200) {return;}
+	String resid = target.resid();
+	if(resid == null || !resid.contains("gfx/kritter/")) {return;}
+	aggro(gui, Targets.of(target));
     }
     
     static void aggro(GameUI gui, List<ITarget> targets) {

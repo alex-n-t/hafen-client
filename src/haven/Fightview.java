@@ -26,6 +26,7 @@
 
 package haven;
 
+import auto.Actions;
 import me.ender.gob.GobCombatInfo;
 
 import java.util.*;
@@ -344,6 +345,7 @@ public class Fightview extends Widget {
 		setcur(null);
 	    updrel();
 	    if(lsrel.isEmpty()) {combatStateChanged();}
+	    if(CFG.COMBAT_RE_AGGRO.get()) {Actions.reAggroKritter(ui.gui, rel.gobid);}
             return;
         } else if(msg == "upd") {
             Relation rel = getrel(Utils.uiv(args[0]));

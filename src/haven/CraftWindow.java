@@ -3,6 +3,7 @@ package haven;
 import haven.MenuGrid.Pagina;
 import me.ender.ui.ICraftParent;
 
+import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,13 +78,13 @@ public class CraftWindow extends GameUI.Hidewnd implements ICraftParent {
     }
 
     @Override
-    public boolean globtype(char ch, java.awt.event.KeyEvent ev) {
-	if(visible && ch == 9 && ev.isShiftDown()) {
+    public boolean globtype(GlobKeyEvent ev) {
+	if(visible && ev.c == KeyEvent.VK_TAB && ev.awt.isShiftDown()) {
 	    int nextIndex = (tabStrip.getSelectedButtonIndex() + 1) % tabStrip.getButtonCount();
 	    tabStrip.select(nextIndex);
 	    return true;
 	}
-	return super.globtype(ch, ev);
+	return super.globtype(ev);
     }
 
     @Override

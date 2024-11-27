@@ -21,12 +21,12 @@ public enum GobTag {
     GEM, ARROW,
     VEHICLE, PUSHED, //vehicle that is pushed (wheelbarrow, plow)
     
-    CONTAINER, PROGRESSING, GATE,
+    CONTAINER, PROGRESSING, GATE, SMELTER,
     
     HAS_WATER, DRINKING,
     
     PLAYER, ME, FRIEND, FOE, PARTY, LEADER, IN_COMBAT, COMBAT_TARGET, AGGRO_TARGET,
-    KO, DEAD, EMPTY, READY, FULL,
+    KO, DEAD, EMPTY, READY, FULL, IS_COLD,
     
     MENU, PICKUP, HIDDEN;
     
@@ -264,10 +264,21 @@ public enum GobTag {
                 tags.add(CONTAINER);
                 tags.add(PROGRESSING);
                 //sdt bits: 0 - water, 1 - tannin, 2 - hide, 3 - leather
-                boolean empty = sdt < 4; //has no hide nor leather
-                boolean done = sdt >= 8; //has leather
+                boolean empty = (sdt & 0b1100) == 0; //has no hide nor leather
+                boolean done = (sdt & 0b1000) != 0; //has leather
                 if(empty) { tags.add(EMPTY); }
                 if(done) { tags.add(READY); }
+            } else if(name.endsWith("/primsmelter")) {
+                tags.add(PROGRESSING);
+                tags.add(SMELTER);
+                //sdt bits: 0 - lit, 1 - ore, 2 - bars, 3 - partial heat or pumping, 4 - full heat
+                boolean lit = (sdt & 0b0001) != 0;
+                boolean ore = (sdt & 0b0000_0010) != 0;
+                boolean bars = (sdt & 0b0000_0100) != 0;
+                //boolean cold = (sdt & 0b0001_1000) == 0;
+                boolean hot = (sdt & 0b0001_0000) != 0;
+                if(bars) {tags.add(READY);}
+                if(lit && !hot && ore) {tags.add(IS_COLD);}
             } else if(name.endsWith("/beehive")) {
                 tags.add(PROGRESSING);
                 //sdt bits: 0 - honey, 1 - bees?, 2 - wax

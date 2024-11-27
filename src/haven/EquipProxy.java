@@ -8,10 +8,20 @@ import static haven.Inventory.*;
 public class EquipProxy extends DraggableWidget implements DTarget {
     public static final Color BG_COLOR = new Color(91, 128, 51, 202);
     private Equipory.SLOTS[] slots;
+
+    public EquipProxy(CFG<Boolean> cfg, Equipory.SLOTS... slots) {
+	this(cfg, "EquipProxy", slots);
+    }
     
-    public EquipProxy(Equipory.SLOTS... slots) {
-	super("EquipProxy");
+    public EquipProxy(CFG<Boolean> cfg, String name, Equipory.SLOTS... slots) {
+	super(name);
 	setSlots(slots);
+	disposables.add(cfg.observe(this::updateVisibility));
+	updateVisibility(cfg);
+    }
+
+    private void updateVisibility(CFG<Boolean> c) {
+	if(c.get()) {show();} else {hide();}
     }
     
     public void setSlots(Equipory.SLOTS... slots) {
@@ -131,6 +141,10 @@ public class EquipProxy extends DraggableWidget implements DTarget {
     }
     
     public void activate(Equipory.SLOTS slot, int button) {
+	if(!visible) {return;}
+	Equipory e = getEquipory();
+	boolean empty = e == null || e.slots[slot.idx] == null;
+	if(empty) {button = 1;}
 	for (int i = 0; i < slots.length; i++) {
 	    if(slots[i] == slot) {
 		activate(i, button);

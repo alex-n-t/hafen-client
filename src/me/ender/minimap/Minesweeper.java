@@ -9,6 +9,7 @@ import me.ender.CustomCursors;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
@@ -25,9 +26,24 @@ public class Minesweeper {
     private static final int TILES = MCache.cmaps.x * MCache.cmaps.y;
     private static final Coord2d TILE_CENTER = MCache.tilesz.div(2);
     private static final RenderTree.Node NIL = RenderTree.Node.nil;
-    public static final byte CLEAR = (byte) 0x00;
-    public static final byte SAFE = (byte) 0xff;
-    public static final byte DANGER = (byte) 0xfe;
+    
+    //if this value is passed, count component will be ignored
+    private static final byte NO_COUNT		= (byte) 0b0000_1111;
+    //if this value is passed, flags component will be ignored
+    private static final byte NO_FLAGS		= (byte) 0b1111_0000;
+    
+    private static final byte COUNT_MASK	= (byte) 0b0000_1111;
+    private static final byte FLAGS_MASK	= (byte) 0b1111_0000;
+
+
+    public static final byte CLEAR_FLAGS	= (byte) 0b0000_0000;
+    public static final byte FLAG_SAFE		= (byte) 0b0001_0000;
+    public static final byte FLAG_DANGER	= (byte) 0b0010_0000;
+    public static final byte FLAG_MAYBE		= (byte) 0b0011_0000;
+    
+    //deprecated values, used for parsing old saved data
+    private static final byte DEPRECATED_V2_SAFE = (byte) 0xff;
+    private static final byte DEPRECATED_V2_DANGER = (byte) 0xfe;
 
     private final Object lock = new Object();
     private final Set<Long> gridIds = new HashSet<>();
@@ -41,7 +57,7 @@ public class Minesweeper {
     }
 
     public static void markDustSpawn(Sprite.Owner owner, float str) {
-	if(owner instanceof Gob) {markAtGob((Gob) owner, (byte) (str / 30f));}
+	if(owner instanceof Gob) {addCountAtGob((Gob) owner, (byte) (str / 30f));}
     }
 
     public static void markMinedOutTile(Sprite.Owner owner) {
@@ -49,14 +65,18 @@ public class Minesweeper {
 	//if(owner instanceof Gob) {markAtGob((Gob) owner, SAFE);}
     }
 
-    private static void markAtGob(Gob gob, byte count) {
+    public static void markFlagAtPoint(Coord2d rc, byte flags, GameUI gui) {
+	markPoint(rc, NO_COUNT, flags, gui);
+    }
+
+    private static void addCountAtGob(Gob gob, byte count) {
 	GameUI gui = gob.context(GameUI.class);
 	if(gui == null) {return;}
 
-	markPoint(gob.rc, count, gui, false);
+	markPoint(gob.rc, count, NO_FLAGS, gui);
     }
 
-    public static void markPoint(Coord2d rc, int count, GameUI gui, boolean safe) {
+    private static void markPoint(Coord2d rc, byte count, byte flags, GameUI gui) {
 	Coord gc = rc.floor(MCache.tilesz);
 	MCache.Grid grid = gui.ui.sess.glob.map.getgridt(gc);
 	if(grid == null) {return;}
@@ -64,7 +84,7 @@ public class Minesweeper {
 	Coord tc = gc.sub(grid.gc.mul(MCache.cmaps));
 	long id = grid.id;
 
-	gui.minesweeper.addValue(id, tc, count, safe);
+	gui.minesweeper.addValue(id, tc, count, flags);
     }
 
     public static boolean paginaAction(OwnerContext ctx, MenuGrid.Interaction iact) {
@@ -82,7 +102,7 @@ public class Minesweeper {
 	return true;
     }
 
-    private void addValue(long id, Coord tc, int value, boolean safe) {
+    private void addValue(long id, Coord tc, byte count, byte flags) {
 	synchronized (lock) {
 	    Map<Long, byte[]> grids = values;
 	    byte[] values;
@@ -94,10 +114,7 @@ public class Minesweeper {
 		gridIds.add(id);
 		storeIndex();
 	    }
-	    byte current = values[index(tc)];
-	    if(!safe || current == CLEAR || current == SAFE || current == DANGER) {
-		values[index(tc)] = (byte) value;
-	    }
+	    setValue(values, index(tc), count, flags);
 	    storeGrid(id, values);
 	}
     }
@@ -106,8 +123,11 @@ public class Minesweeper {
 	if(gridIds.contains(grid) && loadGrid(grid)) {
 	    byte[] curValues = values.get(grid);
 	    for (int i = 0; i < newValues.length; i++) {
-		if(newValues[i] == 0) {continue;}
-		curValues[i] = newValues[i];
+		byte newValue = newValues[i];
+		if(newValue == 0) {continue;}
+		byte count = (byte) (newValue & COUNT_MASK);
+		if(count == 0) {count = NO_COUNT;}
+		setValue(curValues, i, count, (byte) (newValue & FLAGS_MASK));
 	    }
 	    storeGrid(grid, curValues);
 	} else {
@@ -115,6 +135,15 @@ public class Minesweeper {
 	    storeIndex();
 	    storeGrid(grid, newValues);
 	}
+    }
+
+    private static void setValue(byte[] values, int idx, byte count, byte flags) {
+	byte value = values[idx];
+	count = (byte) (count & COUNT_MASK);
+	flags = (byte) (flags & FLAGS_MASK);
+	if(count != NO_COUNT) {value = (byte) ((value & FLAGS_MASK) | count);}
+	if(flags != NO_FLAGS) {value = (byte) ((value & COUNT_MASK) | flags);}
+	values[idx] = value;
     }
 
     private static int index(Coord tc) {
@@ -201,11 +230,9 @@ public class Minesweeper {
 	    throw (new StreamMessage.IOError(e));
 	}
 	try (StreamMessage out = new StreamMessage(fp)) {
-	    out.adduint8(2);
+	    out.adduint8(3); //version
 	    ZMessage zout = new ZMessage(out);
-	    for (byte v : grid) {
-		zout.adduint8(v);
-	    }
+	    zout.addbytes(grid);
 	    zout.finish();
 	}
     }
@@ -258,12 +285,25 @@ public class Minesweeper {
 
     private static byte[] doLoadGrid(StreamMessage data, long id) {
 	int ver = data.uint8();
-	if(ver == 2) {
-	    return new ZMessage(data).bytes(TILES);
+	if(ver == 2 || ver == 3) {
+	    byte[] values = new ZMessage(data).bytes(TILES);
+	    if(ver == 2) {convertToV3(values);}
+	    return values;
 	} else {
 	    warn("unknown mapfile ender-minesweeper-grid %d version: %d", id, ver);
 	}
 	return null;
+    }
+
+    private static void convertToV3(byte[] values) {
+	for (int i = 0; i < values.length; i++) {
+	    byte value = values[i];
+	    if(value == DEPRECATED_V2_SAFE) {
+		values[i] = FLAG_SAFE;
+	    } else if(value == DEPRECATED_V2_DANGER) {
+		values[i] = FLAG_DANGER;
+	    }
+	}
     }
 
     public static void doExport(MapFile mapFile, UI ui) {
@@ -308,7 +348,7 @@ public class Minesweeper {
 	try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path))) {
 	    StreamMessage msg = new StreamMessage(null, out);
 	    msg.addbytes(EXPORT_SIG);
-	    msg.adduint8(1);//version
+	    msg.adduint8(3);//version
 	    ZMessage zout = new ZMessage(msg);
 	    for (Long grid : grids) {
 		if(grid == null) {continue;}
@@ -362,13 +402,14 @@ public class Minesweeper {
 	Message data = new StreamMessage(input);
 	if(!Arrays.equals(EXPORT_SIG, data.bytes(EXPORT_SIG.length))) {return false;}
 	int ver = data.uint8();
-	if(ver == 1) {
+	if(ver == 1 || ver == 3) {
 	    Minesweeper m = ui.gui.minesweeper;
 	    ZMessage zdata = new ZMessage(data);
 	    synchronized (m.lock) {
 		while (!zdata.eom()) {
 		    long grid = zdata.int64();
 		    byte[] values = zdata.bytes(TILES);
+		    if(ver == 1) {convertToV3(values);}
 
 		    m.updateGrid(grid, values);
 		}
@@ -384,6 +425,7 @@ public class Minesweeper {
 	private static final Text.Foundry TEXT_FND = new Text.Foundry(Text.monobold, 12);
 	private static final Color SAFE_COL = new Color(32, 220, 80);
 	private static final Color DANGER_COL = new Color(240, 32, 100);
+	private static final Color MAYBE_COL = new Color(193, 87, 251);
 	private static final Color[] COLORS = new Color[]{
 	    new Color(150, 200, 245),
 	    new Color(142, 225, 207),
@@ -405,23 +447,45 @@ public class Minesweeper {
 	}
 
 	private static Tex getTex(byte val) {
-	    if(val <= 0 && val != SAFE && val != DANGER) {return null;}
+	    if(val == 0) {return null;}
 	    if(CACHE.containsKey(val)) {return CACHE.get(val);}
-	    Color color;
-	    String text;
-	    if(val == SAFE) {
-		color = SAFE_COL;
-		text = "·";
-	    } else if(val == DANGER) {
-		color = DANGER_COL;
-		text = "×";
-	    } else {
-		color = COLORS[Utils.clip(val - 1, 0, COLORS.length - 1)];
-		text = String.valueOf(val);
+	    BufferedImage flags = flagImg(val);
+	    BufferedImage count = countImg(val);
+	    Tex tex = null;
+	    if(flags != null || count != null) {
+		tex = new TexI(ItemInfo.catimgsh(0, flags, count));
 	    }
-	    Tex tex = Text.renderstroked(text, color, Color.BLACK, TEXT_FND).tex();
 	    CACHE.put(val, tex);
 	    return tex;
+	}
+
+	private static BufferedImage flagImg(byte flags) {
+	    flags = (byte) (flags & FLAGS_MASK);
+	    Color color;
+	    String text;
+	    if(flags == FLAG_SAFE) {
+		color = SAFE_COL;
+		text = "·";
+	    } else if(flags == FLAG_DANGER) {
+		color = DANGER_COL;
+		text = "×";
+	    } else if(flags == FLAG_MAYBE) {
+		color = MAYBE_COL;
+		text = "?";
+	    } else {
+		return null;
+	    }
+	    return Text.renderstroked(text, color, Color.BLACK, TEXT_FND).img;
+	}
+
+	private static BufferedImage countImg(byte count) {
+	    count = (byte) (count & COUNT_MASK);
+	    if(count == 0) {return null;}
+
+	    Color color = COLORS[Utils.clip(count - 1, 0, COLORS.length - 1)];
+	    String text = String.valueOf(count);
+
+	    return Text.renderstroked(text, color, Color.BLACK, TEXT_FND).img;
 	}
 
 	public Coord3f origin(Coord tc) {
@@ -439,9 +503,9 @@ public class Minesweeper {
 		    Tex tex = getTex(values[index(ul.add(o))]);
 		    if(tex == null) {continue;}
 
-		    Coord sc = Homo3D.obj2view(origin(o), state, Area.sized(g.sz())).round2();
+		    Coord sc = Homo3D.obj2sc(origin(o), state, Area.sized(g.sz()));
+		    if(sc == null) {continue;}
 		    if(!sc.isect(Coord.z, g.sz())) {continue;}
-
 
 		    g.aimage(tex, sc, 0.5f, 0.5f);
 		}

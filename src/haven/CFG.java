@@ -17,7 +17,7 @@ import java.util.List;
 public class CFG<T> {
     public static final CFG<String> VERSION = new CFG<>("version", "");
     public static final CFG<Boolean> VIDEO_FULL_SCREEN = new CFG<>("video.full_screen", false);
-    public static final CFG<Boolean> DISPLAY_KINNAMES = new CFG<>("display.kinnames", true);
+//    public static final CFG<Boolean> DISPLAY_KINNAMES = new CFG<>("display.kinnames", true);
     public static final CFG<Boolean> DISPLAY_KINSFX = new CFG<>("display.kinsfx", true);
     public static final CFG<Boolean> DISPLAY_FLAVOR = new CFG<>("display.flavor", true);
     public static final CFG<Boolean> DISPLAY_GOB_INFO = new CFG<>("display.gob_info", false);
@@ -26,7 +26,7 @@ public class CFG<T> {
     public static final CFG<Set<GobInfoOpts.TreeSubPart>> DISPLAY_GOB_INFO_TREE_ENABLED_PARTS = new CFG<>("display.gob_info_tree_enabled_parts", new HashSet<>(Arrays.asList(GobInfoOpts.TreeSubPart.SEEDS, GobInfoOpts.TreeSubPart.LEAVES)), new TypeToken<Set<GobInfoOpts.TreeSubPart>>(){});
     public static final CFG<Boolean> DISPLAY_GOB_INFO_TREE_HIDE_GROWING_PARTS = new CFG<>("display.gob_info_tree_hide_growing_parts", true);
     public static final CFG<Boolean> DISPLAY_GOB_INFO_TREE_SHOW_BIG = new CFG<>("display.gob_info_tree_show_big", true);
-    public static final CFG<Integer> DISPLAY_GOB_INFO_TREE_SHOW_BIG_THRESHOLD = new CFG<>("display.gob_info_show_big_threshold", 110);
+    public static final CFG<Integer> DISPLAY_GOB_INFO_TREE_SHOW_BIG_THRESHOLD = new CFG<>("display.gob_info_show_big_threshold", 150);
     public static final CFG<Boolean> DISPLAY_GOB_INFO_SHORT = new CFG<>("display.gob_info_shorten_content", false);
     public static final CFG<Boolean> DISPLAY_GOB_HITBOX_FILLED = new CFG<>("display.gob_hitbox_filled", false);
     public static final CFG<Boolean> DISPLAY_GOB_HITBOX = new CFG<>("display.gob_hitbox", false);
@@ -70,6 +70,8 @@ public class CFG<T> {
     public static final CFG<Boolean> FORCE_HW_CURSOR = new CFG<>("ui.force_hw_cursor", false);
     public static final CFG<Boolean> DISABLE_UI_HIDING = new CFG<>("ui.disable_ui_hide", true);
     public static final CFG<Boolean> UI_DISABLE_CONTAINER_POS = new CFG<>("ui.disable_container_pos", false);
+    public static final CFG<Boolean> UI_SHOW_EQPROXY_HAND = new CFG<>("ui.eq_proxy.hands", true);
+    public static final CFG<Boolean> UI_SHOW_EQPROXY_POUCH = new CFG<>("ui.eq_proxy.pouch", false);
     public static final CFG<Boolean> ALT_COMBAT_UI = new CFG<>("ui.combat.alt_ui", true);
     public static final CFG<Boolean> SIMPLE_COMBAT_OPENINGS = new CFG<>("ui.combat.simple_openings", true);
     public static final CFG<Boolean> ALWAYS_MARK_COMBAT_TARGET = new CFG<>("ui.combat.always_mark_target", false);
@@ -90,6 +92,7 @@ public class CFG<T> {
     public static final CFG<Boolean> CLEAR_ALL_DMG_AFTER_COMBAT = new CFG<>("ui.combat.clear_all_damage_after", false);
     public static final CFG<Boolean> SHOW_COMBAT_KEYS = new CFG<>("ui.combat.show_keys", true);
     public static final CFG<Boolean> COMBAT_AUTO_PEACE = new CFG<>("ui.combat.peace", false);
+    public static final CFG<Boolean> COMBAT_RE_AGGRO = new CFG<>("ui.combat.reaggro", false);
     public static final CFG<Boolean> SHOW_CHAT_TIMESTAMP = new CFG<>("ui.chat.timestamp", true);
     public static final CFG<Boolean> STORE_CHAT_LOGS = new CFG<>("ui.chat.logs", false);
     public static final CFG<Boolean> LOCK_STUDY = new CFG<>("ui.lock_study", false);
@@ -125,6 +128,7 @@ public class CFG<T> {
     
     //Color settings
     public static final CFG<Color> COLOR_MINE_SUPPORT_OVERLAY = new CFG<>("colors.mine_support_overlay", new Color(149, 246, 194));
+    public static final CFG<Color> COLOR_MINE_SUPPORT_DAMAGED_OVERLAY = new CFG<>("colors.damaged_mine_support_overlay", new Color(253, 44, 70));
     public static final CFG<Color> COLOR_TILE_GRID = new CFG<>("colors.tile_grid", new Color(255, 255, 255, 48));
     public static final CFG<Color> COLOR_HBOX_FILLED = new CFG<>("colors.hit_box_filled", new Color(178, 71, 178, 160));
     public static final CFG<Color> COLOR_HBOX_SOLID = new CFG<>("colors.hit_box_solid", new Color(178, 71, 178, 255));

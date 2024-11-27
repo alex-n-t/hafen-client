@@ -700,7 +700,7 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 		dragging = null;
 	    } else if(pressed != null) {
 		if(pressed == h)
-		    use(h, new Interaction(), false);
+		    use(h, new Interaction(1, ui.modflags()), false);
 		pressed = null;
 	    }
 	    grab.remove();
@@ -902,6 +902,7 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 	makeLocal("paginae/add/auto/aggro_one", Action.AGGRO_ONE_PVE);
 	makeLocal("paginae/add/auto/aggro_one_pvp", Action.AGGRO_ONE_PVP);
 	makeLocal("paginae/add/auto/aggro_all", Action.AGGRO_ALL);
+	makeLocal("paginae/add/auto/mount_horse", Action.BOT_MOUNT_HORSE);
 	makeLocal("paginae/add/info/plant-growth", Action.TOGGLE_GOB_INFO_PLANTS, () -> GobInfoOpts.enabled(InfoPart.PLANT_GROWTH));
 	makeLocal("paginae/add/info/tree-growth", Action.TOGGLE_GOB_INFO_TREE_GROWTH, () -> GobInfoOpts.enabled(InfoPart.TREE_GROWTH));
 	makeLocal("paginae/add/info/tree-content", Action.TOGGLE_GOB_INFO_TREE_CONTENT, () -> GobInfoOpts.enabled(InfoPart.TREE_CONTENTS));

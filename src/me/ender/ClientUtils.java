@@ -72,6 +72,9 @@ public class ClientUtils {
 	    resname += " Log";
 	} else if(fullname.startsWith(ResName.BARREL_WITH_CONTENTS)) {
 	    resname = fullname.substring(fullname.lastIndexOf("-") + 1);
+	} else if(fullname.contains(ResName.STOCKPILE)) {
+	    k = resname.lastIndexOf(ResName.STOCKPILE);
+	    resname = resname.substring(k + 11) + " Stockpile";
 	}
 	
 	//handle flour

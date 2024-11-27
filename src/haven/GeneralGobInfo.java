@@ -6,7 +6,6 @@ import me.ender.GobInfoOpts.InfoPart;
 import me.ender.GobInfoOpts.TreeSubPart;
 import me.ender.Reflect;
 import me.ender.ResName;
-import me.ender.gob.GobContents;
 import me.ender.gob.GobTimerData;
 
 import java.awt.*;
@@ -14,6 +13,8 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static me.ender.gob.GobContents.*;
 
 public class GeneralGobInfo extends GobInfo {
     private static final int TREE_START = 10;
@@ -169,14 +170,13 @@ public class GeneralGobInfo extends GobInfo {
 	    }
 	} else if(isSpriteKind(gob, "Tree")) {
 	    if(GobInfoOpts.disabled(InfoPart.TREE_GROWTH)) {return null;}
-	    scalePercent = getTreeScale(gob);
-	    if(scalePercent >= 0 && (scalePercent < 100 || (CFG.DISPLAY_GOB_INFO_TREE_SHOW_BIG.get() && scalePercent >= CFG.DISPLAY_GOB_INFO_TREE_SHOW_BIG_THRESHOLD.get()))) {
-		int growth = scalePercent;
-		if(gob.is(GobTag.TREE)) {
-		    growth = (int) (TREE_MULT * (growth - TREE_START));
-		} else if(gob.is(GobTag.BUSH)) {
-		    growth = (int) (BUSH_MULT * (growth - BUSH_START));
-		}
+	    int growth = scalePercent = getTreeScale(gob);
+	    if(gob.is(GobTag.TREE)) {
+		growth = (int) (TREE_MULT * (growth - TREE_START));
+	    } else if(gob.is(GobTag.BUSH)) {
+		growth = (int) (BUSH_MULT * (growth - BUSH_START));
+	    }
+	    if(growth >= 0 && (growth < 100 || (CFG.DISPLAY_GOB_INFO_TREE_SHOW_BIG.get() && growth >= CFG.DISPLAY_GOB_INFO_TREE_SHOW_BIG_THRESHOLD.get()))) {
 		Color c = Utils.blendcol(growth / 100.0, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN);
 		line = text(String.format("%d%%", growth), c);
 	    }
@@ -268,31 +268,39 @@ public class GeneralGobInfo extends GobInfo {
     }
     
     private BufferedImage icons() {
-	boolean seed = false;
-	boolean leaf = false;
-	boolean skip = true;
-	
-	GobContents.GobData data = GobContents.getData(gob);
+	Map<String, String> data = getData(gob);
 	if(data == null) {return null;}
-	
+	BufferedImage[] parts = null;
+
+	//TODO: switch to using tags to detect leaves, seeds and growth status
 	if(isSpriteKind(gob, "Tree")) {
-	    int sdt = gob.sdt();
-	    seed = (sdt & 1) != 1;
-	    leaf = (sdt & 2) != 2;
-	    
 	    int scale = getTreeScale(gob);
-	    skip = GobInfoOpts.disabled(InfoPart.TREE_CONTENTS)
-		|| (CFG.DISPLAY_GOB_INFO_TREE_HIDE_GROWING_PARTS.get() && scale >= 0 && scale < 100);
+
+	    if(GobInfoOpts.disabled(InfoPart.TREE_CONTENTS)
+		|| (CFG.DISPLAY_GOB_INFO_TREE_HIDE_GROWING_PARTS.get() && scale >= 0 && scale < 100)) {
+		return null;
+	    }
+	    
+	    int sdt = gob.sdt();
+	    boolean seed = (sdt & 1) != 1;
+	    boolean leaf = (sdt & 2) != 2;
+	    parts = new BufferedImage[]{
+		seed && GobInfoOpts.enabled(TreeSubPart.SEEDS) ? getIcon(data.get(SEED)) : null,
+		leaf && GobInfoOpts.enabled(TreeSubPart.LEAVES) ? getIcon(data.get(LEAF)) : null,
+		GobInfoOpts.enabled(TreeSubPart.BARK) ? getIcon(data.get(BARK)) : null,
+		GobInfoOpts.enabled(TreeSubPart.BOUGH) ? getIcon(data.get(BOUGH)) : null,
+	    };
+
+	} else if(CFG.SHOW_PROGRESS_COLOR.get()) { //should this be separate option?
+	    if(gob.is(GobTag.SMELTER)) {
+		parts = new BufferedImage[]{
+		    gob.is(GobTag.READY) ? getIcon(data.get(READY)) : null,
+		    gob.is(GobTag.IS_COLD) ? getIcon(data.get(COLD)) : null,
+		};
+	    }
 	}
-	
-	if(skip) {return null;}
-	
-	BufferedImage[] parts = {
-	    seed && GobInfoOpts.enabled(TreeSubPart.SEEDS) ? getIcon(data.Seed) : null,
-	    leaf && GobInfoOpts.enabled(TreeSubPart.LEAVES) ? getIcon(data.Leaf) : null,
-	    GobInfoOpts.enabled(TreeSubPart.BARK) ? getIcon(data.Bark) : null,
-	    GobInfoOpts.enabled(TreeSubPart.BOUGH) ? getIcon(data.Bough) : null,
-	};
+
+	if(parts == null) {return null;}
 	
 	for (BufferedImage part : parts) {
 	    if(part == null) {continue;}
@@ -308,9 +316,14 @@ public class GeneralGobInfo extends GobInfo {
 	if(iconCache.containsKey(name)) {
 	    return iconCache.get(name);
 	}
-	
-	BufferedImage img = Resource.remote().loadwait(name).layer(Resource.imgc).img;
-	img = PUtils.convolvedown(img, UI.scale(20, 20), CharWnd.iconfilter);
+	BufferedImage img;
+	try {
+	    img = Resource.remote().loadwait(name).layer(Resource.imgc).img;
+	    img = PUtils.convolvedown(img, UI.scale(20, 20), CharWnd.iconfilter);
+	} catch (Exception e) {
+	    System.err.printf("Couldn't load content icon: '%s'%n", name);
+	    img = null;
+	}
 	iconCache.put(name, img);
 	return img;
     }

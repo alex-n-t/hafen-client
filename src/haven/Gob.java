@@ -665,6 +665,13 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	return(null);
     }
 
+    public <T extends Sprite> T findsprol(Class<T> cl) {
+	for(Overlay ol : ols) {
+	    if(cl.isInstance(ol.spr)) {return cl.cast(ol.spr);}
+	}
+	return(null);
+    }
+
     private void overlayAdded(Overlay item) {
 	try {
 	    Sprite spr = item.spr;
@@ -1135,6 +1142,15 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    
 	}
 	return info;
+    }
+    
+    public float hp() {
+	GobHealth health = getattr(GobHealth.class);
+	
+	if(health == null) {
+	    return 1.0f;
+	}
+	return health.hp;
     }
     
     private static final ClassResolver<Gob> ctxr = new ClassResolver<Gob>()

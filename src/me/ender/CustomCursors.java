@@ -27,16 +27,18 @@ public class CustomCursors {
 	    byte value;
 
 	    if(modflags == 0) {
-		value = Minesweeper.DANGER;
+		value = Minesweeper.FLAG_DANGER;
 	    } else if(modflags == UI.MOD_CTRL) {
-		value = Minesweeper.CLEAR;
+		value = Minesweeper.CLEAR_FLAGS;
 	    } else if(modflags == UI.MOD_META) {
-		value = Minesweeper.SAFE;
+		value = Minesweeper.FLAG_SAFE;
+	    } else if(modflags == UI.MOD_SHIFT) {
+		value = Minesweeper.FLAG_MAYBE;
 	    } else {
 		return true;
 	    }
 
-	    Minesweeper.markPoint(mc, value, ui.gui, true);
+	    Minesweeper.markFlagAtPoint(mc, value, ui.gui);
 	    return true;
 	}
 

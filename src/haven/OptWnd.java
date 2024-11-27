@@ -1114,9 +1114,9 @@ public class OptWnd extends WindowX {
 	
 	y += STEP;
 	panel.add(new CFGBox("Darken deep ocean tiles", CFG.COLORIZE_DEEP_WATER), x, y);
-	
-	y += STEP;
-	panel.add(new CFGBox("Always show kin names", CFG.DISPLAY_KINNAMES), x, y);
+//	this does nothing right now
+//	y += STEP;
+//	panel.add(new CFGBox("Always show kin names", CFG.DISPLAY_KINNAMES), x, y);
 	
 	y += STEP;
 	panel.add(new CFGBox("Play sound when kin changes status", CFG.DISPLAY_KINSFX), x, y);
@@ -1266,10 +1266,16 @@ public class OptWnd extends WindowX {
     
 	y += STEP;
 	panel.add(new CFGBox("Always show UI on start", CFG.DISABLE_UI_HIDING), x, y);
-	
+
 	y += STEP;
 	panel.add(new CFGBox("Enable container window spreading", CFG.UI_DISABLE_CONTAINER_POS, "If enabled container windows would be auto positioned next to other, if enabled then they will stack in same position."), x, y);
-    
+
+	y += STEP;
+	panel.add(new CFGBox("Show hands and belt widget", CFG.UI_SHOW_EQPROXY_HAND, "Small draggable widget for quick access to hands and belt slots"), x, y);
+
+	y += STEP;
+	panel.add(new CFGBox("Show pouches and back widget", CFG.UI_SHOW_EQPROXY_POUCH, "Small draggable widget for quick access to pouches and back slots"), x, y);
+
 	y += STEP;
 	panel.add(new CFGBox("Show F-key tool bar", CFG.SHOW_TOOLBELT_0), x, y);
     

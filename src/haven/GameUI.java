@@ -27,6 +27,7 @@
 package haven;
 
 import haven.Equipory.SLOTS;
+import haven.res.ui.locptr.Pointer;
 import haven.rx.BuffToggles;
 import haven.rx.Reactor;
 import integrations.mapv4.MappingClient;
@@ -49,7 +50,7 @@ import static haven.ItemFilter.*;
 import haven.render.Location;
 import static haven.Inventory.invsq;
 
-public class GameUI extends ConsoleHost implements Console.Directory, UI.MessageWidget {
+public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.Handler {
     private static final int blpw = UI.scale(142), brpw = UI.scale(142);
     public final String chrid, genus;
     public final long plid;
@@ -78,7 +79,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     public TileHighlight.TileHighlightCFG tileHighlight;
     private Widget qqview;
     public BuddyWnd buddies;
-    public EquipProxy eqproxy;
+    public EquipProxy eqproxyHandBelt, eqproxyPouchBack;
     public FilterWnd filter;
     public Cal calendar;
     private final Zergwnd zerg;
@@ -340,7 +341,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	portrait = ulpanel.add(Frame.with(new Avaview(Avaview.dasz, plid, "avacam"), false), UI.scale(10, 10));
 	buffs = ulpanel.add(new Bufflist(), portrait.c.x + portrait.sz.x + UI.scale(10), portrait.c.y + ((IMeter.fsz.y + UI.scale(2)) * 2) + UI.scale(5 - 2));
 	calendar = umpanel.add(new Cal(), Coord.z);
-	eqproxy = add(new EquipProxy(SLOTS.HAND_LEFT, SLOTS.HAND_RIGHT, SLOTS.BACK, SLOTS.BELT), new Coord(420, 5));
+	eqproxyHandBelt = add(new EquipProxy(CFG.UI_SHOW_EQPROXY_HAND, SLOTS.HAND_LEFT, SLOTS.HAND_RIGHT, SLOTS.BELT), UI.scale(420, 5));
+	eqproxyPouchBack = add(new EquipProxy(CFG.UI_SHOW_EQPROXY_POUCH, "EquipProxy2", SLOTS.POUCH_LEFT, SLOTS.POUCH_RIGHT, SLOTS.BACK), UI.scale(420, 35));
 	syslog = chat.add(new ChatUI.Log("System"));
 	opts = add(new OptWnd());
 	opts.hide();
@@ -1844,7 +1846,10 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	public ChatUI.Channel.Message logmessage();
     }
 
-    public void msg(UI.Notice msg) {
+    public boolean msg(UI.NoticeEvent ev) {
+	if(ev.propagate(this))
+	    return(true);
+	UI.Notice msg = ev.msg;
 	ChatUI.Channel.Message logged;
 	if(msg instanceof LogMessage)
 	    logged = ((LogMessage)msg).logmessage();
@@ -1865,6 +1870,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	}
 	syslog.append(logged);
 	ui.sfxrl(msg.sfx());
+	return(true);
     }
 
     public void error(String msg) {
@@ -1900,15 +1906,9 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     private final Map<Marker, Widget> trackedMarkers = new HashMap<>();
     public void track(Marker marker) {
 	untrack(marker);
-	try {
-	    Factory f = Widget.gettype2("ui/locptr");
-	    if(f != null) {
-		Widget wdg = f.create(ui, new Object[]{marker});
-		trackedMarkers.put(marker, wdg);
-		ui.gui.add(wdg);
-	    }
-	} catch (InterruptedException ignored) {
-	}
+	Widget wdg = new Pointer(marker);
+	trackedMarkers.put(marker, wdg);
+	ui.gui.add(wdg);
     }
     
     public void untrack(Marker marker) {
@@ -2111,7 +2111,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	}
 	
 	public boolean globtype(GlobKeyEvent ev) {
-	    //skip matching if CTRL pressed to not clash with global hotkeys
+	    //skip matching if CTRL is pressed to not clash with global hotkeys
 	    if(ev.mods == KeyMatch.C) {return super.globtype(ev);}
 	    if((ev.code < KeyEvent.VK_0) || (ev.code > KeyEvent.VK_9))
 		return(super.globtype(ev));

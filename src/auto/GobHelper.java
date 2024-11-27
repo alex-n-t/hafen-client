@@ -47,7 +47,7 @@ public class GobHelper {
     }
     
     @SafeVarargs
-    private static List<ITarget> getGobs(GameUI gui, int limit, Comparator<Gob> sort, Predicate<Gob>... filters) {
+    static List<ITarget> getGobs(GameUI gui, int limit, Comparator<Gob> sort, Predicate<Gob>... filters) {
 	Stream<Gob> stream = gui.ui.sess.glob.oc.stream();
 	for (Predicate<Gob> filter : filters) {
 	    stream = stream.filter(filter);
@@ -80,7 +80,7 @@ public class GobHelper {
     }
     
     public static boolean isNotFriendlySteed(Gob gob) {
-	return !gob.occupants.stream().anyMatch(g -> g.anyOf(GobTag.ME, GobTag.PARTY));
+	return gob.occupants.stream().noneMatch(g -> g.anyOf(GobTag.ME, GobTag.PARTY));
     }
     
     private static Predicate<Gob> gobIs(String what) {

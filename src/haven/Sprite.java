@@ -164,9 +164,8 @@ public abstract class Sprite implements RenderTree.Node, PView.Render2D {
 	synchronized (texLock) {
 	    if(tex2d == null) {return;}
 	    if(owner instanceof Gob && !((Gob) owner).info.enabled()) {return;}
-	    Coord3f c3d = Homo3D.obj2view2(pos2d, state, Area.sized(g.sz()));
-	    if(c3d == null) {return;}
-	    Coord sc = c3d.round2();
+	    Coord sc = Homo3D.obj2sc(pos2d, state, Area.sized(g.sz()));
+	    if(sc == null) {return;}
 	    if(sc.isect(Coord.z, g.sz())) {
 		g.aimage(tex2d, sc, tex2dAlign.a, tex2dAlign.b);
 	    }

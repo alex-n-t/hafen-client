@@ -42,6 +42,7 @@ public class KeyBinder {
 	    ConfigBean configBean = gson.fromJson(json, ConfigBean.class);
 	    tmpGeneralCFG = configBean.general;
 	    Fightsess.updateKeybinds(configBean.combat);
+	    Reactor.event(COMBAT_KEYS_UPDATED);
 	} catch (Exception ignore) {}
     
 	if(tmpGeneralCFG == null) {
@@ -75,6 +76,8 @@ public class KeyBinder {
 	add(KeyEvent.VK_1, CTRL,  ACT_HAND_0);
 	add(KeyEvent.VK_2, CTRL,  ACT_HAND_1);
 	add(KeyEvent.VK_3, CTRL,  ACT_BELT);
+	add(ACT_POUCH_0);
+	add(ACT_POUCH_1);
     	add(KeyEvent.VK_D, ALT,   ACT_DRINK);
     	add(ACT_REFILL_DRINKS);
 	add(KeyEvent.VK_C, ALT,   OPEN_QUICK_CRAFT);
@@ -91,6 +94,7 @@ public class KeyBinder {
 	add(KeyEvent.VK_Z, CTRL,  TOGGLE_TILE_CENTERING);
 	add(KeyEvent.VK_Q, ALT,   BOT_PICK_ALL_HERBS);
 	add(KeyEvent.VK_W, ALT,   BOT_OPEN_GATE);
+	add(KeyEvent.VK_Q, CTRL,  BOT_MOUNT_HORSE);
 	add(AGGRO_ONE_PVE);
 	add(AGGRO_ONE_PVP);
 	add(AGGRO_ALL);

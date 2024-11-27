@@ -102,10 +102,8 @@ public class GobCombatInfo extends GAttrib implements RenderTree.Node, PView.Ren
     public void draw(GOut g, Pipe state) {
 	if(!enabled() || rel.invalid) {return;}
 	
-	Coord3f c3d = Homo3D.obj2view2(pos, state, Area.sized(g.sz()));
-	if(c3d == null) {return;}
-	
-	Coord sc = c3d.round2();
+	Coord sc = Homo3D.obj2sc(pos, state, Area.sized(g.sz()));
+	if(sc == null) {return;}
 	if(!sc.isect(Coord.z, g.sz())) {return;}
 	
 	g.aimage(mip.get().tex(), sc.addx(-IP_HX), 1f, 1f);
