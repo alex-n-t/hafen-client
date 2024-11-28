@@ -11,7 +11,6 @@ import haven.res.ui.tt.alch.ingr_time_more.MoreTime;
 import haven.res.ui.tt.attrmod.AttrMod;
 import me.ender.Reflect;
 
-import java.net.URL;
 import java.util.*;
 
 public class AlchemyData {
@@ -74,6 +73,8 @@ public class AlchemyData {
 	String res = item.resname();
 	String name = item.name.get();
 	List<ItemInfo> infos = item.info();
+	double q = item.itemq.get().single().value;
+	double qc = q > 0 ? 1d / Math.sqrt(10 * q) : 1d;
 
 	ItemInfo.Contents contents = ItemInfo.find(ItemInfo.Contents.class, infos);
 	if(contents != null) {infos = contents.sub;}
@@ -88,25 +89,26 @@ public class AlchemyData {
 		//noinspection unchecked
 		List<ItemInfo> effs = (List<ItemInfo>) Reflect.getFieldValue(info, "effs");
 		for (ItemInfo eff : effs) {
-		    tryAddEffect(effects, eff);
+		    tryAddEffect(qc, effects, eff);
 		}
 		//TODO: detect less/more time effects in elixirs?
 	    } else if(info instanceof haven.res.ui.tt.alch.recipe.Recipe) {
 		recipe = Recipe.from(res, (haven.res.ui.tt.alch.recipe.Recipe) info);
 	    } else {
-		tryAddEffect(effects, info);
+		tryAddEffect(qc, effects, info);
 	    }
 	}
 
 	if(isElixir && recipe != null) {
 	    //TODO: option to ignore bad-only elixirs?
 	    Elixir elixir = new Elixir(recipe, effects);
+	    //ELIXIRS.remove(elixir); //always replace
 	    ELIXIRS.add(elixir);
 	    saveElixirs();
 	    if(DBG) {
 		String alchemyUrl = elixir.toAlchemyUrl();
 		System.out.println(alchemyUrl);
-		if(WebBrowser.self!=null){
+		if(WebBrowser.self != null) {
 		    WebBrowser.self.show(Utils.url(alchemyUrl));
 		}
 	    }
@@ -136,12 +138,13 @@ public class AlchemyData {
 	}
     }
 
-    private static void tryAddEffect(Collection<String> effects, ItemInfo info) {
+    private static void tryAddEffect(double qc, Collection<String> effects, ItemInfo info) {
 	if(info instanceof BuffAttr) {
 	    effects.add(String.format("buff:%s", ((BuffAttr) info).res.get().name));
 	} else if(info instanceof AttrMod) {
 	    for (AttrMod.Mod mod : ((AttrMod) info).mods) {
-		effects.add(String.format("buff:%s", mod.attr.name));
+		long a = Math.round(qc * mod.mod);
+		effects.add(String.format("buff:%s:%d", mod.attr.name, a));
 	    }
 	} else if(info instanceof HealWound) {
 	    effects.add(String.format("heal:%s", ((HealWound) info).res.get().name));
@@ -149,12 +152,15 @@ public class AlchemyData {
 	    //this is from elixir, it uses different resource and has value
 	    //noinspection unchecked
 	    Indir<Resource> res = (Indir<Resource>) Reflect.getFieldValue(info, "res");
-	    effects.add(String.format("heal:%s", res.get().name));
+	    long a = Math.round(qc * Reflect.getFieldValueInt(info, "a"));
+	    effects.add(String.format("heal:%s:%d", res.get().name, a));
 	} else if(Reflect.is(info, "AddWound")) {
 	    //this is from elixir
 	    //noinspection unchecked
 	    Indir<Resource> res = (Indir<Resource>) Reflect.getFieldValue(info, "res");
-	    effects.add(String.format("wound:%s", res.get().name));
+	    //TODO: try to find base wound magnitude
+	    int a = Reflect.getFieldValueInt(info, "a");
+	    effects.add(String.format("wound:%s:%d", res.get().name, a));
 	} else if(info instanceof LessTime) {
 	    effects.add("time:less");
 	} else if(info instanceof MoreTime) {

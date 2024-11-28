@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Elixir {
+    private static final boolean INCLUDE_NUMBERS = false; //TODO: add an option for this
     final public Recipe recipe;
     final public Collection<String> effects;
 
@@ -38,6 +39,7 @@ public class Elixir {
 	if(parts.length < 2) {return effect;}
 	String res = parts[1];
 	String type = parts[0];
+	int v = getValue(parts);
 	String name = res;
 	try {
 	    name = Resource.remote().loadwait(res).layer(Resource.tooltip).t;
@@ -49,18 +51,28 @@ public class Elixir {
 		prefix = "+";
 		break;
 	    case "buff":
-		//TODO: parse magnitude to use ^^ for bigger bonuses
-		prefix = "^";
+		prefix = (v > 1 ? "^^" : "^");
+		if(INCLUDE_NUMBERS && v > 0) {
+		    prefix += 10 * v + " ";
+		}
 		break;
 	    case "time":
 		prefix = "%";
 		break;
 	    case "wound":
-		//TODO: parse wound magnitude
 		prefix = "-";
+		if(INCLUDE_NUMBERS && v > 0) {prefix += v + " ";}
 		break;
 	}
 	return prefix + name;
+    }
+
+    private static int getValue(String[] parts) {
+	if(parts.length < 3) {return 0;}
+	try {
+	    return Integer.parseInt(parts[2]);
+	} catch (Exception ignore) {}
+	return 0;
     }
 
     /**
