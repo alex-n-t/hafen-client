@@ -10,12 +10,10 @@ import haven.res.ui.tt.alch.ingr_buff.BuffAttr;
 import haven.res.ui.tt.alch.ingr_heal.HealWound;
 import haven.res.ui.tt.alch.ingr_time_less.LessTime;
 import haven.res.ui.tt.alch.ingr_time_more.MoreTime;
+import haven.res.ui.tt.attrmod.AttrMod;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Effect {
     private static final boolean INCLUDE_NUMBERS = false; //TODO: add an option for this
@@ -109,7 +107,7 @@ public class Effect {
 	return name;
     }
 
-    public static List<ItemInfo> info(Collection<Effect> effects) {
+    public static List<ItemInfo> ingredientInfo(Collection<Effect> effects) {
 	List<ItemInfo> tips = new LinkedList<>();
 	for (Effect effect : effects) {
 	    String res = effect.res;
@@ -119,6 +117,33 @@ public class Effect {
 		    break;
 		case HEAL:
 		    tips.add(new HealWound(null, Resource.remote().load(res), null));
+		    break;
+		case TIME:
+		    if(res.equals(MORE)) {
+			tips.add(new MoreTime(null));
+		    } else if(res.equals(LESS)) {
+			tips.add(new LessTime(null));
+		    }
+		    break;
+	    }
+	}
+	return tips;
+    }
+
+    public static List<ItemInfo> elixirInfo(Collection<Effect> effects) {
+	List<ItemInfo> tips = new LinkedList<>();
+	for (Effect effect : effects) {
+	    String res = effect.res;
+	    int a = getValue(effect.opt);
+	    switch (effect.type) {
+		case BUFF:
+		    tips.add(new AttrMod(null, Collections.singletonList(new AttrMod.Mod(Resource.remote().loadwait(res), 10 * a))));
+		    break;
+		case HEAL:
+		    tips.add(new FixWound(null, Resource.remote().load(res), null, 10 * a));
+		    break;
+		case WOUND:
+		    tips.add(new InflictWound(null, Resource.remote().load(res), a));
 		    break;
 		case TIME:
 		    if(res.equals(MORE)) {

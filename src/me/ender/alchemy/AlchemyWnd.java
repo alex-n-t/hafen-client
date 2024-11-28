@@ -3,11 +3,19 @@ package me.ender.alchemy;
 import haven.*;
 import me.ender.ui.TabStrip;
 
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
 public class AlchemyWnd extends WindowX implements DTarget {
-    public static final Coord WND_SZ = UI.scale(500, 600);
+    public static final int PAD = UI.scale(5);
+    static final int LIST_W = UI.scale(150);
+    static final int GAP = UI.scale(25);
+    static final int ITEMS = 25;
+    static final int ITEM_H = UI.scale(16);
+    static final int CONTENT_W = UI.scale(250);
+    public static final Coord WND_SZ = Coord.of(2 * PAD + LIST_W + GAP + CONTENT_W, ITEM_H * ITEMS);
+    static final Color BGCOLOR = new Color(0, 0, 0, 64);
     private final List<Widget> tabs = new LinkedList<>();
 
     public AlchemyWnd() {
@@ -29,6 +37,12 @@ public class AlchemyWnd extends WindowX implements DTarget {
 	for (Widget tab : tabs) {
 	    tab.show(tab == selected);
 	}
+	pack();
+    }
+
+    @Override
+    public Coord contentsz() {
+	return super.contentsz().add(PAD, PAD);
     }
 
     @Override

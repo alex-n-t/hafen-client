@@ -38,6 +38,10 @@ public class ClientUtils {
 	}
 	return "???";
     }
+
+    public static String loadPrettyResName(String resname) {
+	return prettyResName(Resource.remote().loadwait(resname));
+    }
     
     public static String prettyResName(Resource res) {
 	if(res == null) {return "???";}

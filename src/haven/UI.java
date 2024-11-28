@@ -85,6 +85,20 @@ public class UI {
     public final Loader loader;
     public final CommandQueue queue = new CommandQueue();
     private static final double scalef;
+    public final ItemInfo.Owner infoOwner = new ItemInfo.Owner() {
+	@Override
+	public List<ItemInfo> info() {
+	    return Collections.emptyList();
+	}
+
+	@Override
+	public <T> T context(Class<T> cl) {
+	    if(cl == Session.class || cl == Resource.Resolver.class) {
+		return (T) sess;
+	    }
+	    return null;
+	}
+    };
     private final Object guiLock = new Object();
     public GameUI gui = null;
     

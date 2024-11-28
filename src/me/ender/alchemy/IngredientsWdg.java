@@ -3,25 +3,20 @@ package me.ender.alchemy;
 import haven.*;
 import me.ender.ClientUtils;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 class IngredientsWdg extends Widget {
-    private static final int LIST_W = UI.scale(150);
-    private static final int PAD = UI.scale(5);
-    private static final int GAP = UI.scale(25);
-    private static final int TOOLTIP_W = UI.scale(250);
-    private static final Coord TOOLTIP_C = Coord.of(LIST_W + GAP, PAD);
+    private static final Coord TOOLTIP_C = Coord.of(AlchemyWnd.LIST_W + AlchemyWnd.GAP, AlchemyWnd.PAD);
 
     private Ingredient selected = null;
     private Tex image = null;
 
     IngredientsWdg() {
-	Coord p = add(new IngredientList(LIST_W, 25, this::onSelectionChanged), PAD, PAD).pos("br");
+	Coord p = add(new IngredientList(this::onSelectionChanged), AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
 
-	sz = p.addxs(GAP + TOOLTIP_W + PAD);
+	sz = p.addxs(AlchemyWnd.GAP + AlchemyWnd.CONTENT_W);
     }
 
     private void onSelectionChanged(String res) {
@@ -55,15 +50,21 @@ class IngredientsWdg extends Widget {
     }
 
     private static class IngredientList extends FilteredListBox<String> {
-	private static final Color BGCOLOR = new Color(0, 0, 0, 64);
 	private final Map<String, RichText> names = new HashMap<>();
 	private final Consumer<String> onChanged;
 
-	public IngredientList(int w, int h, Consumer<String> onChanged) {
-	    super(w, h, UI.scale(16));
+	public IngredientList(Consumer<String> onChanged) {
+	    super(AlchemyWnd.LIST_W, AlchemyWnd.ITEMS, AlchemyWnd.ITEM_H);
 	    this.onChanged = onChanged;
-	    bgcolor = BGCOLOR;
+	    bgcolor = AlchemyWnd.BGCOLOR;
+	    listen(AlchemyData.INGREDIENTS_UPDATED, this::onIngredientsUpdated);
 	    update();
+	}
+
+	private void onIngredientsUpdated() {
+	    String tmp = sel;
+	    update();
+	    change(tmp);
 	}
 
 	@Override
@@ -79,8 +80,8 @@ class IngredientsWdg extends Widget {
 	    RichText text = names.getOrDefault(res, null);
 	    if(text != null) {return text;}
 
-	    String name = ClientUtils.prettyResName(Resource.remote().loadwait(res));
-	    text = RichText.stdfrem.render(String.format("$img[%s,h=16,c] %s", res, name), TOOLTIP_W);
+	    String name = ClientUtils.loadPrettyResName(res);
+	    text = RichText.stdfrem.render(String.format("$img[%s,h=16,c] %s", res, name), AlchemyWnd.CONTENT_W);
 	    names.put(res, text);
 	    return text;
 	}
@@ -94,6 +95,8 @@ class IngredientsWdg extends Widget {
 
 	@Override
 	protected boolean match(String item, String text) {
+	    if(text == null || text.isEmpty()) {return true;}
+
 	    final String filter = text.toLowerCase();
 	    if(text(item).text.toLowerCase().contains(filter)) {
 		return true;

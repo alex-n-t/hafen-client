@@ -1,0 +1,87 @@
+package me.ender.alchemy;
+
+import haven.*;
+
+import java.util.List;
+
+public class ElixirWdg extends Widget {
+    private Elixir elixir;
+    private Tex image = null;
+    private final Coord TOOLTIP_C;
+    private final TextEntry name;
+    private final Button open;
+
+    public ElixirWdg(int w, int h) {
+	super();
+
+	name = add(new TextEntry(w, "") {
+	    @Override
+	    public void activate(String text) {
+		AlchemyData.rename(elixir, text);
+		name.settext(elixir.name());
+		//TODO: find a way to remove focus from text field
+	    }
+	});
+	Coord p = name.pos("bl");
+
+	open = add(new Button(50, "Open", false, this::open), p.addy(AlchemyWnd.PAD));
+	open.settip("Open in Yoda's Alchemy Graph site");
+
+
+	p = open.pos("bl");
+
+	TOOLTIP_C = p.addy(AlchemyWnd.PAD);
+	sz = Coord.of(w, h);
+
+	update(null);
+    }
+
+    private void open() {
+	if(WebBrowser.self != null && elixir != null) {
+	    WebBrowser.self.show(Utils.url(elixir.toAlchemyUrl()));
+	}
+    }
+
+    public void update(Elixir elixir) {
+	this.elixir = elixir;
+	if(image != null) {image.dispose();}
+	image = null;
+
+	if(elixir == null) {
+	    name.hide();
+	    name.settext("");
+	    open.hide();
+	} else {
+	    name.show();
+	    name.settext(elixir.name());
+	    open.show();
+	}
+    }
+
+    private Tex image() {
+	if(elixir == null) {return null;}
+
+	try {
+	    List<ItemInfo> info = Effect.elixirInfo(elixir.effects);
+	    info.addAll(elixir.recipe.info(ui));
+
+	    if(info.isEmpty()) {return null;}
+	    return new TexI(ItemInfo.longtip(info));
+	} catch (Loading ignore) {}
+	return null;
+    }
+
+    @Override
+    public void draw(GOut g) {
+	super.draw(g);
+
+	if(elixir != null && image == null) {
+	    image = image();
+	}
+
+	if(image != null) {
+	    g.image(image, TOOLTIP_C);
+	}
+
+    }
+}

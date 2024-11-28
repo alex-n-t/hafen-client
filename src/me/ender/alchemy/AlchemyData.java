@@ -9,6 +9,7 @@ import haven.res.ui.tt.alch.ingr_heal.HealWound;
 import haven.res.ui.tt.alch.ingr_time_less.LessTime;
 import haven.res.ui.tt.alch.ingr_time_more.MoreTime;
 import haven.res.ui.tt.attrmod.AttrMod;
+import haven.rx.Reactor;
 import me.ender.Reflect;
 
 import java.util.*;
@@ -17,6 +18,10 @@ import java.util.stream.Collectors;
 public class AlchemyData {
     public static boolean DBG = Config.get().getprop("ender.debug.alchemy", "off").equals("on");
 
+    public static final String INGREDIENTS_UPDATED = "ALCHEMY:INGREDIENTS:UPDATED";
+    public static final String ELIXIRS_UPDATED = "ALCHEMY:ELIXIRS:UPDATED";
+    
+    
     public static final String HERBAL_GRIND = "/herbalgrind";
     public static final String LYE_ABLUTION = "/lyeablution";
     public static final String MINERAL_CALCINATION = "/mineralcalcination";
@@ -108,6 +113,7 @@ public class AlchemyData {
 	    //ELIXIRS.remove(elixir); //always replace
 	    ELIXIRS.add(elixir);
 	    saveElixirs();
+	    Reactor.event(ELIXIRS_UPDATED);
 	    if(DBG) {
 		String alchemyUrl = elixir.toAlchemyUrl();
 		System.out.println(alchemyUrl);
@@ -117,6 +123,7 @@ public class AlchemyData {
 	    }
 	} else if(!isElixir && !effects.isEmpty() && isNatural(res)) {
 	    INGREDIENTS.put(res, new Ingredient(effects, INGREDIENTS.get(res)));
+	    Reactor.event(INGREDIENTS_UPDATED);
 	    saveIngredients();
 	}
 
@@ -149,9 +156,19 @@ public class AlchemyData {
 	return INGREDIENTS.getOrDefault(res, null);
     }
 
+    public static List<Elixir> elixirs() {
+	return ELIXIRS.stream().sorted().collect(Collectors.toList());
+    }
+    
+    public static void rename(Elixir elixir, String  name) {
+	elixir.name(name);
+	saveElixirs();
+	Reactor.event(ELIXIRS_UPDATED);
+    }
+
     public static Tex tex(Collection<Effect> effects) {
 	try {
-	    List<ItemInfo> tips = Effect.info(effects);
+	    List<ItemInfo> tips = Effect.ingredientInfo(effects);
 	    if(tips.isEmpty()) {return null;}
 	    return new TexI(ItemInfo.longtip(tips));
 
