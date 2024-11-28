@@ -26,11 +26,11 @@ public class ElixirWdg extends Widget {
 
 	open = add(new Button(50, "Open", false, this::open), p.addy(AlchemyWnd.PAD));
 	open.settip("Open in Yoda's Alchemy Graph site");
-
+	//TODO: add remove button
 
 	p = open.pos("bl");
 
-	TOOLTIP_C = p.addy(AlchemyWnd.PAD);
+	TOOLTIP_C = p.add(AlchemyWnd.PAD, AlchemyWnd.PAD);
 	sz = Coord.of(w, h);
 
 	update(null);
@@ -73,7 +73,11 @@ public class ElixirWdg extends Widget {
 
     @Override
     public void draw(GOut g) {
-	super.draw(g);
+	if(elixir != null) {
+	    g.chcolor(AlchemyWnd.BGCOLOR);
+	    g.frect(Coord.z, sz);
+	    g.chcolor();
+	}
 
 	if(elixir != null && image == null) {
 	    image = image();
@@ -83,5 +87,6 @@ public class ElixirWdg extends Widget {
 	    g.image(image, TOOLTIP_C);
 	}
 
+	super.draw(g);
     }
 }

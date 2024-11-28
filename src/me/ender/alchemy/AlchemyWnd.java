@@ -13,7 +13,7 @@ public class AlchemyWnd extends WindowX implements DTarget {
     static final int GAP = UI.scale(25);
     static final int ITEMS = 25;
     static final int ITEM_H = UI.scale(16);
-    static final int CONTENT_W = UI.scale(250);
+    static final int CONTENT_W = UI.scale(275);
     public static final Coord WND_SZ = Coord.of(2 * PAD + LIST_W + GAP + CONTENT_W, ITEM_H * ITEMS);
     static final Color BGCOLOR = new Color(0, 0, 0, 64);
     private final List<Widget> tabs = new LinkedList<>();

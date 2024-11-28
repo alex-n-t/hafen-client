@@ -134,17 +134,6 @@ public class AlchemyData {
 
 	    System.out.printf("'%s' => elixir:%b, wounds:%d, dud: %b, effects: [%s], recipe:%s %n",
 		name, isElixir, wounds, dud, sEffects, recipe);
-
-
-	    if(recipe != null) {
-		Gson gson = new GsonBuilder().create();
-		String json = gson.toJson(recipe);
-		System.out.println(json);
-
-		Recipe tmp = gson.fromJson(json, Recipe.class);
-		System.out.println(tmp);
-		System.out.println(tmp.toAlchemy());
-	    }
 	}
     }
 
