@@ -93,9 +93,14 @@ class IngredientsWdg extends Widget {
 	}
 
 	@Override
-	protected boolean match(String item, String filter) {
-	    //TODO: allow proper filter by effects
-	    return item.contains(filter) || text(item).text.contains(filter);
+	protected boolean match(String item, String text) {
+	    final String filter = text.toLowerCase();
+	    if(text(item).text.toLowerCase().contains(filter)) {
+		return true;
+	    }
+	    Ingredient ingredient = AlchemyData.ingredient(item);
+	    if(ingredient == null) {return false;}
+	    return ingredient.effects.stream().anyMatch(e -> e.matches(filter));
 	}
 
 	@Override

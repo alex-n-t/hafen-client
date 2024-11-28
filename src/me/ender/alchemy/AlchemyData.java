@@ -23,7 +23,9 @@ public class AlchemyData {
     public static final String MEASURED_DISTILLATE = "/measureddistillate";
     public static final String FIERY_COMBUSTION = "/fierycombustion";
 
-    private static final Gson GSON = new GsonBuilder().create();
+    private static final Gson GSON = new GsonBuilder()
+	.registerTypeAdapter(Effect.class, new Effect.Adapter())
+	.create();
 
     private static final Map<String, Ingredient> INGREDIENTS = new HashMap<>();
     private static final Set<Elixir> ELIXIRS = new HashSet<>();
@@ -80,7 +82,7 @@ public class AlchemyData {
 	ItemInfo.Contents contents = ItemInfo.find(ItemInfo.Contents.class, infos);
 	if(contents != null) {infos = contents.sub;}
 
-	List<String> effects = new LinkedList<>();
+	List<Effect> effects = new LinkedList<>();
 	boolean isElixir = false;
 	Recipe recipe = null;
 
@@ -119,9 +121,9 @@ public class AlchemyData {
 	}
 
 	if(DBG) {
-	    long wounds = effects.stream().filter(e -> e.startsWith("wound:")).count();
+	    long wounds = effects.stream().filter(e -> e.type.equals(Effect.WOUND)).count();
 	    boolean dud = wounds == effects.size();
-	    String sEffects = String.join(", ", effects);
+	    String sEffects = effects.stream().map(e->e.raw).collect(Collectors.joining(", "));
 
 	    System.out.printf("'%s' => elixir:%b, wounds:%d, dud: %b, effects: [%s], recipe:%s %n",
 		name, isElixir, wounds, dud, sEffects, recipe);
@@ -147,9 +149,9 @@ public class AlchemyData {
 	return INGREDIENTS.getOrDefault(res, null);
     }
 
-    public static Tex tex(Collection<String> effects) {
+    public static Tex tex(Collection<Effect> effects) {
 	try {
-	    List<ItemInfo> tips = info(effects);
+	    List<ItemInfo> tips = Effect.info(effects);
 	    if(tips.isEmpty()) {return null;}
 	    return new TexI(ItemInfo.longtip(tips));
 
@@ -157,58 +159,33 @@ public class AlchemyData {
 	return null;
     }
 
-    private static List<ItemInfo> info(Collection<String> effects) {
-	List<ItemInfo> tips = new LinkedList<>();
-	for (String effect : effects) {
-	    String[] parts = effect.split(":");
-	    String type = parts[0];
-	    String res = parts[1];
-	    switch (type) {
-		case "buff":
-		    tips.add(new BuffAttr(null, Resource.remote().load(res)));
-		    break;
-		case "heal":
-		    tips.add(new HealWound(null, Resource.remote().load(res), null));
-		    break;
-		case "time":
-		    if(res.equals("more")) {
-			tips.add(new MoreTime(null));
-		    } else if(res.equals("less")) {
-			tips.add(new LessTime(null));
-		    }
-		    break;
-	    }
-	}
-	return tips;
-    }
-
-    private static void tryAddEffect(double qc, Collection<String> effects, ItemInfo info) {
+    private static void tryAddEffect(double qc, Collection<Effect> effects, ItemInfo info) {
 	if(info instanceof BuffAttr) {
-	    effects.add(String.format("buff:%s", ((BuffAttr) info).res.get().name));
+	    effects.add(new Effect(Effect.BUFF, ((BuffAttr) info).res));
 	} else if(info instanceof AttrMod) {
 	    for (AttrMod.Mod mod : ((AttrMod) info).mods) {
 		long a = Math.round(qc * mod.mod);
-		effects.add(String.format("buff:%s:%d", mod.attr.name, a));
+		effects.add(new Effect(Effect.BUFF, mod.attr.name, Long.toString(a)));
 	    }
 	} else if(info instanceof HealWound) {
-	    effects.add(String.format("heal:%s", ((HealWound) info).res.get().name));
+	    effects.add(new Effect(Effect.HEAL, ((HealWound) info).res));
 	} else if(Reflect.is(info, "HealWound")) {
 	    //this is from elixir, it uses different resource and has value
 	    //noinspection unchecked
 	    Indir<Resource> res = (Indir<Resource>) Reflect.getFieldValue(info, "res");
 	    long a = Math.round(qc * Reflect.getFieldValueInt(info, "a"));
-	    effects.add(String.format("heal:%s:%d", res.get().name, a));
+	    effects.add(new Effect(Effect.HEAL, res, Long.toString(a)));
 	} else if(Reflect.is(info, "AddWound")) {
 	    //this is from elixir
 	    //noinspection unchecked
 	    Indir<Resource> res = (Indir<Resource>) Reflect.getFieldValue(info, "res");
 	    //TODO: try to find base wound magnitude
 	    int a = Reflect.getFieldValueInt(info, "a");
-	    effects.add(String.format("wound:%s:%d", res.get().name, a));
+	    effects.add(new Effect(Effect.WOUND, res, Long.toString(a)));
 	} else if(info instanceof LessTime) {
-	    effects.add("time:less");
+	    effects.add(new Effect(Effect.TIME, Effect.LESS));
 	} else if(info instanceof MoreTime) {
-	    effects.add("time:more");
+	    effects.add(new Effect(Effect.TIME, Effect.MORE));
 	}
     }
 
