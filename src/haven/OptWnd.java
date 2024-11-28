@@ -36,6 +36,7 @@ import me.ender.CustomOptPanels;
 import me.ender.ui.CFGBox;
 import me.ender.ui.CFGSlider;
 import me.ender.ui.DrinkMeter;
+import me.ender.ui.TabStrip;
 
 import java.awt.event.KeyEvent;
 import java.util.Set;

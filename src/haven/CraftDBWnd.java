@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import haven.MenuGrid.Pagina;
 import haven.rx.Reactor;
 import me.ender.ui.ICraftParent;
+import me.ender.ui.TabStrip;
 import rx.Subscription;
 
 import java.awt.*;

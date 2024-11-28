@@ -26,8 +26,9 @@
 
 package haven;
 
+import me.ender.ui.TabStrip;
+
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;

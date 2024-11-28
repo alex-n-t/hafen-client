@@ -1,5 +1,6 @@
-package haven;
+package me.ender.ui;
 
+import haven.*;
 import rx.functions.Action1;
 
 import java.awt.*;
@@ -16,9 +17,9 @@ public class TabStrip<T> extends Widget {
     private int minWidth;
     private Color selectedColor = null;
     
-    TabStrip() {callback = null;}
+    public TabStrip() {callback = null;}
     
-    TabStrip(Action1<T> selected) { callback = selected; }
+    public TabStrip(Action1<T> selected) { callback = selected; }
     
     protected void selected(Button<T> button) {
 	if(callback != null) {callback.call(button.tag);}
@@ -51,7 +52,7 @@ public class TabStrip<T> extends Widget {
 	return button;
     }
 
-    void setSelectedColor(Color c) {
+    public void setSelectedColor(Color c) {
 	selectedColor = c;
 	for (Button b : buttons) {
 	    b.bg = selectedColor;
@@ -188,7 +189,7 @@ public class TabStrip<T> extends Widget {
 	    return false;
 	}
 
-	void setActive(boolean value) {
+	public void setActive(boolean value) {
 	    this.active = value;
 	}
     }
