@@ -538,6 +538,10 @@ public class Widget {
 	synchronized (boundListeners) {boundListeners.clear();}
 	synchronized (focusListeners) {focusListeners.clear();}
 	synchronized (destroyListeners) {destroyListeners.clear();}
+	synchronized (disposables) {
+	    disposables.forEach(Disposable::dispose);
+	    disposables.clear();
+	}
         disposed = true;
     }
     
@@ -571,10 +575,6 @@ public class Widget {
 
     public void destroy() {
 	synchronized (destroyListeners) {destroyListeners.forEach(action -> action.call(this));}
-	synchronized (disposables) {
-	    disposables.forEach(Disposable::dispose);
-	    disposables.clear();
-	}
 	remove();
 	rdispose();
     }
