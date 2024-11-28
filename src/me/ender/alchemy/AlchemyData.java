@@ -12,6 +12,7 @@ import haven.res.ui.tt.attrmod.AttrMod;
 import me.ender.Reflect;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AlchemyData {
     public static boolean DBG = Config.get().getprop("ender.debug.alchemy", "off").equals("on");
@@ -136,6 +137,49 @@ public class AlchemyData {
 		System.out.println(tmp.toAlchemy());
 	    }
 	}
+    }
+
+    public static List<String> ingredients() {
+	return INGREDIENTS.keySet().stream().sorted().collect(Collectors.toList());
+    }
+    
+    public static Ingredient ingredient(String res) {
+	return INGREDIENTS.getOrDefault(res, null);
+    }
+
+    public static Tex tex(Collection<String> effects) {
+	try {
+	    List<ItemInfo> tips = info(effects);
+	    if(tips.isEmpty()) {return null;}
+	    return new TexI(ItemInfo.longtip(tips));
+
+	} catch (Loading ignore) {}
+	return null;
+    }
+
+    private static List<ItemInfo> info(Collection<String> effects) {
+	List<ItemInfo> tips = new LinkedList<>();
+	for (String effect : effects) {
+	    String[] parts = effect.split(":");
+	    String type = parts[0];
+	    String res = parts[1];
+	    switch (type) {
+		case "buff":
+		    tips.add(new BuffAttr(null, Resource.remote().load(res)));
+		    break;
+		case "heal":
+		    tips.add(new HealWound(null, Resource.remote().load(res), null));
+		    break;
+		case "time":
+		    if(res.equals("more")) {
+			tips.add(new MoreTime(null));
+		    } else if(res.equals("less")) {
+			tips.add(new LessTime(null));
+		    }
+		    break;
+	    }
+	}
+	return tips;
     }
 
     private static void tryAddEffect(double qc, Collection<String> effects, ItemInfo info) {
