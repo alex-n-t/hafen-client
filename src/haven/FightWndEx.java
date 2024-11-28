@@ -889,8 +889,8 @@ public class FightWndEx extends Widget {
 	    super();
 	    this.selected = selected;
 	    ActionType[] types = ActionType.values();
-	    for (int i = 0; i < types.length; i++) {
-		insert(i, types[i].icon(), "", types[i].name()).tag = types[i];
+	    for (ActionType type : types) {
+		insert(type, type.icon(), null, type.name());
 	    }
 	}
 

@@ -37,12 +37,17 @@ public class TabStrip<T> extends Widget {
 	return buttons.size();
     }
 
-    public Button<T> insert(int index, Tex image, String text, String tooltip) {
+    public Button<T> insert(T tag, Tex image, String text, String tooltip) {
+	return insert(buttons.size(),tag, image, text, tooltip);
+    }
+    
+    public Button<T> insert(int index, T tag, Tex image, String text, String tooltip) {
 	final Button<T> button = add(new Button<T>(image, text) {
 	    public void click() {
 		select(this);
 	    }
 	});
+	button.tag = tag;
 	button.tooltip = tooltip;
 	if(selectedColor != null) {
 	    button.bg = selectedColor;
@@ -145,26 +150,35 @@ public class TabStrip<T> extends Widget {
     }
 
     public abstract static class Button<T> extends Widget {
-	public static final Coord padding = new Coord(5, 2);
+	public static final Coord padding = UI.scale(5, 2);
+	public static final int GAP = UI.scale(10); // space between image and text
 	public static final Text.Foundry font = new Text.Foundry(Text.serif, 14).aa(true);
 	private Color bg = new Color(0, 0, 0, 128);
-	private Tex image;
-	private Text text;
+	private final Tex image;
+	private final Text text;
+	private final Coord text_c;
 	private boolean active;
 	public T tag;
 
 	Button(Tex image, String text) {
 	    this.image = image;
-	    this.text = font.render(text);
-	    int w = this.text.sz().x + imgsz().y + padding.x * 2;
 	    if(text != null && !text.isEmpty()) {
-		w += 10; // space between image and text
+	    	this.text = font.render(text);
+	    } else {
+		this.text = null;
 	    }
-	    int h = Math.max(this.text.sz().y, imgsz().y) + padding.y * 2;
+	    Coord imgsz = imgsz();
+	    Coord textsz = textsz();
+	    
+	    int w = textsz.x + imgsz.x + padding.x * 2;
+	    if(this.image != null && this.text!=null) {w += GAP;}
+	    text_c = padding.add(image == null ? 0 : (imgsz.x + GAP), 0);
+	    int h = Math.max(textsz().y, imgsz.y) + padding.y * 2;
 	    resize(w, h);
 	}
     
 	private Coord imgsz() { return image != null ? image.sz() : Coord.z; }
+	private Coord textsz() { return text != null ? text.sz() : Coord.z; }
 	
 	public abstract void click();
 
@@ -177,7 +191,7 @@ public class TabStrip<T> extends Widget {
 	    }
 	    frame.draw(g, Coord.z, sz);
 	    if(image != null) {g.image(image, padding);}
-	    g.image(text.tex(), new Coord(imgsz().x + 10, padding.y));
+	    if(text != null) {g.image(text.tex(), text_c);}
 	}
 
 	@Override

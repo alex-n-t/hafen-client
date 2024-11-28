@@ -1389,8 +1389,8 @@ public class OptWnd extends WindowX {
     
     private void initShortcutsPanel() {
 	TabStrip<KeyBinder.KeyBindType> tabs = new TabStrip<>(this::populateShortcutsPanel);
-	tabs.insert(0, null, "General", null).tag = KeyBinder.KeyBindType.GENERAL;
-	tabs.insert(1, null, "Combat", null).tag = KeyBinder.KeyBindType.COMBAT;
+	tabs.insert(KeyBinder.KeyBindType.GENERAL, null, "General", null);
+	tabs.insert(KeyBinder.KeyBindType.COMBAT, null, "Combat", null);
 	shortcuts.add(tabs);
 	int y = tabs.sz.y;
 	
