@@ -78,7 +78,7 @@ public class AlchemyData {
 	ItemInfo.Contents contents = ItemInfo.find(ItemInfo.Contents.class, infos);
 	if(contents != null) {infos = contents.sub;}
 
-	Set<String> effects = new HashSet<>();
+	List<String> effects = new LinkedList<>();
 	boolean isElixir = false;
 	Recipe recipe = null;
 

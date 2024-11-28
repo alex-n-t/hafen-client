@@ -30,7 +30,7 @@ public class Elixir {
     }
 
     private String alchemyEffects() {
-	return effects.stream().sorted().map(Elixir::formatEffect).collect(Collectors.joining("\\n"));
+	return effects.stream().map(Elixir::formatEffect).collect(Collectors.joining("\\n"));
     }
 
     private static String formatEffect(String effect) {
