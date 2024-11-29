@@ -48,20 +48,21 @@ public class ComboWdg extends Widget {
     @Override
     public void draw(GOut g) {
 	super.draw(g);
-	
+
 	if(!initialized && ui != null) {
-	    highlight.a = ui.root.getchild(Track.class) != null;
+	    highlight.a = ui.gui.getchild(Track.class) != null;
 	    ingredients.change(LAST_SELECTED);
+	    ingredients.showsel();
 	    initialized = true;
 	}
     }
 
     private void highlight(Boolean highlight) {
-	Track tracker = ui.root.getchild(Track.class);
+	Track tracker = ui.gui.getchild(Track.class);
 
 	if(Boolean.TRUE.equals(highlight)) {
 	    if(tracker == null) {
-		tracker = ui.root.add(new Track(), ClientUtils.getScreenCenter(ui));
+		tracker = ui.gui.add(new Track(), ClientUtils.getScreenCenter(ui));
 	    }
 
 	    String target = combo.target;
@@ -85,7 +86,7 @@ public class ComboWdg extends Widget {
 	highlight(highlight.a);
     }
 
-    private static class Track extends WindowX {
+    private static class Track extends WindowX implements DTarget {
 	Tex image;
 	String res = null;
 	private final Coord IMG_C;
@@ -96,6 +97,12 @@ public class ComboWdg extends Widget {
 	    IMG_C = add(new Label("Highlight untested combinations for:")).pos("bl");
 
 	    listen(AlchemyData.COMBOS_UPDATED, this::update);
+	}
+
+	@Override
+	public boolean drop(Drop ev) {
+	    AlchemyData.categorize(ev.src.item, !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get());
+	    return true;
 	}
 
 	private void update() {

@@ -127,7 +127,7 @@ public class AlchemyData {
 	Config.saveFile(COMBOS_JSON, GSON.toJson(COMBOS));
     }
 
-    public static void categorize(GItem item) {
+    public static void categorize(GItem item, boolean storeRecipe) {
 	String res = item.resname();
 	String name = item.name.get();
 	List<ItemInfo> infos = item.info();
@@ -160,16 +160,19 @@ public class AlchemyData {
 	if(isElixir && recipe != null) {
 	    //TODO: option to ignore bad-only elixirs?
 	    Elixir elixir = new Elixir(recipe, effects);
-	    initElixirs();
-	    ELIXIRS.add(elixir);
-	    saveElixirs();
-	    Reactor.event(ELIXIRS_UPDATED);
+	    if(storeRecipe) {
+		initElixirs();
+		ELIXIRS.add(elixir);
+		saveElixirs();
+		Reactor.event(ELIXIRS_UPDATED);
+	    }
 	    updateCombos(elixir);
 	} else if(!isElixir && !effects.isEmpty() && isNatural(res)) {
 	    initIngredients();
 	    INGREDIENTS.put(res, new Ingredient(effects, INGREDIENTS.get(res)));
 	    Reactor.event(INGREDIENTS_UPDATED);
 	    saveIngredients();
+	    updateIngredientList(res);
 	}
 
 	if(DBG) {
@@ -179,6 +182,14 @@ public class AlchemyData {
 
 	    System.out.printf("'%s' => elixir:%b, wounds:%d, dud: %b, effects: [%s], recipe:%s %n",
 		name, isElixir, wounds, dud, sEffects, recipe);
+	}
+    }
+
+    private static void updateIngredientList(String ingredient) {
+	initCombos();
+	if(INGREDIENT_LIST.add(ingredient)) {
+	    saveIngredientList();
+	    Reactor.event(COMBOS_UPDATED);
 	}
     }
 

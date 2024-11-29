@@ -1,6 +1,7 @@
 package me.ender.alchemy;
 
 import haven.*;
+import me.ender.ui.CFGBox;
 import me.ender.ui.TabStrip;
 
 import java.awt.*;
@@ -17,14 +18,15 @@ public class AlchemyWnd extends WindowX implements DTarget {
     public static final Coord WND_SZ = Coord.of(2 * PAD + LIST_W + GAP + CONTENT_W, ITEM_H * ITEMS);
     static final Color BGCOLOR = new Color(0, 0, 0, 96);
     private final List<Widget> tabs = new LinkedList<>();
+    private final TabStrip<Widget> strip;
 
     public AlchemyWnd() {
 	super(WND_SZ, "Alchemy");
 
 	NamesProvider namesProvider = new NamesProvider(LIST_W);
 	disposables.add(namesProvider);
-	
-	TabStrip<Widget> strip = add(new TabStrip<>(this::onTabSelected));
+
+	strip = add(new TabStrip<>(this::onTabSelected));
 
 	tabs.add(strip.insert(add(new IngredientsWdg(namesProvider)), null, "Ingredients", null).tag);
 	tabs.add(strip.insert(add(new RecipesWdg()), null, "Recipes", null).tag);
@@ -34,7 +36,10 @@ public class AlchemyWnd extends WindowX implements DTarget {
 	for (Widget tab : tabs) {
 	    tab.c = Coord.of(p);
 	}
-	strip.select(0);
+
+	add(new CFGBox("Limit recipe storing", CFG.ALCHEMY_LIMIT_RECIPE_SAVE, "Will save recipe only if elixir is dropped with Recipes tab open"), strip.pos("ur").addx(GAP));
+
+	strip.select(CFG.ALCHEMY_LAST_TAB.get());
     }
 
     private void onTabSelected(Widget selected) {
@@ -51,7 +56,8 @@ public class AlchemyWnd extends WindowX implements DTarget {
 
     @Override
     public boolean drop(Drop ev) {
-	AlchemyData.categorize(ev.src.item);
+	boolean storeRecipe = !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get() || strip.getSelectedButtonIndex() == 1;
+	AlchemyData.categorize(ev.src.item, storeRecipe);
 	return true;
     }
 
@@ -67,5 +73,6 @@ public class AlchemyWnd extends WindowX implements DTarget {
     public void close() {
 	ui.destroy(this);
 	ui.gui.alchemywnd = null;
+	CFG.ALCHEMY_LAST_TAB.set(strip.getSelectedButtonIndex());
     }
 }
