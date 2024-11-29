@@ -16,12 +16,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AlchemyData {
+    private static final String INGREDIENTS_JSON = "ingredients.json";
+    private static final String ELIXIRS_JSON = "elixirs.json";
+    private static final String ALL_INGREDIENTS_JSON = "all_ingredients.json";
+    private static final String COMBOS_JSON = "combos.json";
+
     public static boolean DBG = Config.get().getprop("ender.debug.alchemy", "off").equals("on");
 
     public static final String INGREDIENTS_UPDATED = "ALCHEMY:INGREDIENTS:UPDATED";
     public static final String ELIXIRS_UPDATED = "ALCHEMY:ELIXIRS:UPDATED";
-    
-    
+    public static final String COMBOS_UPDATED = "ALCHEMY:COMBOS:UPDATED";
+
+
     public static final String HERBAL_GRIND = "/herbalgrind";
     public static final String LYE_ABLUTION = "/lyeablution";
     public static final String MINERAL_CALCINATION = "/mineralcalcination";
@@ -34,51 +40,91 @@ public class AlchemyData {
 
     private static boolean initializedIngredients = false;
     private static boolean initializedElixirs = false;
+    private static boolean initializedCombos = false;
     private static final Map<String, Ingredient> INGREDIENTS = new HashMap<>();
     private static final Set<Elixir> ELIXIRS = new HashSet<>();
+    private static final Set<String> INGREDIENT_LIST = new HashSet<>();
+    private static final Map<String, Set<String>> COMBOS = new HashMap<>();
 
 
     private static void initIngredients() {
-	if(initializedIngredients){return;}
+	if(initializedIngredients) {return;}
 	initializedIngredients = true;
-	loadIngredients(Config.loadFile("ingredients.json"));
+	loadIngredients(Config.loadJarFile(INGREDIENTS_JSON));
+	loadIngredients(Config.loadFSFile(INGREDIENTS_JSON));
     }
 
     private static void initElixirs() {
-	if(initializedElixirs){return;}
+	if(initializedElixirs) {return;}
 	initializedElixirs = true;
-	loadElixirs(Config.loadFile("elixirs.json"));
+	loadElixirs(Config.loadFile(ELIXIRS_JSON));
+    }
+
+    private static void initCombos() {
+	if(initializedCombos) {return;}
+	initializedCombos = true;
+	loadIngredientList(Config.loadJarFile(ALL_INGREDIENTS_JSON));
+	loadIngredientList(Config.loadFSFile(ALL_INGREDIENTS_JSON));
+	loadCombos(Config.loadFile(COMBOS_JSON));
     }
 
     private static void loadIngredients(String json) {
-	if(json != null) {
-	    try {
-		Map<String, Ingredient> tmp = GSON.fromJson(json, new TypeToken<Map<String, Ingredient>>() {
-		}.getType());
-		for (Map.Entry<String, Ingredient> entry : tmp.entrySet()) {
-		    String key = entry.getKey();
-		    INGREDIENTS.put(key, new Ingredient(entry.getValue().effects, INGREDIENTS.get(key)));
-		}
-	    } catch (Exception ignore) {}
-	}
+	if(json == null) {return;}
+	try {
+	    Map<String, Ingredient> tmp = GSON.fromJson(json, new TypeToken<Map<String, Ingredient>>() {
+	    }.getType());
+	    for (Map.Entry<String, Ingredient> entry : tmp.entrySet()) {
+		String key = entry.getKey();
+		INGREDIENTS.put(key, new Ingredient(entry.getValue().effects, INGREDIENTS.get(key)));
+	    }
+	} catch (Exception ignore) {}
     }
 
     private static void loadElixirs(String json) {
-	if(json != null) {
-	    try {
-		Set<Elixir> tmp = GSON.fromJson(json, new TypeToken<Set<Elixir>>() {
-		}.getType());
-		ELIXIRS.addAll(tmp);
-	    } catch (Exception ignore) {}
-	}
+	if(json == null) {return;}
+	try {
+	    Set<Elixir> tmp = GSON.fromJson(json, new TypeToken<Set<Elixir>>() {
+	    }.getType());
+	    ELIXIRS.addAll(tmp);
+	} catch (Exception ignore) {}
+    }
+
+    private static void loadIngredientList(String json) {
+	if(json == null) {return;}
+	try {
+	    Set<String> tmp = GSON.fromJson(json, new TypeToken<Set<String>>() {
+	    }.getType());
+	    INGREDIENT_LIST.addAll(tmp);
+	} catch (Exception ignore) {}
+    }
+
+    private static void loadCombos(String json) {
+	if(json == null) {return;}
+	try {
+	    Map<String, Set<String>> tmp = GSON.fromJson(json, new TypeToken<Map<String, Set<String>>>() {
+	    }.getType());
+	    for (Map.Entry<String, Set<String>> entry : tmp.entrySet()) {
+		String key = entry.getKey();
+		Set<String> combos = COMBOS.computeIfAbsent(key, k -> new HashSet<>());
+		combos.addAll(entry.getValue());
+	    }
+	} catch (Exception ignore) {}
     }
 
     private static void saveIngredients() {
-	Config.saveFile("ingredients.json", GSON.toJson(INGREDIENTS));
+	Config.saveFile(INGREDIENTS_JSON, GSON.toJson(INGREDIENTS));
     }
 
     private static void saveElixirs() {
-	Config.saveFile("elixirs.json", GSON.toJson(ELIXIRS));
+	Config.saveFile(ELIXIRS_JSON, GSON.toJson(ELIXIRS));
+    }
+
+    private static void saveIngredientList() {
+	Config.saveFile(ALL_INGREDIENTS_JSON, GSON.toJson(INGREDIENT_LIST));
+    }
+
+    private static void saveCombos() {
+	Config.saveFile(COMBOS_JSON, GSON.toJson(COMBOS));
     }
 
     public static void categorize(GItem item) {
@@ -118,6 +164,7 @@ public class AlchemyData {
 	    ELIXIRS.add(elixir);
 	    saveElixirs();
 	    Reactor.event(ELIXIRS_UPDATED);
+	    updateCombos(elixir);
 	} else if(!isElixir && !effects.isEmpty() && isNatural(res)) {
 	    initIngredients();
 	    INGREDIENTS.put(res, new Ingredient(effects, INGREDIENTS.get(res)));
@@ -128,18 +175,40 @@ public class AlchemyData {
 	if(DBG) {
 	    long wounds = effects.stream().filter(e -> e.type.equals(Effect.WOUND)).count();
 	    boolean dud = wounds == effects.size();
-	    String sEffects = effects.stream().map(e->e.raw).collect(Collectors.joining(", "));
+	    String sEffects = effects.stream().map(e -> e.raw).collect(Collectors.joining(", "));
 
 	    System.out.printf("'%s' => elixir:%b, wounds:%d, dud: %b, effects: [%s], recipe:%s %n",
 		name, isElixir, wounds, dud, sEffects, recipe);
 	}
     }
 
+    private static void updateCombos(Elixir elixir) {
+	List<String> natural = elixir.recipe.ingredients.stream()
+	    .map(i -> i.res)
+	    .filter(AlchemyData::isNatural)
+	    .collect(Collectors.toList());
+
+	if(natural.size() < 2) {return;}
+	initCombos();
+	boolean listUpdated = false;
+	boolean combosUpdated = false;
+	for (String ingredient : natural) {
+	    if(INGREDIENT_LIST.add(ingredient)) {listUpdated = true;}
+	    Set<String> combos = COMBOS.computeIfAbsent(ingredient, k -> new HashSet<>());
+	    if(combos.addAll(natural)) {combosUpdated = true;}
+	}
+
+	if(listUpdated) {saveIngredientList();}
+	if(combosUpdated) {saveCombos();}
+
+	if(listUpdated || combosUpdated) {Reactor.event(COMBOS_UPDATED);}
+    }
+
     public static List<String> ingredients() {
 	initIngredients();
-	return INGREDIENTS.keySet().stream().sorted().collect(Collectors.toList());
+	return new ArrayList<>(INGREDIENTS.keySet());
     }
-    
+
     public static Ingredient ingredient(String res) {
 	initIngredients();
 	return INGREDIENTS.getOrDefault(res, null);
@@ -149,8 +218,8 @@ public class AlchemyData {
 	initElixirs();
 	return ELIXIRS.stream().sorted().collect(Collectors.toList());
     }
-    
-    public static void rename(Elixir elixir, String  name) {
+
+    public static void rename(Elixir elixir, String name) {
 	initElixirs();
 	elixir.name(name);
 	saveElixirs();
@@ -162,6 +231,16 @@ public class AlchemyData {
 	ELIXIRS.remove(elixir);
 	saveElixirs();
 	Reactor.event(ELIXIRS_UPDATED);
+    }
+
+    public static List<String> allIngredients() {
+	initCombos();
+	return new ArrayList<>(INGREDIENT_LIST);
+    }
+
+    public static Set<String> combos(String target) {
+	initCombos();
+	return COMBOS.getOrDefault(target, Collections.emptySet());
     }
 
     public static Tex tex(Collection<Effect> effects) {

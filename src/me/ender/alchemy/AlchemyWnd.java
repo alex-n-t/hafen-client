@@ -9,22 +9,26 @@ import java.util.List;
 
 public class AlchemyWnd extends WindowX implements DTarget {
     public static final int PAD = UI.scale(5);
-    static final int LIST_W = UI.scale(150);
+    static final int LIST_W = UI.scale(175);
     static final int GAP = UI.scale(25);
     static final int ITEMS = 25;
     static final int ITEM_H = UI.scale(16);
     static final int CONTENT_W = UI.scale(275);
     public static final Coord WND_SZ = Coord.of(2 * PAD + LIST_W + GAP + CONTENT_W, ITEM_H * ITEMS);
-    static final Color BGCOLOR = new Color(0, 0, 0, 64);
+    static final Color BGCOLOR = new Color(0, 0, 0, 96);
     private final List<Widget> tabs = new LinkedList<>();
 
     public AlchemyWnd() {
 	super(WND_SZ, "Alchemy");
 
+	NamesProvider namesProvider = new NamesProvider(LIST_W);
+	disposables.add(namesProvider);
+	
 	TabStrip<Widget> strip = add(new TabStrip<>(this::onTabSelected));
 
-	tabs.add(strip.insert(add(new IngredientsWdg()), null, "Ingredients", null).tag);
+	tabs.add(strip.insert(add(new IngredientsWdg(namesProvider)), null, "Ingredients", null).tag);
 	tabs.add(strip.insert(add(new RecipesWdg()), null, "Recipes", null).tag);
+	tabs.add(strip.insert(add(new ComboWdg(namesProvider)), null, "Combos", null).tag);
 
 	Coord p = strip.pos("bl").addys(5);
 	for (Widget tab : tabs) {
@@ -63,10 +67,5 @@ public class AlchemyWnd extends WindowX implements DTarget {
     public void close() {
 	ui.destroy(this);
 	ui.gui.alchemywnd = null;
-    }
-
-    @Override
-    public void dispose() {
-	super.dispose();
     }
 }

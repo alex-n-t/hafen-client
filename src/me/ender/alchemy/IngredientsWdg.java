@@ -1,10 +1,8 @@
 package me.ender.alchemy;
 
 import haven.*;
-import me.ender.ClientUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.function.Consumer;
 
 class IngredientsWdg extends Widget {
@@ -13,8 +11,8 @@ class IngredientsWdg extends Widget {
     private Ingredient selected = null;
     private Tex image = null;
 
-    IngredientsWdg() {
-	Coord p = add(new IngredientList(this::onSelectionChanged), AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
+    IngredientsWdg(NamesProvider nameProvider) {
+	Coord p = add(new IngredientList(nameProvider, this::onSelectionChanged), AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
 
 	sz = p.addxs(AlchemyWnd.GAP + AlchemyWnd.CONTENT_W);
     }
@@ -50,12 +48,13 @@ class IngredientsWdg extends Widget {
     }
 
     private static class IngredientList extends FilteredListBox<String> {
-	private final Map<String, RichText> names = new HashMap<>();
+	private final NamesProvider nameProvider;
 	private final Consumer<String> onChanged;
 	private boolean dirty = true;
 
-	public IngredientList(Consumer<String> onChanged) {
+	public IngredientList(NamesProvider nameProvider, Consumer<String> onChanged) {
 	    super(AlchemyWnd.LIST_W, AlchemyWnd.ITEMS, AlchemyWnd.ITEM_H);
+	    this.nameProvider = nameProvider;
 	    this.onChanged = onChanged;
 	    bgcolor = AlchemyWnd.BGCOLOR;
 	    listen(AlchemyData.INGREDIENTS_UPDATED, this::onIngredientsUpdated);
@@ -74,7 +73,9 @@ class IngredientsWdg extends Widget {
 
 	private void update() {
 	    if(tvisible()) {
-		setItems(AlchemyData.ingredients());
+		List<String> tmp = AlchemyData.ingredients();
+		tmp.sort(nameProvider::compare);
+		setItems(tmp);
 		dirty = false;
 	    } else {
 		dirty = true;
@@ -87,29 +88,12 @@ class IngredientsWdg extends Widget {
 	    super.draw(g);
 	}
 
-	private RichText text(String res) {
-	    RichText text = names.getOrDefault(res, null);
-	    if(text != null) {return text;}
-
-	    String name = ClientUtils.loadPrettyResName(res);
-	    text = RichText.stdfrem.render(String.format("$img[%s,h=16,c] %s", res, name), AlchemyWnd.CONTENT_W);
-	    names.put(res, text);
-	    return text;
-	}
-
-	@Override
-	public void dispose() {
-	    names.values().forEach(Text::dispose);
-	    names.clear();
-	    super.dispose();
-	}
-
 	@Override
 	protected boolean match(String item, String text) {
 	    if(text == null || text.isEmpty()) {return true;}
 
 	    final String filter = text.toLowerCase();
-	    if(text(item).text.toLowerCase().contains(filter)) {
+	    if(nameProvider.name(item).toLowerCase().contains(filter)) {
 		return true;
 	    }
 	    Ingredient ingredient = AlchemyData.ingredient(item);
@@ -119,7 +103,7 @@ class IngredientsWdg extends Widget {
 
 	@Override
 	protected void drawitem(GOut g, String item, int i) {
-	    g.image(text(item).tex(), Coord.z);
+	    g.image(nameProvider.text(item).tex(), Coord.z);
 	}
     }
 }
