@@ -52,13 +52,13 @@ class IngredientsWdg extends Widget {
     private static class IngredientList extends FilteredListBox<String> {
 	private final Map<String, RichText> names = new HashMap<>();
 	private final Consumer<String> onChanged;
+	private boolean dirty = true;
 
 	public IngredientList(Consumer<String> onChanged) {
 	    super(AlchemyWnd.LIST_W, AlchemyWnd.ITEMS, AlchemyWnd.ITEM_H);
 	    this.onChanged = onChanged;
 	    bgcolor = AlchemyWnd.BGCOLOR;
 	    listen(AlchemyData.INGREDIENTS_UPDATED, this::onIngredientsUpdated);
-	    update();
 	}
 
 	private void onIngredientsUpdated() {
@@ -73,7 +73,18 @@ class IngredientsWdg extends Widget {
 	}
 
 	private void update() {
-	    setItems(AlchemyData.ingredients());
+	    if(tvisible()) {
+		setItems(AlchemyData.ingredients());
+		dirty = false;
+	    } else {
+		dirty = true;
+	    }
+	}
+
+	@Override
+	public void draw(GOut g) {
+	    if(dirty) {update();}
+	    super.draw(g);
 	}
 
 	private RichText text(String res) {

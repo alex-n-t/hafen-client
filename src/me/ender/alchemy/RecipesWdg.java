@@ -3,7 +3,6 @@ package me.ender.alchemy;
 import haven.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -27,13 +26,13 @@ class RecipesWdg extends Widget {
     private static class ElixirList extends FilteredListBox<Elixir> {
 	private final Map<String, RichText> names = new HashMap<>();
 	private final Consumer<Elixir> onChanged;
+	private boolean dirty = true;
 
 	public ElixirList(Consumer<Elixir> onChanged) {
 	    super(AlchemyWnd.LIST_W, AlchemyWnd.ITEMS, AlchemyWnd.ITEM_H);
 	    bgcolor = AlchemyWnd.BGCOLOR;
 	    this.onChanged = onChanged;
 	    listen(AlchemyData.ELIXIRS_UPDATED, this::onElixirsUpdated);
-	    update();
 	}
 
 	private void onElixirsUpdated() {
@@ -48,8 +47,18 @@ class RecipesWdg extends Widget {
 	}
 
 	private void update() {
-	    List<Elixir> elixirs = AlchemyData.elixirs();
-	    setItems(elixirs);
+	    if(tvisible()) {
+		setItems(AlchemyData.elixirs());
+		dirty = false;
+	    } else {
+		dirty = true;
+	    }
+	}
+
+	@Override
+	public void draw(GOut g, boolean strict) {
+	    if(dirty) {update();}
+	    super.draw(g, strict);
 	}
 
 	private RichText text(Elixir elixir) {

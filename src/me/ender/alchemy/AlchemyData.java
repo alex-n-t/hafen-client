@@ -32,17 +32,21 @@ public class AlchemyData {
 	.registerTypeAdapter(Effect.class, new Effect.Adapter())
 	.create();
 
+    private static boolean initializedIngredients = false;
+    private static boolean initializedElixirs = false;
     private static final Map<String, Ingredient> INGREDIENTS = new HashMap<>();
     private static final Set<Elixir> ELIXIRS = new HashSet<>();
 
 
-    static {
-	//TODO: instead of static init, call this when needed. 
-	initialize();
+    private static void initIngredients() {
+	if(initializedIngredients){return;}
+	initializedIngredients = true;
+	loadIngredients(Config.loadFile("ingredients.json"));
     }
 
-    private static void initialize() {
-	loadIngredients(Config.loadFile("ingredients.json"));
+    private static void initElixirs() {
+	if(initializedElixirs){return;}
+	initializedElixirs = true;
 	loadElixirs(Config.loadFile("elixirs.json"));
     }
 
@@ -110,11 +114,12 @@ public class AlchemyData {
 	if(isElixir && recipe != null) {
 	    //TODO: option to ignore bad-only elixirs?
 	    Elixir elixir = new Elixir(recipe, effects);
-	    //ELIXIRS.remove(elixir); //always replace
+	    initElixirs();
 	    ELIXIRS.add(elixir);
 	    saveElixirs();
 	    Reactor.event(ELIXIRS_UPDATED);
 	} else if(!isElixir && !effects.isEmpty() && isNatural(res)) {
+	    initIngredients();
 	    INGREDIENTS.put(res, new Ingredient(effects, INGREDIENTS.get(res)));
 	    Reactor.event(INGREDIENTS_UPDATED);
 	    saveIngredients();
@@ -131,24 +136,29 @@ public class AlchemyData {
     }
 
     public static List<String> ingredients() {
+	initIngredients();
 	return INGREDIENTS.keySet().stream().sorted().collect(Collectors.toList());
     }
     
     public static Ingredient ingredient(String res) {
+	initIngredients();
 	return INGREDIENTS.getOrDefault(res, null);
     }
 
     public static List<Elixir> elixirs() {
+	initElixirs();
 	return ELIXIRS.stream().sorted().collect(Collectors.toList());
     }
     
     public static void rename(Elixir elixir, String  name) {
+	initElixirs();
 	elixir.name(name);
 	saveElixirs();
 	Reactor.event(ELIXIRS_UPDATED);
     }
 
     public static void remove(Elixir elixir) {
+	initElixirs();
 	ELIXIRS.remove(elixir);
 	saveElixirs();
 	Reactor.event(ELIXIRS_UPDATED);
