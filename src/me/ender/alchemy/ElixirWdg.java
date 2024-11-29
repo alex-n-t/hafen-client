@@ -73,11 +73,9 @@ public class ElixirWdg extends Widget {
 
     @Override
     public void draw(GOut g) {
-	if(elixir != null) {
-	    g.chcolor(AlchemyWnd.BGCOLOR);
-	    g.frect(Coord.z, sz);
-	    g.chcolor();
-	}
+	g.chcolor(AlchemyWnd.BGCOLOR);
+	g.frect(Coord.z, sz);
+	g.chcolor();
 
 	if(elixir != null && image == null) {
 	    image = image();
