@@ -173,7 +173,6 @@ public class GobIconCategoryList extends Listbox<GobIconCategoryList.GobCategory
 	    "gfx/invobjs/hornblende",
 	    "gfx/invobjs/jasper",
 	    "gfx/invobjs/jasper",
-	    "gfx/invobjs/korund",
 	    "gfx/invobjs/kyanite",
 	    "gfx/invobjs/limestone",
 	    "gfx/invobjs/marble",
