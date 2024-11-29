@@ -148,6 +148,12 @@ public class AlchemyData {
 	Reactor.event(ELIXIRS_UPDATED);
     }
 
+    public static void remove(Elixir elixir) {
+	ELIXIRS.remove(elixir);
+	saveElixirs();
+	Reactor.event(ELIXIRS_UPDATED);
+    }
+
     public static Tex tex(Collection<Effect> effects) {
 	try {
 	    List<ItemInfo> tips = Effect.ingredientInfo(effects);

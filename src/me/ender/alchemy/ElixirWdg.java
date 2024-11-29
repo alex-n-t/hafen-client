@@ -9,7 +9,7 @@ public class ElixirWdg extends Widget {
     private Tex image = null;
     private final Coord TOOLTIP_C;
     private final TextEntry name;
-    private final Button open;
+    private final Button open, delete;
 
     public ElixirWdg(int w, int h) {
 	super();
@@ -28,6 +28,8 @@ public class ElixirWdg extends Widget {
 	open.settip("Open in Yoda's Alchemy Graph site");
 	//TODO: add remove button
 
+	p = open.pos("ur");
+	delete = add(new Button(50, "Delete", false, this::delete), p.addx(AlchemyWnd.PAD));
 	p = open.pos("bl");
 
 	TOOLTIP_C = p.add(AlchemyWnd.PAD, AlchemyWnd.PAD);
@@ -42,6 +44,11 @@ public class ElixirWdg extends Widget {
 	}
     }
 
+    private void delete() {
+	//TODO: add confirmation popup?
+	AlchemyData.remove(elixir);
+    }
+
     public void update(Elixir elixir) {
 	this.elixir = elixir;
 	if(image != null) {image.dispose();}
@@ -51,10 +58,12 @@ public class ElixirWdg extends Widget {
 	    name.hide();
 	    name.settext("");
 	    open.hide();
+	    delete.hide();
 	} else {
 	    name.show();
 	    name.settext(elixir.name());
 	    open.show();
+	    delete.show();
 	}
     }
 
