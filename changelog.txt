@@ -1,3 +1,7 @@
+$size[14]{$u{Update for 29.11.24:}
+  * fixed some custom messages not displaying
+  * added Alchemy window - allows viewing and recording of known ingredients, recipes and tested combinations. Can be opened from menu grid (Xtended -> Alchemy) or add keybind in Options -> Global shortcuts. It has [?] button that shows help.
+ 
 $size[14]{$u{Update for 27.11.24:}
   * do not show progress timers if smelter is not lit
   * small fix to critter auras vertical positioning
