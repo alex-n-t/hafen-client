@@ -114,13 +114,6 @@ public class AlchemyData {
 	    ELIXIRS.add(elixir);
 	    saveElixirs();
 	    Reactor.event(ELIXIRS_UPDATED);
-	    if(DBG) {
-		String alchemyUrl = elixir.toAlchemyUrl();
-		System.out.println(alchemyUrl);
-		if(WebBrowser.self != null) {
-		    WebBrowser.self.show(Utils.url(alchemyUrl));
-		}
-	    }
 	} else if(!isElixir && !effects.isEmpty() && isNatural(res)) {
 	    INGREDIENTS.put(res, new Ingredient(effects, INGREDIENTS.get(res)));
 	    Reactor.event(INGREDIENTS_UPDATED);
