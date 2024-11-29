@@ -912,6 +912,7 @@ public class MenuGrid extends Widget implements KeyBinding.Bindable {
 	makeLocal("paginae/add/info/cheese", Action.TOGGLE_GOB_INFO_CHEESE, () -> GobInfoOpts.enabled(InfoPart.CHEESE_RACK));
 	makeLocal("paginae/add/info/quality", Action.TOGGLE_GOB_INFO_QUALITY, () -> GobInfoOpts.enabled(InfoPart.QUALITY));
 	makeLocal("paginae/add/info/timer", Action.TOGGLE_GOB_INFO_TIMER, () -> GobInfoOpts.enabled(InfoPart.TIMER));
+	makeLocal("paginae/add/alchemy", Action.OPEN_ALCHEMY_DB);
     }
     
     private void makeLocal(String path, CustomPaginaAction action, Supplier<Boolean> toggleState) {
