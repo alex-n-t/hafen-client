@@ -74,7 +74,7 @@ public class Effect {
     }
 
     public boolean matches(String filter) {
-	String[] parts = filter.split(":",2);
+	String[] parts = filter.split(":", 2);
 	if(parts.length < 2) {return false;}
 
 	if(!Objects.equals(type, parts[0])) {return false;}
@@ -128,6 +128,19 @@ public class Effect {
 	    }
 	}
 	return tips;
+    }
+
+    @Override
+    public int hashCode() {
+	return raw.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+	if(obj instanceof Effect) {
+	    return Objects.equals(raw, ((Effect) obj).raw);
+	}
+	return false;
     }
 
     public static List<ItemInfo> elixirInfo(Collection<Effect> effects) {
