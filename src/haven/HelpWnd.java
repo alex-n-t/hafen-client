@@ -26,6 +26,8 @@
 
 package haven;
 
+import java.awt.*;
+
 public class HelpWnd extends WindowX {
     public static final RichText.Foundry fnd;
     public Indir<Resource> res;
@@ -50,6 +52,7 @@ public class HelpWnd extends WindowX {
 		    HelpWnd.this.wdgmsg("close");
 		}
 	    }, UI.scale(100, 410));
+	text.bg = new Color(16, 24, 16);
 	pack();
     }
     

@@ -40,6 +40,7 @@ public class ComboWdg extends Widget {
 	add(strip, p.addy(-strip.sz.y));
 
 	highlight = new CheckBox("Highlight").changed(this::highlight);
+	highlight.settip("Highlight all ingredients that are not tested against selected one");
 	add(highlight, combo.pos("ur").sub(highlight.sz).addy(-AlchemyWnd.PAD));
 
 	pack();

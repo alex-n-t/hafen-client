@@ -23,6 +23,8 @@ public class AlchemyWnd extends WindowX implements DTarget {
     public AlchemyWnd() {
 	super(WND_SZ, "Alchemy");
 
+	addtwdg(new IButton("gfx/hud/btn-help", "", "-d", "-h", this::showHelp).settip("Help"));
+
 	NamesProvider namesProvider = new NamesProvider(LIST_W);
 	disposables.add(namesProvider);
 
@@ -74,5 +76,9 @@ public class AlchemyWnd extends WindowX implements DTarget {
 	ui.destroy(this);
 	ui.gui.alchemywnd = null;
 	CFG.ALCHEMY_LAST_TAB.set(strip.getSelectedButtonIndex());
+    }
+
+    public void showHelp() {
+	HelpWnd.show(ui, "halp/alchemy_wnd");
     }
 }
