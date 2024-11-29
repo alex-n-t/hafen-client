@@ -40,7 +40,10 @@ public class ClientUtils {
     }
 
     public static String loadPrettyResName(String resname) {
-	return prettyResName(Resource.remote().loadwait(resname));
+	try {
+	    return prettyResName(Resource.remote().loadwait(resname));
+	} catch (Exception ignore) {}
+	return prettyResName(resname);
     }
     
     public static String prettyResName(Resource res) {
