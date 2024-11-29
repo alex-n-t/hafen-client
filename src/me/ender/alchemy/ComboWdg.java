@@ -174,7 +174,7 @@ public class ComboWdg extends Widget {
 
 	@Override
 	protected boolean match(String item, String filter) {
-	    return true;
+	    return nameProvider.name(item).toLowerCase().contains(filter.toLowerCase());
 	}
 
 	@Override
