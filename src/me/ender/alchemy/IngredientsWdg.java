@@ -14,7 +14,7 @@ class IngredientsWdg extends Widget {
     IngredientsWdg(NamesProvider nameProvider) {
 	Coord p = add(new IngredientList(nameProvider, this::onSelectionChanged), AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
 
-	sz = p.addxs(AlchemyWnd.GAP + AlchemyWnd.CONTENT_W);
+	sz = p.addx(AlchemyWnd.GAP + AlchemyWnd.CONTENT_W);
     }
 
     private void onSelectionChanged(String res) {

@@ -24,12 +24,12 @@ public class ElixirWdg extends Widget {
 	});
 	Coord p = name.pos("bl");
 
-	open = add(new Button(50, "Open", false, this::open), p.addy(AlchemyWnd.PAD));
+	open = add(new Button(UI.scale(55), "Open", false, this::open), p.addy(AlchemyWnd.PAD));
 	open.settip("Open in Yoda's Alchemy Graph site");
 	//TODO: add remove button
 
 	p = open.pos("ur");
-	delete = add(new Button(50, "Delete", false, this::delete), p.addx(AlchemyWnd.PAD));
+	delete = add(new Button(UI.scale(55), "Delete", false, this::delete), p.addx(AlchemyWnd.PAD));
 	p = open.pos("bl");
 
 	TOOLTIP_C = p.add(AlchemyWnd.PAD, AlchemyWnd.PAD);
