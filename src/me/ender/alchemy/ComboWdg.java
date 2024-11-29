@@ -1,6 +1,7 @@
 package me.ender.alchemy;
 
 import haven.*;
+import me.ender.ClientUtils;
 import me.ender.ui.TabStrip;
 
 import java.util.HashSet;
@@ -12,12 +13,19 @@ public class ComboWdg extends Widget {
     private static final String ALL = "All";
     private static final String TESTED = "Tested";
     private static final String UNTESTED = "Untested";
+    private static String LAST_SELECTED;
+    private final NamesProvider namesProvider;
+    private final IngredientList ingredients;
     private final ComboList combo;
+    private final ACheckBox highlight;
+    private boolean initialized = false;
 
     ComboWdg(NamesProvider namesProvider) {
 	super();
+	this.namesProvider = namesProvider;
 
-	Coord p = add(new IngredientList(namesProvider, this::onIngredientChanged), AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
+	ingredients = new IngredientList(namesProvider, this::onIngredientChanged);
+	Coord p = add(ingredients, AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
 
 	combo = new ComboList(namesProvider);
 	p = add(combo, p.add(AlchemyWnd.GAP, -combo.sz.y)).pos("ul");
@@ -31,7 +39,40 @@ public class ComboWdg extends Widget {
 
 	add(strip, p.addy(-strip.sz.y));
 
+	highlight = new CheckBox("Highlight").changed(this::highlight);
+	add(highlight, combo.pos("ur").sub(highlight.sz).addy(-AlchemyWnd.PAD));
+
 	pack();
+    }
+
+    @Override
+    public void draw(GOut g) {
+	super.draw(g);
+	
+	if(!initialized && ui != null) {
+	    highlight.a = ui.root.getchild(Track.class) != null;
+	    ingredients.change(LAST_SELECTED);
+	    initialized = true;
+	}
+    }
+
+    private void highlight(Boolean highlight) {
+	Track tracker = ui.root.getchild(Track.class);
+
+	if(Boolean.TRUE.equals(highlight)) {
+	    if(tracker == null) {
+		tracker = ui.root.add(new Track(), ClientUtils.getScreenCenter(ui));
+	    }
+
+	    String target = combo.target;
+	    if(target == null) {
+		tracker.highlight(null, null);
+	    } else {
+		tracker.highlight(target, namesProvider.text(target).tex());
+	    }
+	} else if(tracker != null) {
+	    tracker.close();
+	}
     }
 
     private void onTabSelected(String tab) {
@@ -39,7 +80,53 @@ public class ComboWdg extends Widget {
     }
 
     private void onIngredientChanged(String res) {
+	LAST_SELECTED = res;
 	combo.setTarget(res);
+	highlight(highlight.a);
+    }
+
+    private static class Track extends WindowX {
+	Tex image;
+	String res = null;
+	private final Coord IMG_C;
+
+	public Track() {
+	    super(Coord.of(AlchemyWnd.LIST_W, UI.scale(32)), "Ingredient Track");
+	    justclose = true;
+	    IMG_C = add(new Label("Highlight untested combinations for:")).pos("bl");
+
+	    listen(AlchemyData.COMBOS_UPDATED, this::update);
+	}
+
+	private void update() {
+	    if(res != null) {
+		highlight(res, image);
+	    }
+	}
+
+	@Override
+	public void dispose() {
+	    GItem.setAlchemyFilter(null);
+	    super.dispose();
+	}
+
+	@Override
+	public void cdraw(GOut g) {
+	    if(image != null) {
+		g.image(image, IMG_C);
+	    }
+	    super.cdraw(g);
+	}
+
+	public void highlight(String res, Tex img) {
+	    image = img;
+	    this.res = res;
+	    if(res == null) {
+		GItem.setAlchemyFilter(null);
+	    } else {
+		GItem.setAlchemyFilter(new ComboFilter(AlchemyData.combos(res)));
+	    }
+	}
     }
 
     private static class IngredientList extends FilteredListBox<String> {
@@ -104,7 +191,7 @@ public class ComboWdg extends Widget {
 	private final Set<String> combos = new HashSet<>();
 
 	public ComboList(NamesProvider nameProvider) {
-	    super(AlchemyWnd.LIST_W + NAME_C.x, AlchemyWnd.ITEMS - 2, AlchemyWnd.ITEM_H);
+	    super(AlchemyWnd.LIST_W + NAME_C.x + AlchemyWnd.PAD, AlchemyWnd.ITEMS - 2, AlchemyWnd.ITEM_H);
 	    bgcolor = AlchemyWnd.BGCOLOR;
 	    showFilterText = false;
 	    this.nameProvider = nameProvider;

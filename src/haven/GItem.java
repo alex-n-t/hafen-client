@@ -27,6 +27,7 @@
 package haven;
 
 import me.ender.Reflect;
+import me.ender.alchemy.ComboFilter;
 import rx.functions.Action0;
 
 import java.util.*;
@@ -38,6 +39,7 @@ import static haven.WItem.*;
 
 public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owner, RandomSource {
     private static ItemFilter filter;
+    private static ComboFilter alchemyFilter;
     private static long lastFilter = 0;
     public Indir<Resource> res;
     public MessageBuf sdt;
@@ -64,6 +66,12 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	GItem.filter = filter;
 	lastFilter = System.currentTimeMillis();
     }
+
+    public static void setAlchemyFilter(ComboFilter filter) {
+	GItem.alchemyFilter = filter;
+	lastFilter = System.currentTimeMillis();
+    }
+    
     @RName("item")
     public static class $_ implements Factory {
 	public Widget create(UI ui, Object[] args) {
@@ -282,7 +290,8 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
     public void testMatch() {
 	try {
 	    if(filtered < lastFilter && spr != null) {
-		matches = filter != null && filter.matches(info());
+		matches = filter != null && filter.matches(info())
+		    || alchemyFilter != null && alchemyFilter.matches(resname());
 		filtered = lastFilter;
 		List<Action0> listeners;
 		synchronized (matchListeners) {
