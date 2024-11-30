@@ -56,6 +56,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     public final String chrid, genus;
     public final long plid;
     private final Hidepanel ulpanel, umpanel, urpanel, blpanel, mapmenupanel, brpanel, menupanel;
+    public StatusWdg statuswdg;
+    public TimeWdg timewdg;
     public Widget portrait;
     public MenuGrid menu;
     public MapView map;
@@ -350,9 +352,12 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	opts.hide();
 	zerg = add(new Zergwnd(), Utils.getprefc("wndc-zerg", UI.scale(new Coord(187, 50))));
 	zerg.hide();
-	questHelper = add(new QuestHelper(), UI.scale(new Coord(187, 50)));
+	questHelper = add(new QuestHelper(this), UI.scale(new Coord(187, 50)));
 	questHelper.hide();
 	placemmap();
+	timewdg = add(new TimeWdg(), new Coord(umpanel.c.x - UI.scale(200), 0));
+	CFG.ALWAYS_SHOW_DEWY_TIME.observe(cfg -> timewdg.updateTime());
+	statuswdg = add(new StatusWdg());
     }
 
     protected void attached() {
@@ -1841,6 +1846,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	if(prog != null)
 	    prog.move(sz.sub(prog.sz).mul(0.5, 0.35));
 	beltwdg.c = new Coord(blpw + UI.scale(10), sz.y - beltwdg.sz.y - UI.scale(5));
+	statuswdg.c = new Coord(sz.x/2 + UI.scale(70), UI.scale(10));
+	timewdg.c = new Coord(sz.x/2 - UI.scale(270), UI.scale(10));
     }
     
     public void presize() {
