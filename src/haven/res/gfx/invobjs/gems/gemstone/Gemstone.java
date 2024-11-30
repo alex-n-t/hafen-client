@@ -3,6 +3,8 @@
 package haven.res.gfx.invobjs.gems.gemstone;
 import java.awt.image.*;
 import java.awt.Graphics;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import haven.*;
 import static haven.PUtils.*;
@@ -13,6 +15,8 @@ public class Gemstone extends GSprite implements GSprite.ImageSprite, ItemInfo.N
     public final BufferedImage img;
     public final Tex tex;
     public final String name;
+    private final String sortName;
+    private final int sortValue;
 
     public Gemstone(Owner owner, Resource res, Message sdt) {
 	super(owner);
@@ -20,17 +24,23 @@ public class Gemstone extends GSprite implements GSprite.ImageSprite, ItemInfo.N
 	if(!sdt.eom()) {
 	    Resource cut = rr.getres(sdt.uint16()).get();
 	    int texid = sdt.uint16();
+	    String gemName;
 	    if(texid != 65535) {
 		Resource tex = rr.getres(texid).get();
 		this.tex = new TexI(this.img = construct(cut, tex));
-		name = cut.layer(Resource.tooltip).t + " " + tex.layer(Resource.tooltip).t;
+		gemName = tex.layer(Resource.tooltip).t;
 	    } else {
 		this.tex = new TexI(this.img = construct(cut, null));
-		name = cut.layer(Resource.tooltip).t + " Gemstone";
+		gemName = "Gemstone";
 	    }
+	    String cutName = cut.layer(Resource.tooltip).t;
+	    name = cutName + " " + gemName;
+	    sortName = "Gem:" + gemName;
+	    sortValue = sortValue(cutName);
 	} else {
 	    this.tex = new TexI(this.img = TexI.mkbuf(new Coord(32, 32)));
-	    name = "Broken gem";
+	    sortName = name = "Broken gem";
+	    sortValue = 0;
 	}
     }
 
@@ -112,5 +122,40 @@ public class Gemstone extends GSprite implements GSprite.ImageSprite, ItemInfo.N
 
     public BufferedImage image() {
 	return(img);
+    }
+
+    public String sortName() {return sortName;}
+
+    public int sortValue() {return sortValue;}
+
+    private static final Map<String, Integer> CUTS = new HashMap<>();
+    private static final Map<String, Integer> SIZES = new HashMap<>();
+
+    static {
+	CUTS.put("Brilliant", 1);
+	CUTS.put("Heart", 2);
+	CUTS.put("Pear", 3);
+	CUTS.put("Cabochon", 4);
+	CUTS.put("Smooth", 5);
+	CUTS.put("Rough", 6);
+
+	SIZES.put("Jotun", 100);
+	SIZES.put("Grand", 200);
+	SIZES.put("Large", 300);
+	SIZES.put("Fair", 400);
+	SIZES.put("Small", 500);
+	SIZES.put("Tiny", 600);
+    }
+
+    private int sortValue(String cut) {
+	String[] parts = cut.split(" ");
+	int value = 0;
+	if(parts.length > 0) {
+	    value += SIZES.getOrDefault(parts[0], 0);
+	}
+	if(parts.length > 1) {
+	    value += CUTS.getOrDefault(parts[1], 0);
+	}
+	return value;
     }
 }

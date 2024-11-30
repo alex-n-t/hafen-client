@@ -28,6 +28,7 @@ package haven;
 
 import haven.QualityList.SingleType;
 import haven.render.*;
+import haven.res.gfx.invobjs.gems.gemstone.Gemstone;
 import haven.res.ui.tt.level.Level;
 import haven.res.ui.tt.slot.Slotted;
 import haven.res.ui.tt.slots.ISlots;
@@ -590,6 +591,20 @@ public class WItem extends Widget implements DTarget {
     public double quality() {
 	QualityList ql = itemq.get();
 	return (ql != null && !ql.isEmpty()) ? ql.single().value : 0;
+    }
+    
+    public String sortName() {
+	if(lspr instanceof Gemstone) {
+	    return ((Gemstone)lspr).sortName();
+	}
+	return item.name.get(item.resname());
+    }
+
+    public int sortValue() {
+	if(lspr instanceof Gemstone) {
+	    return ((Gemstone)lspr).sortValue();
+	}
+	return 0;
     }
 
     public void tryDrop() {

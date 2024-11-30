@@ -38,7 +38,8 @@ public class InventorySorter implements Defer.Callable<Void> {
     };
 
     private static final Object lock = new Object();
-    public static final Comparator<WItem> ITEM_COMPARATOR = Comparator.comparing(InventorySorter::sortingName)
+    public static final Comparator<WItem> ITEM_COMPARATOR = Comparator.comparing(WItem::sortName)
+	.thenComparing(WItem::sortValue)
 	.thenComparing(WItem::quality, Comparator.reverseOrder());
     private static InventorySorter current;
     private Defer.Future<Void> task;
@@ -175,9 +176,5 @@ public class InventorySorter implements Defer.Callable<Void> {
 		gui.ui.message(String.format("Sort is %s.", result), GameUI.MsgType.INFO);
 	    }
 	});
-    }
-
-    private static String sortingName(WItem item) {
-	return item.name.get(item.item.resname());
     }
 }
