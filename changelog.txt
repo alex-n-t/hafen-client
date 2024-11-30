@@ -1,6 +1,8 @@
 $size[14]{$u{Update for 30.11.24:}
   * fixed mouflons and aurochs not being detected by auto-aggro
   * added slightly modified inventory sorting from AlexKondor's pull request
+  * merged PR from AlexKondor with improvements to Quest Helper
+  * merged PR from AlexKondor with options to show more info near calendar up top (Options -> UI)
  
 $size[14]{$u{Update for 29.11.24:}
   * fixed some custom messages not displaying
