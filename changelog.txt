@@ -1,4 +1,7 @@
 $size[14]{$u{Update for 29.11.24:}
+  * added slightly modified inventory sorting from AlexKondor's pull request
+ 
+$size[14]{$u{Update for 29.11.24:}
   * fixed some custom messages not displaying
   * fixed crash related to gaining stats from eating
   * added Alchemy window - allows viewing and recording of known ingredients, recipes and tested combinations. Can be opened from menu grid (Xtended -> Alchemy) or add keybind in Options -> Global shortcuts. It has [?] button that shows help.
