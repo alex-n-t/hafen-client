@@ -151,6 +151,9 @@ public class CFG<T> {
     /**Unpack stacks into single items for extra inventory's list*/
     public static final CFG<Integer> UI_EXT_INV_MIN_ROWS = new CFG<>("ui.stack.ext_inv_min_rows", 3);
     public static final CFG<Boolean> UI_STACK_EXT_INV_UNPACK = new CFG<>("ui.stack.ext_inv_unpack", true);
+    
+    public static final CFG<Boolean> ALCHEMY_LIMIT_RECIPE_SAVE = new CFG<>("alchemy.limit_recipe_saving", true);
+    public static final CFG<Integer> ALCHEMY_LAST_TAB = new CFG<>("alchemy.last_lab", 0);
 
     public static final CFG<Float> CAMERA_BRIGHT = new CFG<>("camera.bright", 0f);
     public static final CFG<Boolean> CAMERA_INVERT_X = new CFG<>("camera.invert_x", false);

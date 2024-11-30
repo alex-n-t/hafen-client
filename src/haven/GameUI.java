@@ -47,6 +47,8 @@ import java.util.regex.Matcher;
 
 import static haven.ItemFilter.*;
 import haven.render.Location;
+import me.ender.alchemy.AlchemyWnd;
+
 import static haven.Inventory.invsq;
 
 public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.Handler {
@@ -99,6 +101,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     public final Map<Integer, String> polowners = new HashMap<Integer, String>();
     public Bufflist buffs;
     public CraftDBWnd craftwnd = null;
+    public AlchemyWnd alchemywnd = null;
     public ActWindow craftlist, buildlist, actlist;
     public TimerPanel timers;
     private Gob detectGob;
@@ -632,6 +635,14 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	    craftwnd = add(new CraftDBWnd(), ClientUtils.getScreenCenter(ui));
 	} else {
 	    craftwnd.close();
+	}
+    }
+
+    public void toggleAlchemyDB() {
+	if(alchemywnd == null) {
+	    alchemywnd = add(new AlchemyWnd(), ClientUtils.getScreenCenter(ui).sub(AlchemyWnd.WND_SZ.div(2)));
+	} else {
+	    alchemywnd.close();
 	}
     }
     

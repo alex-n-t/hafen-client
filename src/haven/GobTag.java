@@ -131,7 +131,6 @@ public enum GobTag {
     private static final String[] CAN_AGGRO = {
         "gfx/kritter/adder/",
         "gfx/kritter/ants/", //all ant types
-        "gfx/kritter/aurochs/",
         "gfx/kritter/badger/",
         "gfx/kritter/bat/", //all bat types
         "gfx/kritter/bear/",
@@ -139,6 +138,7 @@ public enum GobTag {
         "gfx/kritter/bees/", //all bee types
         "gfx/kritter/boar/",
         "gfx/kritter/boreworm/",
+        "gfx/kritter/cattle/aurochs",
         "gfx/kritter/caveangler/",
         "gfx/kritter/cavelouse/",
         "gfx/kritter/chasmconch/",
@@ -151,7 +151,6 @@ public enum GobTag {
         "gfx/kritter/lynx/",
         "gfx/kritter/mammoth/",
         "gfx/kritter/moose/",
-        "gfx/kritter/mouflon/",
         "gfx/kritter/nidbane/",
         "gfx/kritter/ooze/",
         "gfx/kritter/orca/",
@@ -161,15 +160,16 @@ public enum GobTag {
         "gfx/kritter/reddeer/",
         "gfx/kritter/reindeer/",
         "gfx/kritter/roedeer/",
+        "gfx/kritter/sheep/mouflon",
         "gfx/kritter/spermwhale/",
         "gfx/kritter/stoat/",
         "gfx/kritter/swan/",
         "gfx/kritter/troll/",
         "gfx/kritter/walrus/",
+        "gfx/kritter/wildbees/beeswarm",
         "gfx/kritter/wolf/",
         "gfx/kritter/wolverine/",
         "gfx/kritter/woodgrouse/woodgrouse-m",
-        "gfx/kritter/wildbees/beeswarm",
     };
     
     private static final String[] VEHICLES = {"/wheelbarrow", "/plow", "/cart", "/dugout", "/rowboat", "/vehicle/snekkja", "/vehicle/knarr", "/vehicle/wagon", "/vehicle/coracle", "/horse/mare", "/horse/stallion", "/vehicle/spark"};
@@ -353,8 +353,11 @@ public enum GobTag {
                     tags.add(COMBAT_TARGET);
                 }
             }
-            
-            if((anyOf(tags, PLAYER) || ofType(name, CAN_AGGRO)) && !anyOf(tags, ME, PARTY, IN_COMBAT, KO, DEAD)) {
+
+            boolean isPlayer = anyOf(tags, PLAYER);
+            boolean canAggro = ofType(name, CAN_AGGRO);
+            boolean invalid = anyOf(tags, ME, PARTY, IN_COMBAT, KO, DEAD);
+            if((isPlayer || canAggro) && !invalid) {
                 tags.add(AGGRO_TARGET);
             }
     
