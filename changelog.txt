@@ -1,4 +1,4 @@
-$size[14]{$u{Update for 29.11.24:}
+$size[14]{$u{Update for 30.11.24:}
   * fixed mouflons and aurochs not being detected by auto-aggro
   * added slightly modified inventory sorting from AlexKondor's pull request
  
