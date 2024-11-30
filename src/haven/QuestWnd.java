@@ -273,12 +273,11 @@ public class QuestWnd extends Widget {
 			ncond.add(cond);
 		    }
 		    this.cond = ncond.toArray(new Condition[0]);
-		    CharWnd cw = cw();
-		    boolean isCredo = cw != null && cw.skill != null && cw.skill.credos.pqid == questid();
-		    this.ui.gui.questHelper.processQuest(ncond, questid(), isCredo);
 		    refresh();
-		    if(cqv != null)
+		    if(cqv != null) {
 			cqv.update();
+		    }
+		    this.ui.gui.questHelper.ProcessQuest(ncond, id, title);
 		} else {
 		    super.uimsg(msg, args);
 		}
@@ -741,7 +740,7 @@ public class QuestWnd extends Widget {
 		}
 	    }
 	    if(ui.gui != null) {
-		ui.gui.questHelper.refresh();
+		ui.gui.questHelper.Refresh();
 	    }
 	} else {
 	    super.uimsg(nm, args);
