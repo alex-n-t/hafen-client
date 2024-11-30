@@ -88,6 +88,7 @@ public class KeyBinder {
 	add(KeyEvent.VK_H, ALT,   TOGGLE_CURSOR);
 	add(KeyEvent.VK_S, ALT,   TOGGLE_STUDY);
 	add(KeyEvent.VK_F, ALT,   FILTER);
+	add(SORT_INVENTORY);
 	add(KeyEvent.VK_I, ALT,   TOGGLE_GOB_INFO);
 	add(KeyEvent.VK_H, CTRL,  TOGGLE_GOB_HITBOX);
 	add(KeyEvent.VK_R, ALT,   TOGGLE_GOB_RADIUS);

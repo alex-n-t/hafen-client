@@ -586,7 +586,12 @@ public class WItem extends Widget implements DTarget {
 	}
 	return(super.mousehover(ev, on));
     }
-    
+
+    public double quality() {
+	QualityList ql = itemq.get();
+	return (ql != null && !ql.isEmpty()) ? ql.single().value : 0;
+    }
+
     public void tryDrop() {
 	if(item.contents == null) {
 	    checkDrop = true;
