@@ -67,6 +67,12 @@ class IngredientsWdg extends Widget {
 	}
 
 	@Override
+	public boolean mousedown(MouseDownEvent ev) {
+	    parent.setfocus(this);
+	    return super.mousedown(ev);
+	}
+
+	@Override
 	public void changed(String item, int index) {
 	    onChanged.accept(item);
 	}
