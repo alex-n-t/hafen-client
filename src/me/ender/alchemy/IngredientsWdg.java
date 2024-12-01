@@ -109,7 +109,7 @@ class IngredientsWdg extends Widget {
 
 	@Override
 	protected void drawitem(GOut g, String item, int i) {
-	    g.image(nameProvider.text(item).tex(), Coord.z);
+	    g.image(nameProvider.tex(item), Coord.z);
 	}
     }
 }

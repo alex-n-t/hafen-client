@@ -72,7 +72,7 @@ public class ComboWdg extends Widget {
 	    if(target == null) {
 		tracker.highlight(null, null);
 	    } else {
-		tracker.highlight(target, namesProvider.text(target).tex());
+		tracker.highlight(target, namesProvider.tex(target));
 	    }
 	} else if(tracker != null) {
 	    tracker.close();
@@ -196,7 +196,7 @@ public class ComboWdg extends Widget {
 
 	@Override
 	protected void drawitem(GOut g, String item, int i) {
-	    g.image(nameProvider.text(item).tex(), Coord.z);
+	    g.image(nameProvider.tex(item), Coord.z);
 	}
     }
 
@@ -273,7 +273,7 @@ public class ComboWdg extends Widget {
 	    if(combos.contains(item)) {
 		g.image(CheckBox.smark, Coord.z);
 	    }
-	    g.image(nameProvider.text(item).tex(), NAME_C);
+	    g.image(nameProvider.tex(item), NAME_C);
 	}
     }
 }
