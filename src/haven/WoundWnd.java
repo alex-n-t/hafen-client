@@ -105,7 +105,7 @@ public class WoundWnd extends Widget {
 		List<ItemInfo> info = ItemInfo.buildinfo(this, rawinfo);
 		Resource.Pagina pag = res.get().layer(Resource.pagina);
 		if(pag != null)
-		    info.add(new WoundPagina(this, pag.text));
+		    info.add(new WoundPagina(this, pag.text + WoundTreatment.treatment(res.get())));
 		this.info = info;
 	    }
 	    return(info);
