@@ -13,11 +13,13 @@ public class ComboWdg extends Widget {
     private static final String ALL = "All";
     private static final String TESTED = "Tested";
     private static final String UNTESTED = "Untested";
-    private static String LAST_SELECTED;
+    private static String LAST_SELECTED_INGREDIENT;
+    private static int LAST_SELECTED_TAB = 0;
     private final NamesProvider namesProvider;
     private final IngredientList ingredients;
     private final ComboList combo;
     private final ACheckBox highlight;
+    private final TabStrip<String> strip;
     private boolean initialized = false;
 
     ComboWdg(NamesProvider namesProvider) {
@@ -30,12 +32,12 @@ public class ComboWdg extends Widget {
 	combo = new ComboList(namesProvider);
 	p = add(combo, p.add(AlchemyWnd.GAP, -combo.sz.y)).pos("ul");
 
-	TabStrip<String> strip = new TabStrip<>(this::onTabSelected);
+	strip = new TabStrip<>(this::onTabSelected);
 
 	strip.insert(ALL, null, ALL, null);
 	strip.insert(TESTED, null, TESTED, null);
 	strip.insert(UNTESTED, null, UNTESTED, null);
-	strip.select(0);
+	strip.select(Math.max(LAST_SELECTED_TAB, 0));
 
 	add(strip, p.addy(-strip.sz.y));
 
@@ -52,7 +54,7 @@ public class ComboWdg extends Widget {
 
 	if(!initialized && ui != null) {
 	    highlight.a = ui.gui.getchild(Track.class) != null;
-	    ingredients.change(LAST_SELECTED);
+	    ingredients.change(LAST_SELECTED_INGREDIENT);
 	    ingredients.showsel();
 	    initialized = true;
 	}
@@ -79,10 +81,11 @@ public class ComboWdg extends Widget {
 
     private void onTabSelected(String tab) {
 	combo.filter(tab);
+	LAST_SELECTED_TAB = strip.getSelectedButtonIndex();
     }
 
     private void onIngredientChanged(String res) {
-	LAST_SELECTED = res;
+	LAST_SELECTED_INGREDIENT = res;
 	combo.setTarget(res);
 	highlight(highlight.a);
     }
