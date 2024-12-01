@@ -538,6 +538,11 @@ public class Widget {
 	synchronized (boundListeners) {boundListeners.clear();}
 	synchronized (focusListeners) {focusListeners.clear();}
 	synchronized (destroyListeners) {destroyListeners.clear();}
+	synchronized (subscriptions) {
+	    subscriptions.forEach(Subscription::unsubscribe);
+	    subscriptions.clear();
+
+	}
 	synchronized (disposables) {
 	    disposables.forEach(Disposable::dispose);
 	    disposables.clear();
@@ -556,8 +561,6 @@ public class Widget {
     }
 
     public void remove() {
-	subscriptions.forEach(Subscription::unsubscribe);
-	subscriptions.clear();
 	if(canfocus)
 	    setcanfocus(false);
 	if(parent != null) {
@@ -2136,15 +2139,15 @@ public class Widget {
     }
     
     public void listen(String event, Action1<Reactor.Event> callback) {
-	subscriptions.add(Reactor.listen(event, callback));
+	synchronized (subscriptions) {subscriptions.add(Reactor.listen(event, callback));}
     }
     
     public void listen(String event, Action0 callback) {
-	subscriptions.add(Reactor.listen(event, callback));
+	synchronized (subscriptions) {subscriptions.add(Reactor.listen(event, callback));}
     }
     
     public <T> void listen(String event, Action1<T> callback, Class<T> clazz) {
-	subscriptions.add(Reactor.listen(event, callback, clazz));
+	synchronized (subscriptions) {subscriptions.add(Reactor.listen(event, callback, clazz));}
     }
     
     public static int poshl(Coord c, int w, Widget... children) {
