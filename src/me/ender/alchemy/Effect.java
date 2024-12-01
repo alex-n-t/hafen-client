@@ -14,6 +14,7 @@ import haven.res.ui.tt.attrmod.AttrMod;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Effect {
     private static final boolean INCLUDE_NUMBERS = false; //TODO: add an option for this
@@ -108,26 +109,27 @@ public class Effect {
     }
 
     public static List<ItemInfo> ingredientInfo(Collection<Effect> effects) {
-	List<ItemInfo> tips = new LinkedList<>();
-	for (Effect effect : effects) {
-	    String res = effect.res;
-	    switch (effect.type) {
-		case BUFF:
-		    tips.add(new BuffAttr(null, Resource.remote().load(res)));
-		    break;
-		case HEAL:
-		    tips.add(new HealWound(null, Resource.remote().load(res), null));
-		    break;
-		case TIME:
-		    if(res.equals(MORE)) {
-			tips.add(new MoreTime(null));
-		    } else if(res.equals(LESS)) {
-			tips.add(new LessTime(null));
-		    }
-		    break;
-	    }
+	return effects.stream()
+	    .map(Effect::ingredientInfo)
+	    .filter(Objects::nonNull)
+	    .collect(Collectors.toList());
+    }
+
+    public haven.res.ui.tt.alch.effect.Effect ingredientInfo() {
+	switch (type) {
+	    case BUFF:
+		return new BuffAttr(null, Resource.remote().load(res));
+	    case HEAL:
+		return new HealWound(null, Resource.remote().load(res), null);
+	    case TIME:
+		if(res.equals(MORE)) {
+		    return new MoreTime(null);
+		} else if(res.equals(LESS)) {
+		    return new LessTime(null);
+		}
+		break;
 	}
-	return tips;
+	return null;
     }
 
     @Override
