@@ -1,5 +1,6 @@
 $size[14]{$u{Update for 01.12.24:}
   * merged loftar's changes
+  * some small tweaks to Alchemy window and its help
  
 $size[14]{$u{Update for 30.11.24:}
   * fixed mouflons and aurochs not being detected by auto-aggro
