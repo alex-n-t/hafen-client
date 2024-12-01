@@ -55,7 +55,7 @@ public class FightWndEx extends Widget {
     public final Action[] order;
     public int usesave;
     private final Text[] saves;
-    private final FightWnd.ImageInfoBox info;
+    private final CharWnd.ImageInfoBox info;
     private final Label count;
     private final Map<Indir<Resource>, Object[]> actrawinfo = new HashMap<>();
     private boolean needFilter = false;
@@ -120,13 +120,13 @@ public class FightWndEx extends Widget {
 	    BufferedImage ret = res.get().layer(Resource.imgc).img;
 	    Graphics g = null;
 	    for(ItemInfo inf : info()) {
-		if(inf instanceof FightWnd.IconInfo) {
+		if(inf instanceof CharWnd.IconInfo) {
 		    if(g == null) {
 			BufferedImage buf = TexI.mkbuf(PUtils.imgsz(ret));
 			g = buf.getGraphics();
 			ret = buf;
 		    }
-		    ((FightWnd.IconInfo)inf).draw(ret, g);
+		    ((CharWnd.IconInfo)inf).draw(ret, g);
 		}
 	    }
 	    if(g != null)
@@ -708,7 +708,7 @@ public class FightWndEx extends Widget {
 	Widget header = add(new Img(CharWnd.catf.i10n_label("Martial Arts & Combat Schools").tex()), 0, 0);
     
 	Coord boxSz = wbox.btloff();
-	info = add(new FightWnd.ImageInfoBox(INFO_SZ), header.pos("br").xs(5).addys(5).add(boxSz));
+	info = add(new CharWnd.ImageInfoBox(INFO_SZ), header.pos("br").xs(5).addys(5).add(boxSz));
     
 	acttypes = add(new ActionTypes(this::actionTypeSelected), info.pos("ur").addxs(5).addx(boxSz.x));
 	acttypes.setSelectedColor(new Color(122, 191, 86, 153));
