@@ -35,6 +35,12 @@ class RecipesWdg extends Widget {
 	    listen(AlchemyData.ELIXIRS_UPDATED, this::onElixirsUpdated);
 	}
 
+	@Override
+	public boolean mousedown(MouseDownEvent ev) {
+	    parent.setfocus(this);
+	    return super.mousedown(ev);
+	}
+
 	private void onElixirsUpdated() {
 	    Elixir was = sel;
 	    update();
