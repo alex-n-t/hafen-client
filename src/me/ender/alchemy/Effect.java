@@ -39,8 +39,14 @@ public class Effect {
 	this.raw = raw;
 	String[] parts = raw.split(":");
 
-	this.type = parts[0];
-	this.res = parts[1];
+	if(parts.length == 1) {
+	    this.type = null;
+	    this.res = parts[0];
+	} else {
+	    this.type = parts[0];
+	    this.res = parts[1];
+	}
+
 	this.opt = parts.length >= 3 ? parts[2] : null;
     }
 
@@ -83,6 +89,11 @@ public class Effect {
 
 	return name().toLowerCase().contains(parts[1]);
     }
+
+    public String type() {return type;}
+
+    //TODO: implement
+    public int order() {return 0;}
 
     public String name() {
 	if(name == null) {

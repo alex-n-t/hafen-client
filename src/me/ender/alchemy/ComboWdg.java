@@ -208,7 +208,7 @@ public class ComboWdg extends Widget {
 	private final Set<String> combos = new HashSet<>();
 
 	public ComboList(NamesProvider nameProvider) {
-	    super(AlchemyWnd.LIST_W + NAME_C.x + AlchemyWnd.PAD, AlchemyWnd.ITEMS - 2, AlchemyWnd.ITEM_H);
+	    super(AlchemyWnd.CONTENT_W, AlchemyWnd.ITEMS - 2, AlchemyWnd.ITEM_H);
 	    bgcolor = AlchemyWnd.BGCOLOR;
 	    showFilterText = false;
 	    this.nameProvider = nameProvider;
@@ -219,6 +219,10 @@ public class ComboWdg extends Widget {
 	public void setTarget(String target) {
 	    this.target = target;
 	    updateCombos();
+	}
+
+	@Override
+	protected void itemclick(String item, int button) {
 	}
 
 	private void onComboUpdated() {

@@ -20,12 +20,14 @@ public class AlchemyData {
     private static final String ELIXIRS_JSON = "elixirs.json";
     private static final String ALL_INGREDIENTS_JSON = "all_ingredients.json";
     private static final String COMBOS_JSON = "combos.json";
+    private static final String EFFECTS_JSON = "all_effects.json";
 
     public static boolean DBG = Config.get().getprop("ender.debug.alchemy", "off").equals("on");
 
     public static final String INGREDIENTS_UPDATED = "ALCHEMY:INGREDIENTS:UPDATED";
     public static final String ELIXIRS_UPDATED = "ALCHEMY:ELIXIRS:UPDATED";
     public static final String COMBOS_UPDATED = "ALCHEMY:COMBOS:UPDATED";
+    public static final String EFFECTS_UPDATED = "ALCHEMY:EFFECTS:UPDATED";
 
 
     public static final String HERBAL_GRIND = "/herbalgrind";
@@ -41,10 +43,12 @@ public class AlchemyData {
     private static boolean initializedIngredients = false;
     private static boolean initializedElixirs = false;
     private static boolean initializedCombos = false;
+    private static boolean initializedEffects = false;
     private static final Map<String, Ingredient> INGREDIENTS = new HashMap<>();
     private static final Set<Elixir> ELIXIRS = new HashSet<>();
     private static final Set<String> INGREDIENT_LIST = new HashSet<>();
     private static final Map<String, Set<String>> COMBOS = new HashMap<>();
+    private static final HashSet<Effect> EFFECTS = new HashSet<>();
 
 
     private static void initIngredients() {
@@ -66,6 +70,27 @@ public class AlchemyData {
 	loadIngredientList(Config.loadJarFile(ALL_INGREDIENTS_JSON));
 	loadIngredientList(Config.loadFSFile(ALL_INGREDIENTS_JSON));
 	loadCombos(Config.loadFile(COMBOS_JSON));
+    }
+
+    private static void initEffects() {
+	if(initializedEffects) {return;}
+	initializedEffects = true;
+	loadEffectList(Config.loadJarFile(EFFECTS_JSON));
+	loadEffectList(Config.loadFSFile(EFFECTS_JSON));
+
+	boolean changed = false;
+
+	initIngredients();
+	for (Ingredient ingredient : INGREDIENTS.values()) {
+	    changed = EFFECTS.addAll(ingredient.effects) || changed;
+	}
+
+	initElixirs();
+	for (Elixir elixir : ELIXIRS) {
+	    changed = tryAddUnknownEffects(elixir) || changed;
+	}
+
+	if(changed) {saveEffects();}
     }
 
     private static void loadIngredients(String json) {
@@ -111,6 +136,15 @@ public class AlchemyData {
 	} catch (Exception ignore) {}
     }
 
+    private static void loadEffectList(String json) {
+	if(json == null) {return;}
+	try {
+	    Set<Effect> tmp = GSON.fromJson(json, new TypeToken<Set<Effect>>() {
+	    }.getType());
+	    EFFECTS.addAll(tmp);
+	} catch (Exception ignore) {}
+    }
+
     private static void saveIngredients() {
 	Config.saveFile(INGREDIENTS_JSON, GSON.toJson(INGREDIENTS));
     }
@@ -125,6 +159,10 @@ public class AlchemyData {
 
     private static void saveCombos() {
 	Config.saveFile(COMBOS_JSON, GSON.toJson(COMBOS));
+    }
+
+    private static void saveEffects() {
+	Config.saveFile(EFFECTS_JSON, GSON.toJson(EFFECTS));
     }
 
     public static void categorize(GItem item, boolean storeRecipe) {
@@ -157,6 +195,7 @@ public class AlchemyData {
 	    }
 	}
 
+	boolean effectsChanged = false;
 	if(isElixir && recipe != null) {
 	    //TODO: option to ignore bad-only elixirs?
 	    Elixir elixir = new Elixir(recipe, effects);
@@ -166,13 +205,21 @@ public class AlchemyData {
 		saveElixirs();
 		Reactor.event(ELIXIRS_UPDATED);
 	    }
+	    effectsChanged = tryAddUnknownEffects(elixir);
 	    updateCombos(elixir);
 	} else if(!isElixir && !effects.isEmpty() && isNatural(res)) {
 	    initIngredients();
-	    INGREDIENTS.put(res, new Ingredient(effects, INGREDIENTS.get(res)));
+	    Ingredient ingredient = new Ingredient(effects, INGREDIENTS.get(res));
+	    INGREDIENTS.put(res, ingredient);
 	    Reactor.event(INGREDIENTS_UPDATED);
 	    saveIngredients();
 	    updateIngredientList(res);
+	    effectsChanged = EFFECTS.addAll(ingredient.effects);
+	}
+
+	if(effectsChanged) {
+	    Reactor.event(EFFECTS_UPDATED);
+	    saveEffects();
 	}
 
 	if(DBG) {
@@ -252,6 +299,20 @@ public class AlchemyData {
     public static Set<String> combos(String target) {
 	initCombos();
 	return COMBOS.getOrDefault(target, Collections.emptySet());
+    }
+
+    public static Set<Effect> effects() {
+	initEffects();
+	return EFFECTS;
+    }
+
+    public static boolean tryAddUnknownEffects(Elixir elixir) {
+	boolean changed = false;
+	for (Effect effect : elixir.effects) {
+	    if(Effect.WOUND.equals(effect.type)) {continue;}
+	    changed = EFFECTS.add(new Effect(effect.type, effect.res)) || changed;
+	}
+	return changed;
     }
 
     public static Tex tex(Collection<Effect> effects) {
