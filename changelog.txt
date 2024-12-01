@@ -1,3 +1,6 @@
+$size[14]{$u{Update for 01.12.24:}
+  * merged loftar's changes
+ 
 $size[14]{$u{Update for 29.11.24:}
   * fixed some custom messages not displaying
   * fixed crash related to gaining stats from eating
