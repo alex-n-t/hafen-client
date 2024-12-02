@@ -306,11 +306,13 @@ public class AlchemyData {
 	if(res == null) {return Collections.emptySet();}
 	initEffects();
 	Ingredient ingredient = ingredient(res);
-	if(ingredient == null) {return Collections.emptySet();}
-	if(ingredient.effects.size() == MAX_EFFECTS) {return effects();}
-
-	Set<Effect> tested = new HashSet<>(ingredient.effects);
-
+	Set<Effect> tested;
+	if(ingredient != null) {
+	    if(ingredient.effects.size() == MAX_EFFECTS) {return effects();}
+	    tested = new HashSet<>(ingredient.effects);
+	} else {
+	    tested = new HashSet<>();
+	}
 	for (String combo : AlchemyData.combos(res)) {
 	    ingredient = AlchemyData.ingredient(combo);
 	    if(ingredient == null) {continue;}

@@ -93,7 +93,7 @@ class IngredientsWdg extends Widget {
 		break;
 	    case TESTED:
 		updateEffects();
-		if(selected != null) {info.check = selected.effects;}
+		info.check = selected == null ? Collections.emptySet() : selected.effects;
 		info.setItems(tested);
 		break;
 	    case UNTESTED:
@@ -111,7 +111,7 @@ class IngredientsWdg extends Widget {
 
 	tested.clear();
 	untested.clear();
-	if(selected == null || selectedName == null) {return;}
+	if(selectedName == null) {return;}
 
 	tested.addAll(AlchemyData.testedEffects(selectedName));
 
@@ -156,7 +156,7 @@ class IngredientsWdg extends Widget {
 	private void update() {
 	    if(tvisible()) {
 		String selected = sel;
-		List<String> tmp = AlchemyData.ingredients();
+		List<String> tmp = AlchemyData.allIngredients();
 		tmp.sort(nameProvider::compare);
 		setItems(tmp);
 		dirty = false;
