@@ -98,7 +98,8 @@ public class AlchemyData {
 	    Map<String, Ingredient> tmp = GSON.fromJson(json, new TypeToken<Map<String, Ingredient>>() {
 	    }.getType());
 	    for (Map.Entry<String, Ingredient> entry : tmp.entrySet()) {
-		INGREDIENTS.put(entry.getKey(), new Ingredient(entry.getValue().effects));
+		String res = entry.getKey();
+		INGREDIENTS.put(res, new Ingredient(entry.getValue().effects, INGREDIENTS.get(res)));
 	    }
 	} catch (Exception ignore) {}
     }
@@ -206,7 +207,7 @@ public class AlchemyData {
 	    updateCombos(elixir);
 	} else if(!isElixir && !effects.isEmpty() && isNatural(res)) {
 	    initIngredients();
-	    Ingredient ingredient = new Ingredient(effects);
+	    Ingredient ingredient = new Ingredient(effects, INGREDIENTS.get(res));
 	    INGREDIENTS.put(res, ingredient);
 	    Reactor.event(INGREDIENTS_UPDATED);
 	    saveIngredients();
