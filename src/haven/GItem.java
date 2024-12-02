@@ -27,6 +27,7 @@
 package haven;
 
 import me.ender.Reflect;
+import me.ender.alchemy.AlchemyData;
 import me.ender.alchemy.IAlchemyItemFilter;
 import rx.functions.Action0;
 
@@ -60,6 +61,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
     private boolean matches = false;
     public boolean sendttupdate = false;
     private long filtered = 0;
+    private boolean infoDirty = false;
     private final List<Action0> matchListeners = new ArrayList<>();
 
     public static void setFilter(ItemFilter filter) {
@@ -213,6 +215,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	    hovering = null;
 	hoverset = false;
 	testMatch();
+	processInfoChange();
     }
     
     public final ItemInfo.AttrCache<ItemData.Content> contains = new ItemInfo.AttrCache<>(this::info, ItemInfo.AttrCache.cache(ItemInfo::getContent), ItemData.Content.EMPTY);
@@ -351,6 +354,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	    rawinfo = new ItemInfo.Raw(args);
 	    infoseq++;
 	    filtered = 0;
+	    infoDirty = true;
 	    meterUpdated = System.currentTimeMillis();
 	    if(sendttupdate){wdgmsg("ttupdate");}
 	} else if(name == "meter") {
@@ -716,5 +720,13 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
     public double quality() {
 	QualityList ql = itemq.get();
 	return (ql != null && !ql.isEmpty()) ? ql.single().value : 0;
+    }
+
+    private void processInfoChange() {
+	if(!infoDirty || spr == null) {return;}
+	try {
+	    AlchemyData.autoCategorize(this);
+	    infoDirty = false;
+	} catch (Loading ignore) {}
     }
 }
