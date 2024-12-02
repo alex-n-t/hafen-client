@@ -419,7 +419,7 @@ public class ItemData {
 	}
 
 	public String name() {
-	    if("seeds".equals(unit)) {
+	    if(unit != null && unit.startsWith("seed")) {
 		return String.format("Seeds of %s", name);
 	    }
 	    return name;
