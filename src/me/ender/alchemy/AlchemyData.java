@@ -167,7 +167,7 @@ public class AlchemyData {
     public static void autoProcess(GItem item) {
 	//TODO: add option to enable/disable this?
 	if(item.ui.gui.getchild(AlchemyWnd.class) != null || item.ui.gui.getchild(TrackWnd.class) != null) {
-	    process(item, !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get());
+	    process(item, false);
 	}
     }
 
