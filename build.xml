@@ -159,6 +159,7 @@
       <file file="etc/ingredients.json"/>
       <file file="etc/elixirs.json"/>
       <file file="etc/all_ingredients.json"/>
+      <file file="etc/all_effects.json"/>
       <file file="etc/combos.json"/>
       <fileset dir="." includes="i10n/**/**.json"/>
     </jar>

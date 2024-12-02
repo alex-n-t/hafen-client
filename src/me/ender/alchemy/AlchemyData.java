@@ -73,8 +73,7 @@ public class AlchemyData {
     private static void initEffects() {
 	if(initializedEffects) {return;}
 	initializedEffects = true;
-	loadEffectList(Config.loadJarFile(EFFECTS_JSON));
-	loadEffectList(Config.loadFSFile(EFFECTS_JSON));
+	loadEffectList(Config.loadFile(EFFECTS_JSON));
 
 	boolean changed = false;
 
