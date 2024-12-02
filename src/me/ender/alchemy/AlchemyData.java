@@ -314,6 +314,7 @@ public class AlchemyData {
 
     public static boolean tryAddUnknownEffects(Ingredient ingredient) {
 	boolean changed = false;
+	initEffects();
 	for (Effect effect : ingredient.effects) {
 	    changed = EFFECTS.add(new Effect(effect.type, effect.res)) || changed;
 	}
@@ -322,6 +323,7 @@ public class AlchemyData {
 
     public static boolean tryAddUnknownEffects(Elixir elixir) {
 	boolean changed = false;
+	initEffects();
 	for (Effect effect : elixir.effects) {
 	    if(Effect.WOUND.equals(effect.type)) {continue;}
 	    changed = EFFECTS.add(new Effect(effect.type, effect.res)) || changed;
