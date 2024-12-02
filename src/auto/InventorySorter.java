@@ -39,6 +39,7 @@ public class InventorySorter implements Defer.Callable<Void> {
 
     private static final Object lock = new Object();
     public static final Comparator<WItem> ITEM_COMPARATOR = Comparator.comparing(WItem::sortName)
+	.thenComparing(w -> w.item.resname())
 	.thenComparing(WItem::sortValue)
 	.thenComparing(WItem::quality, Comparator.reverseOrder());
     private static InventorySorter current;
