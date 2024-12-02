@@ -712,4 +712,9 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	    cont.itemsChanged();
 	}
     }
+
+    public double quality() {
+	QualityList ql = itemq.get();
+	return (ql != null && !ql.isEmpty()) ? ql.single().value : 0;
+    }
 }

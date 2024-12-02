@@ -167,7 +167,7 @@ public class AlchemyData {
     public static void categorize(GItem item, boolean storeRecipe) {
 	String res = item.resname();
 	List<ItemInfo> infos = item.info();
-	double q = item.itemq.get().single().value;
+	double q = item.quality();
 	double qc = q > 0 ? 1d / Math.sqrt(10 * q) : 1d;
 
 	ItemInfo.Contents contents = ItemInfo.find(ItemInfo.Contents.class, infos);

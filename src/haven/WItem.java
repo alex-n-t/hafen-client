@@ -589,8 +589,7 @@ public class WItem extends Widget implements DTarget {
     }
 
     public double quality() {
-	QualityList ql = itemq.get();
-	return (ql != null && !ql.isEmpty()) ? ql.single().value : 0;
+	return item.quality();
     }
     
     public String sortName() {
