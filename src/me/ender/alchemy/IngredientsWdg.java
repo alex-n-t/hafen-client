@@ -165,6 +165,7 @@ class IngredientsWdg extends Widget {
 		    selected = LAST_SELECTED_INGREDIENT;
 		}
 		change(selected);
+		showsel();
 	    } else {
 		dirty = true;
 	    }
