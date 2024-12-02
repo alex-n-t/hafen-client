@@ -164,14 +164,14 @@ public class AlchemyData {
 	Config.saveFile(EFFECTS_JSON, GSON.toJson(EFFECTS));
     }
 
-    public static void autoCategorize(GItem item) {
+    public static void autoProcess(GItem item) {
 	//TODO: add option to enable/disable this?
 	if(item.ui.gui.getchild(AlchemyWnd.class) != null || item.ui.gui.getchild(TrackWnd.class) != null) {
-	    categorize(item, !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get());
+	    process(item, !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get());
 	}
     }
 
-    public static void categorize(GItem item, boolean storeRecipe) {
+    public static void process(GItem item, boolean storeRecipe) {
 	String res = item.resname();
 	List<ItemInfo> infos = item.info();
 	double q = item.quality();

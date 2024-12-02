@@ -51,7 +51,7 @@ class TrackWnd extends WindowX implements DTarget {
 
     @Override
     public boolean drop(Drop ev) {
-	AlchemyData.categorize(ev.src.item, !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get());
+	AlchemyData.process(ev.src.item, !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get());
 	return true;
     }
 

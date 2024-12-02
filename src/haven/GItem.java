@@ -725,7 +725,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
     private void processInfoChange() {
 	if(!infoDirty || spr == null) {return;}
 	try {
-	    AlchemyData.autoCategorize(this);
+	    AlchemyData.autoProcess(this);
 	    infoDirty = false;
 	} catch (Loading ignore) {}
     }

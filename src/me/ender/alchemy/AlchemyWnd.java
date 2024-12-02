@@ -59,7 +59,7 @@ public class AlchemyWnd extends WindowX implements DTarget {
     @Override
     public boolean drop(Drop ev) {
 	boolean storeRecipe = !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get() || strip.getSelectedButtonIndex() == 1;
-	AlchemyData.categorize(ev.src.item, storeRecipe);
+	AlchemyData.process(ev.src.item, storeRecipe);
 	return true;
     }
 
