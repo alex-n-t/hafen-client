@@ -2,6 +2,7 @@ package me.ender.alchemy;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 public class Ingredient {
     final public Collection<Effect> effects;
@@ -25,5 +26,31 @@ public class Ingredient {
 
 	//add remaining effects
 	this.effects.addAll(effects);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+	if(!(obj instanceof Ingredient)) {return false;}
+	Ingredient other = (Ingredient) obj;
+
+	if(effects.size() != other.effects.size()) {
+	    return false;
+	}
+
+	for (Effect thisEff : effects) {
+	    boolean found = false;
+
+	    for (Effect otherEff : other.effects) {
+		//compare raw instead of using equals() to make sure any changes to opt are detected
+		if(Objects.equals(thisEff.raw, otherEff.raw)) {
+		    found = true;
+		    break;
+		}
+	    }
+
+	    if(!found) {return false;}
+	}
+
+	return true;
     }
 }

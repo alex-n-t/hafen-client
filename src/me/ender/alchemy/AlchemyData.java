@@ -213,11 +213,14 @@ public class AlchemyData {
 	    updateCombos(elixir);
 	} else if(!isElixir && !effects.isEmpty() && isNatural(res)) {
 	    initIngredients();
-	    Ingredient ingredient = new Ingredient(effects, INGREDIENTS.get(res));
-	    INGREDIENTS.put(res, ingredient);
-	    Reactor.event(INGREDIENTS_UPDATED);
-	    saveIngredients();
-	    updateIngredientList(res);
+	    Ingredient base = INGREDIENTS.get(res);
+	    Ingredient ingredient = new Ingredient(effects, base);
+	    if(base == null || !Objects.equals(ingredient, base)) {
+		INGREDIENTS.put(res, ingredient);
+		Reactor.event(INGREDIENTS_UPDATED);
+		saveIngredients();
+		updateIngredientList(res);
+	    }
 	    effectsChanged = tryAddUnknownEffects(ingredient);
 	}
 
