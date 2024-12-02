@@ -19,6 +19,11 @@ import java.util.stream.Collectors;
 public class Effect {
     private static final boolean INCLUDE_NUMBERS = false; //TODO: add an option for this
 
+    public static final String A = "a";
+    public static final String B = "b";
+    public static final String C = "c";
+    public static final String D = "d";
+
     public static final String BUFF = "buff";
     public static final String HEAL = "heal";
     public static final String WOUND = "wound";
@@ -28,10 +33,10 @@ public class Effect {
     public static final String MORE = "more";
 
 
-    public final String raw;
+    public String raw;
     public final String type;
     public final String res;
-    public final String opt;
+    public String opt;
 
     private String name = null;
 
@@ -92,8 +97,46 @@ public class Effect {
 
     public String type() {return type;}
 
-    //TODO: implement
-    public int order() {return 0;}
+    public int order() {
+	int value = 0;
+	
+	if(isEnabled(A)) {value -= 8;}
+	if(isEnabled(B)) {value -= 4;}
+	if(isEnabled(C)) {value -= 2;}
+	if(isEnabled(D)) {value -= 1;}
+	
+	return value;
+    }
+
+    public boolean isEnabled(String pos) {
+	if(opt == null) {
+	    return true;
+	}
+	return opt.contains(pos);
+    }
+
+    public void toggle(String pos) {
+	boolean a = isEnabled(A);
+	boolean b = isEnabled(B);
+	boolean c = isEnabled(C);
+	boolean d = isEnabled(D);
+
+	if(Objects.equals(pos, A)) {
+	    a = !a;
+	} else if(Objects.equals(pos, B)) {
+	    b = !b;
+	} else if(Objects.equals(pos, C)) {
+	    c = !c;
+	} else if(Objects.equals(pos, D)) {
+	    d = !d;
+	}
+	boolean all = a && b && c && d;
+
+	opt = all ? null : String.format("%s%s%s%s", a ? A : "", b ? B : "", c ? C : "", d ? D : "");
+	raw = opt == null
+	    ? String.format("%s:%s", type, res)
+	    : String.format("%s:%s:%s", type, res, opt);
+    }
 
     public String name() {
 	if(name == null) {
