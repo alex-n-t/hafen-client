@@ -22,7 +22,7 @@ public class EffectFilter implements IAlchemyItemFilter {
 	Set<Effect> effects = new HashSet<>();
 
 	for (ItemInfo info : item.info()) {
-	    AlchemyData.tryAddEffect(1, effects, info);
+	    AlchemyData.tryAddIngredientEffect(effects, info);
 	}
 
 	return !testedEffects.containsAll(effects);

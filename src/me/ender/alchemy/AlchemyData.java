@@ -170,7 +170,7 @@ public class AlchemyData {
 	    categorize(item, !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get());
 	}
     }
-    
+
     public static void categorize(GItem item, boolean storeRecipe) {
 	String res = item.resname();
 	List<ItemInfo> infos = item.info();
@@ -190,13 +190,12 @@ public class AlchemyData {
 		//noinspection unchecked
 		List<ItemInfo> effs = (List<ItemInfo>) Reflect.getFieldValue(info, "effs");
 		for (ItemInfo eff : effs) {
-		    tryAddEffect(qc, effects, eff);
+		    tryAddElixirEffect(qc, effects, eff);
 		}
-		//TODO: detect less/more time effects in elixirs?
 	    } else if(info instanceof haven.res.ui.tt.alch.recipe.Recipe) {
 		recipe = Recipe.from(res, (haven.res.ui.tt.alch.recipe.Recipe) info);
 	    } else {
-		tryAddEffect(qc, effects, info);
+		tryAddIngredientEffect(effects, info);
 	    }
 	}
 
@@ -350,16 +349,24 @@ public class AlchemyData {
 	return null;
     }
 
-    public static void tryAddEffect(double qc, Collection<Effect> effects, ItemInfo info) {
+    public static void tryAddIngredientEffect(Collection<Effect> effects, ItemInfo info) {
 	if(info instanceof BuffAttr) {
 	    effects.add(new Effect(Effect.BUFF, ((BuffAttr) info).res));
-	} else if(info instanceof AttrMod) {
+	} else if(info instanceof HealWound) {
+	    effects.add(new Effect(Effect.HEAL, ((HealWound) info).res));
+	} else if(info instanceof LessTime) {
+	    effects.add(new Effect(Effect.TIME, Effect.LESS));
+	} else if(info instanceof MoreTime) {
+	    effects.add(new Effect(Effect.TIME, Effect.MORE));
+	}
+    }
+
+    public static void tryAddElixirEffect(double qc, Collection<Effect> effects, ItemInfo info) {
+	if(info instanceof AttrMod) {
 	    for (AttrMod.Mod mod : ((AttrMod) info).mods) {
 		long a = Math.round(qc * mod.mod);
 		effects.add(new Effect(Effect.BUFF, mod.attr.name, Long.toString(a)));
 	    }
-	} else if(info instanceof HealWound) {
-	    effects.add(new Effect(Effect.HEAL, ((HealWound) info).res));
 	} else if(Reflect.is(info, "HealWound")) {
 	    //this is from elixir, it uses different resource and has value
 	    //noinspection unchecked
@@ -373,11 +380,8 @@ public class AlchemyData {
 	    //TODO: try to find base wound magnitude
 	    int a = Reflect.getFieldValueInt(info, "a");
 	    effects.add(new Effect(Effect.WOUND, res, Long.toString(a)));
-	} else if(info instanceof LessTime) {
-	    effects.add(new Effect(Effect.TIME, Effect.LESS));
-	} else if(info instanceof MoreTime) {
-	    effects.add(new Effect(Effect.TIME, Effect.MORE));
 	}
+	//TODO: detect less/more time effects in elixirs?
     }
 
     public static boolean isNatural(String res) {
