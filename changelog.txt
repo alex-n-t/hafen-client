@@ -1,3 +1,8 @@
+$size[14]{$u{Update for 02.12.24:}
+  * slight tweaks to inventory sorter's ordering
+  * Alchemy: ingredient tab got rework - it now allows tracking tested/untested effects on ingredients and tracking possible positions of an effect
+  * Alchemy: if Alchemy window or effect/combo tracking window are open, then ingredients and elixirs would be auto-processed for their info
+ 
 $size[14]{$u{Update for 01.12.24:}
   * merged loftar's changes
   * some small tweaks to Alchemy window and its help
