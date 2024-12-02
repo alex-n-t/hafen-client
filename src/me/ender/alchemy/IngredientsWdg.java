@@ -185,7 +185,8 @@ class IngredientsWdg extends Widget {
 
     private static class InfoList extends Listbox<Effect> {
 	private static final Tex MARK_X = Resource.loadtex("gfx/hud/mark-x");
-	private static final Coord NAME_C = Coord.of(CheckBox.smark.sz().x + AlchemyWnd.PAD, 0);
+	private static final Coord MARK_C = Coord.of(0, UI.scale(1));
+	private static final Coord NAME_C = Coord.of(AlchemyWnd.ITEM_H, 0);
 	public static final Comparator<Effect> COMPARATOR = Comparator.comparing(Effect::order)
 	    .thenComparing(Effect::type)
 	    .thenComparing(Effect::name);
@@ -224,17 +225,15 @@ class IngredientsWdg extends Widget {
 
 	@Override
 	protected void drawitem(GOut g, Effect item, int i) {
-	    Coord nc = Coord.z;
 	    if(check != null) {
 		if(check.contains(item)) {
-		    g.image(CheckBox.smark, Coord.z);
+		    g.image(CheckBox.smark, MARK_C);
 		} else {
-		    g.image(MARK_X, Coord.z);
+		    g.image(MARK_X, MARK_C);
 		}
-		nc = NAME_C;
 	    }
 
-	    g.image(nameProvider.tex(item), nc);
+	    g.image(nameProvider.tex(item), NAME_C);
 	}
     }
 }

@@ -201,7 +201,8 @@ public class ComboWdg extends Widget {
     }
 
     private static class ComboList extends FilteredListBox<String> {
-	private static final Coord NAME_C = Coord.of(CheckBox.smark.sz().x + AlchemyWnd.PAD, 0);
+	private static final Coord MARK_C = Coord.of(0, UI.scale(1));
+	private static final Coord NAME_C = Coord.of(AlchemyWnd.ITEM_H, 0);
 	private final NamesProvider nameProvider;
 	private boolean dirty = true;
 	private String target = null;
@@ -275,7 +276,7 @@ public class ComboWdg extends Widget {
 	@Override
 	protected void drawitem(GOut g, String item, int i) {
 	    if(combos.contains(item)) {
-		g.image(CheckBox.smark, Coord.z);
+		g.image(CheckBox.smark, MARK_C);
 	    }
 	    g.image(nameProvider.tex(item), NAME_C);
 	}
