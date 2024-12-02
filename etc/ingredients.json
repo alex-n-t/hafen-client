@@ -12,6 +12,7 @@
   },
   "gfx/invobjs/basalt": {
     "effects": [
+      "buff:gfx/hud/chr/ranged",
       "buff:gfx/hud/chr/unarmed"
     ]
   },
@@ -19,7 +20,14 @@
     "effects": [
       "heal:paginae/wound/beesting",
       "heal:paginae/wound/pipewheeze",
+      "heal:paginae/wound/soresnout",
       "heal:paginae/wound/unfaced"
+    ]
+  },
+  "gfx/invobjs/chalcopyrite": {
+    "effects": [
+      "buff:gfx/hud/chr/con",
+      "buff:gfx/hud/chr/psy"
     ]
   },
   "gfx/invobjs/diorite": {
@@ -46,6 +54,12 @@
   "gfx/invobjs/feldspar": {
     "effects": [
       "buff:gfx/hud/chr/farming"
+    ]
+  },
+  "gfx/invobjs/finebonering": {
+    "effects": [
+      "buff:gfx/hud/chr/agi:0",
+      "buff:gfx/hud/chr/str:0"
     ]
   },
   "gfx/invobjs/flint": {
@@ -75,6 +89,11 @@
       "time:less"
     ]
   },
+  "gfx/invobjs/herbs/blueberry": {
+    "effects": [
+      "heal:paginae/wound/hearthburn"
+    ]
+  },
   "gfx/invobjs/herbs/cattailfibre": {
     "effects": [
       "buff:gfx/hud/chr/csm",
@@ -84,7 +103,21 @@
   },
   "gfx/invobjs/herbs/cattailhead": {
     "effects": [
-      "heal:paginae/wound/crabcaressed"
+      "buff:gfx/hud/chr/int",
+      "heal:paginae/wound/crabcaressed",
+      "heal:paginae/wound/hearthburn",
+      "time:more"
+    ]
+  },
+  "gfx/invobjs/herbs/cattailroots": {
+    "effects": [
+      "buff:gfx/hud/chr/psy",
+      "heal:paginae/wound/maddeningrash"
+    ]
+  },
+  "gfx/invobjs/herbs/cavebulb": {
+    "effects": [
+      "heal:paginae/wound/nastylaceration"
     ]
   },
   "gfx/invobjs/herbs/chantrelle": {
@@ -98,6 +131,7 @@
   "gfx/invobjs/herbs/clover": {
     "effects": [
       "buff:gfx/hud/chr/farming",
+      "heal:paginae/wound/nastylaceration",
       "heal:paginae/wound/nettleburn"
     ]
   },
@@ -114,6 +148,16 @@
       "buff:gfx/hud/chr/wil"
     ]
   },
+  "gfx/invobjs/herbs/lampstalk": {
+    "effects": [
+      "buff:gfx/hud/chr/dex"
+    ]
+  },
+  "gfx/invobjs/herbs/libertycap": {
+    "effects": [
+      "heal:paginae/wound/punchsore"
+    ]
+  },
   "gfx/invobjs/herbs/lingon": {
     "effects": [
       "buff:gfx/hud/chr/con",
@@ -122,12 +166,19 @@
   },
   "gfx/invobjs/herbs/oystermushroom": {
     "effects": [
-      "buff:gfx/hud/chr/csm"
+      "buff:gfx/hud/chr/csm",
+      "buff:gfx/hud/chr/int",
+      "heal:paginae/wound/nosebleed"
     ]
   },
   "gfx/invobjs/herbs/rustroot": {
     "effects": [
       "buff:gfx/hud/chr/masonry"
+    ]
+  },
+  "gfx/invobjs/herbs/snapdragon": {
+    "effects": [
+      "buff:gfx/hud/chr/psy"
     ]
   },
   "gfx/invobjs/herbs/spindlytaproot": {
@@ -139,7 +190,8 @@
   },
   "gfx/invobjs/herbs/stingingnettle": {
     "effects": [
-      "buff:gfx/hud/chr/int"
+      "buff:gfx/hud/chr/int",
+      "heal:paginae/wound/nosebleed"
     ]
   },
   "gfx/invobjs/herbs/tansy": {
@@ -167,6 +219,7 @@
   },
   "gfx/invobjs/jasper": {
     "effects": [
+      "buff:gfx/hud/chr/int",
       "heal:paginae/wound/crabcaressed"
     ]
   },
@@ -176,10 +229,21 @@
       "buff:gfx/hud/chr/farming"
     ]
   },
+  "gfx/invobjs/leadtalisman": {
+    "effects": [
+      "buff:gfx/hud/chr/psy:0",
+      "buff:gfx/hud/chr/str:0"
+    ]
+  },
   "gfx/invobjs/limestone": {
     "effects": [
       "heal:paginae/wound/nettleburn:bcd",
       "time:less"
+    ]
+  },
+  "gfx/invobjs/nettleshirt": {
+    "effects": [
+      "buff:gfx/hud/chr/agi:0"
     ]
   },
   "gfx/invobjs/orthoclase": {
@@ -188,14 +252,34 @@
       "heal:paginae/wound/crabcaressed"
     ]
   },
+  "gfx/invobjs/pegmatite": {
+    "effects": [
+      "buff:gfx/hud/chr/survive",
+      "heal:paginae/wound/soresnout"
+    ]
+  },
+  "gfx/invobjs/pumice": {
+    "effects": [
+      "buff:gfx/hud/chr/melee",
+      "heal:paginae/wound/nettleburn"
+    ]
+  },
   "gfx/invobjs/quartz": {
     "effects": [
-      "buff:gfx/hud/chr/con"
+      "buff:gfx/hud/chr/con",
+      "buff:gfx/hud/chr/survive"
+    ]
+  },
+  "gfx/invobjs/raiderscap": {
+    "effects": [
+      "buff:gfx/hud/chr/str:0"
     ]
   },
   "gfx/invobjs/serpentine": {
     "effects": [
-      "buff:gfx/hud/chr/agi"
+      "buff:gfx/hud/chr/agi",
+      "buff:gfx/hud/chr/carpentry",
+      "buff:gfx/hud/chr/dex"
     ]
   },
   "gfx/invobjs/zincspar": {
