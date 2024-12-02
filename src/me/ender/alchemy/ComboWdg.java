@@ -1,7 +1,6 @@
 package me.ender.alchemy;
 
 import haven.*;
-import me.ender.ClientUtils;
 import me.ender.ui.TabStrip;
 
 import java.util.HashSet;
@@ -18,7 +17,6 @@ public class ComboWdg extends Widget {
     private final NamesProvider namesProvider;
     private final IngredientList ingredients;
     private final ComboList combo;
-    private final ACheckBox highlight;
     private final TabStrip<String> strip;
     private boolean initialized = false;
 
@@ -41,8 +39,10 @@ public class ComboWdg extends Widget {
 
 	add(strip, p.addy(-strip.sz.y));
 
-	highlight = new CheckBox("Highlight").changed(this::highlight);
-	highlight.settip("Highlight all ingredients that are not tested against selected one");
+	Widget highlight = new Button(UI.scale(90), "Track combos", false)
+	    .action(this::highlight)
+	    .settip("Highlight all ingredients that are not tested against selected one");
+	
 	add(highlight, combo.pos("ur").sub(highlight.sz).addy(-AlchemyWnd.PAD));
 
 	pack();
@@ -53,30 +53,14 @@ public class ComboWdg extends Widget {
 	super.draw(g);
 
 	if(!initialized && ui != null) {
-	    highlight.a = ui.gui.getchild(Track.class) != null;
 	    ingredients.change(LAST_SELECTED_INGREDIENT);
 	    ingredients.showsel();
 	    initialized = true;
 	}
     }
 
-    private void highlight(Boolean highlight) {
-	Track tracker = ui.gui.getchild(Track.class);
-
-	if(Boolean.TRUE.equals(highlight)) {
-	    if(tracker == null) {
-		tracker = ui.gui.add(new Track(), ClientUtils.getScreenCenter(ui));
-	    }
-
-	    String target = combo.target;
-	    if(target == null) {
-		tracker.highlight(null, null);
-	    } else {
-		tracker.highlight(target, namesProvider.tex(target));
-	    }
-	} else if(tracker != null) {
-	    tracker.close();
-	}
+    private void highlight() {
+	TrackWnd.track(ui, combo.target, false, false, namesProvider);
     }
 
     private void onTabSelected(String tab) {
@@ -87,57 +71,7 @@ public class ComboWdg extends Widget {
     private void onIngredientChanged(String res) {
 	LAST_SELECTED_INGREDIENT = res;
 	combo.setTarget(res);
-	highlight(highlight.a);
-    }
-
-    private static class Track extends WindowX implements DTarget {
-	Tex image;
-	String res = null;
-	private final Coord IMG_C;
-
-	public Track() {
-	    super(Coord.of(AlchemyWnd.LIST_W, UI.scale(32)), "Ingredient Track");
-	    justclose = true;
-	    IMG_C = add(new Label("Highlight untested combinations for:")).pos("bl");
-
-	    listen(AlchemyData.COMBOS_UPDATED, this::update);
-	}
-
-	@Override
-	public boolean drop(Drop ev) {
-	    AlchemyData.categorize(ev.src.item, !CFG.ALCHEMY_LIMIT_RECIPE_SAVE.get());
-	    return true;
-	}
-
-	private void update() {
-	    if(res != null) {
-		highlight(res, image);
-	    }
-	}
-
-	@Override
-	public void dispose() {
-	    GItem.setAlchemyFilter(null);
-	    super.dispose();
-	}
-
-	@Override
-	public void cdraw(GOut g) {
-	    if(image != null) {
-		g.image(image, IMG_C);
-	    }
-	    super.cdraw(g);
-	}
-
-	public void highlight(String res, Tex img) {
-	    image = img;
-	    this.res = res;
-	    if(res == null) {
-		GItem.setAlchemyFilter(null);
-	    } else {
-		GItem.setAlchemyFilter(new ComboFilter(AlchemyData.combos(res)));
-	    }
-	}
+	TrackWnd.track(ui, combo.target, false, true, namesProvider);
     }
 
     private static class IngredientList extends FilteredListBox<String> {

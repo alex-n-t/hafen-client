@@ -1,6 +1,7 @@
 package me.ender.alchemy;
 
 import haven.*;
+import haven.Button;
 import me.ender.ui.TabStrip;
 
 import java.awt.*;
@@ -15,6 +16,7 @@ class IngredientsWdg extends Widget {
 
     private static String LAST_SELECTED_INGREDIENT;
     private static String LAST_SELECTED_TAB = KNOWN;
+    private final NamesProvider nameProvider;
 
     private String selectedTab = LAST_SELECTED_TAB;
     private final InfoList info;
@@ -27,6 +29,7 @@ class IngredientsWdg extends Widget {
     private final Set<Effect> untested = new HashSet<>();
 
     IngredientsWdg(NamesProvider nameProvider) {
+	this.nameProvider = nameProvider;
 	IngredientList ingredientList = new IngredientList(nameProvider, this::onSelectionChanged);
 	Coord p = add(ingredientList, AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
 
@@ -48,7 +51,17 @@ class IngredientsWdg extends Widget {
 	listen(AlchemyData.COMBOS_UPDATED, this::onDataUpdated);
 	listen(AlchemyData.EFFECTS_UPDATED, this::onDataUpdated);
 
+	Widget highlight = new Button(UI.scale(90), "Track combos", false)
+	    .action(this::highlight)
+	    .settip("Highlight all ingredients that have effects not tested against selected ingredient");
+
+	add(highlight, info.pos("ur").sub(highlight.sz).addy(-AlchemyWnd.PAD));
+
 	pack();
+    }
+
+    private void highlight() {
+	TrackWnd.track(ui, selectedName, true, false, nameProvider);
     }
 
     private void onDataUpdated() {
@@ -67,6 +80,7 @@ class IngredientsWdg extends Widget {
 
 	effectsDirty = true;
 	updateInfo();
+	TrackWnd.track(ui, selectedName, true, true, nameProvider);
     }
 
     private void updateInfo() {
@@ -99,13 +113,7 @@ class IngredientsWdg extends Widget {
 	untested.clear();
 	if(selected == null || selectedName == null) {return;}
 
-	tested.addAll(selected.effects);
-
-	for (String combo : AlchemyData.combos(selectedName)) {
-	    Ingredient ingredient = AlchemyData.ingredient(combo);
-	    if(ingredient == null) {continue;}
-	    tested.addAll(ingredient.effects);
-	}
+	tested.addAll(AlchemyData.testedEffects(selectedName));
 
 	for (Effect effect : AlchemyData.effects()) {
 	    if(tested.contains(effect)) {continue;}

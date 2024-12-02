@@ -34,6 +34,7 @@ public class Effect {
 
 
     public String raw;
+    public final String id;
     public final String type;
     public final String res;
     public String opt;
@@ -53,6 +54,7 @@ public class Effect {
 	}
 
 	this.opt = parts.length >= 3 ? parts[2] : null;
+	id = String.format("%s:%s", type, res);
     }
 
     public Effect(String type, String res, String opt) {
@@ -63,6 +65,8 @@ public class Effect {
 	this.raw = opt == null
 	    ? String.format("%s:%s", type, res)
 	    : String.format("%s:%s:%s", type, res, opt);
+	
+	id = String.format("%s:%s", type, res);
     }
 
     public Effect(String type, String res) {
@@ -188,13 +192,13 @@ public class Effect {
 
     @Override
     public int hashCode() {
-	return raw.hashCode();
+	return id.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
 	if(obj instanceof Effect) {
-	    return Objects.equals(raw, ((Effect) obj).raw);
+	    return Objects.equals(id, ((Effect) obj).id);
 	}
 	return false;
     }

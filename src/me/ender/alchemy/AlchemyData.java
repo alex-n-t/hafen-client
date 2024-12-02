@@ -37,6 +37,7 @@ public class AlchemyData {
     private static final Gson GSON = new GsonBuilder()
 	.registerTypeAdapter(Effect.class, new Effect.Adapter())
 	.create();
+    public static final int MAX_EFFECTS = 4;
 
     private static boolean initializedIngredients = false;
     private static boolean initializedElixirs = false;
@@ -73,13 +74,14 @@ public class AlchemyData {
     private static void initEffects() {
 	if(initializedEffects) {return;}
 	initializedEffects = true;
-	loadEffectList(Config.loadFile(EFFECTS_JSON));
+	loadEffectList(Config.loadJarFile(EFFECTS_JSON));
+	loadEffectList(Config.loadFSFile(EFFECTS_JSON));
 
 	boolean changed = false;
 
 	initIngredients();
 	for (Ingredient ingredient : INGREDIENTS.values()) {
-	    changed = EFFECTS.addAll(ingredient.effects) || changed;
+	    changed = tryAddUnknownEffects(ingredient) || changed;
 	}
 
 	initElixirs();
@@ -209,7 +211,7 @@ public class AlchemyData {
 	    Reactor.event(INGREDIENTS_UPDATED);
 	    saveIngredients();
 	    updateIngredientList(res);
-	    effectsChanged = EFFECTS.addAll(ingredient.effects);
+	    effectsChanged = tryAddUnknownEffects(ingredient);
 	}
 
 	if(effectsChanged) {
@@ -292,6 +294,31 @@ public class AlchemyData {
 	return EFFECTS;
     }
 
+    public static Set<Effect> testedEffects(String res) {
+	if(res == null) {return Collections.emptySet();}
+	initEffects();
+	Ingredient ingredient = ingredient(res);
+	if(ingredient == null) {return Collections.emptySet();}
+	if(ingredient.effects.size() == MAX_EFFECTS) {return effects();}
+
+	Set<Effect> tested = new HashSet<>(ingredient.effects);
+
+	for (String combo : AlchemyData.combos(res)) {
+	    ingredient = AlchemyData.ingredient(combo);
+	    if(ingredient == null) {continue;}
+	    tested.addAll(ingredient.effects);
+	}
+	return tested;
+    }
+
+    public static boolean tryAddUnknownEffects(Ingredient ingredient) {
+	boolean changed = false;
+	for (Effect effect : ingredient.effects) {
+	    changed = EFFECTS.add(new Effect(effect.type, effect.res)) || changed;
+	}
+	return changed;
+    }
+
     public static boolean tryAddUnknownEffects(Elixir elixir) {
 	boolean changed = false;
 	for (Effect effect : elixir.effects) {
@@ -311,7 +338,7 @@ public class AlchemyData {
 	return null;
     }
 
-    private static void tryAddEffect(double qc, Collection<Effect> effects, ItemInfo info) {
+    public static void tryAddEffect(double qc, Collection<Effect> effects, ItemInfo info) {
 	if(info instanceof BuffAttr) {
 	    effects.add(new Effect(Effect.BUFF, ((BuffAttr) info).res));
 	} else if(info instanceof AttrMod) {
