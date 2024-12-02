@@ -22,8 +22,6 @@ public class AlchemyData {
     private static final String COMBOS_JSON = "combos.json";
     private static final String EFFECTS_JSON = "all_effects.json";
 
-    public static boolean DBG = Config.get().getprop("ender.debug.alchemy", "off").equals("on");
-
     public static final String INGREDIENTS_UPDATED = "ALCHEMY:INGREDIENTS:UPDATED";
     public static final String ELIXIRS_UPDATED = "ALCHEMY:ELIXIRS:UPDATED";
     public static final String COMBOS_UPDATED = "ALCHEMY:COMBOS:UPDATED";
@@ -166,7 +164,6 @@ public class AlchemyData {
 
     public static void categorize(GItem item, boolean storeRecipe) {
 	String res = item.resname();
-	String name = item.name.get();
 	List<ItemInfo> infos = item.info();
 	double q = item.itemq.get().single().value;
 	double qc = q > 0 ? 1d / Math.sqrt(10 * q) : 1d;
@@ -219,15 +216,6 @@ public class AlchemyData {
 	if(effectsChanged) {
 	    Reactor.event(EFFECTS_UPDATED);
 	    saveEffects();
-	}
-
-	if(DBG) {
-	    long wounds = effects.stream().filter(e -> e.type.equals(Effect.WOUND)).count();
-	    boolean dud = wounds == effects.size();
-	    String sEffects = effects.stream().map(e -> e.raw).collect(Collectors.joining(", "));
-
-	    System.out.printf("'%s' => elixir:%b, wounds:%d, dud: %b, effects: [%s], recipe:%s %n",
-		name, isElixir, wounds, dud, sEffects, recipe);
 	}
     }
 
