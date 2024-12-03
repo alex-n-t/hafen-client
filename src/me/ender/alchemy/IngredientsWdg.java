@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static me.ender.alchemy.AlchemyWnd.*;
+
 class IngredientsWdg extends Widget {
     private static final String KNOWN = "Known";
     private static final String TESTED = "Tested";
@@ -32,11 +34,11 @@ class IngredientsWdg extends Widget {
     IngredientsWdg(NamesProvider nameProvider) {
 	this.nameProvider = nameProvider;
 	IngredientList ingredientList = new IngredientList(nameProvider, this::onSelectionChanged);
-	Coord p = add(ingredientList, AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
+	Coord p = add(ingredientList, PAD, PAD).pos("br");
 
 
 	info = new InfoList(nameProvider);
-	p = add(info, p.add(AlchemyWnd.GAP, -info.sz.y)).pos("ul");
+	p = add(info, p.add(GAP, -info.sz.y)).pos("ul");
 
 	TabStrip<String> tabs = new TabStrip<>(this::onTabSelected);
 
@@ -58,8 +60,8 @@ class IngredientsWdg extends Widget {
 
 	CFGBox cfgBox = new CFGBox("Deeper tracking", CFG.ALCHEMY_DEEP_EFFECT_TRACK, "Will also highlight ingredients that have unknown effects and some of the untested effects of that ingredient are also untested for tracked one.");
 	
-	p = info.pos("ur").addy(-AlchemyWnd.PAD);
-	p = adda(cfgBox, p, 1, 1).pos("ur").addy(-AlchemyWnd.PAD);
+	p = info.pos("ur").addy(-PAD);
+	p = adda(cfgBox, p, 1, 1).pos("ur").addy(-PAD);
 	adda(highlight, p, 1, 1);
 
 	pack();
@@ -140,10 +142,10 @@ class IngredientsWdg extends Widget {
 	private boolean init = false;
 
 	public IngredientList(NamesProvider nameProvider, Consumer<String> onChanged) {
-	    super(AlchemyWnd.LIST_W, AlchemyWnd.ITEMS, AlchemyWnd.ITEM_H);
+	    super(LIST_W, ITEMS, ITEM_H);
 	    this.nameProvider = nameProvider;
 	    this.onChanged = onChanged;
-	    bgcolor = AlchemyWnd.BGCOLOR;
+	    bgcolor = BGCOLOR;
 	    listen(AlchemyData.INGREDIENTS_UPDATED, this::update);
 	}
 
@@ -208,10 +210,10 @@ class IngredientsWdg extends Widget {
 	private static final Tex C = ABCD.layer(Resource.imgc, 2).tex();
 	private static final Tex D = ABCD.layer(Resource.imgc, 3).tex();
 
-	private static final Coord DC = Coord.of(AlchemyWnd.CONTENT_W - AlchemyWnd.PAD - AlchemyWnd.ITEM_H, 0);
-	private static final Coord CC = DC.addx(-AlchemyWnd.ITEM_H);
-	private static final Coord BC = CC.addx(-AlchemyWnd.ITEM_H);
-	private static final Coord AC = BC.addx(-AlchemyWnd.ITEM_H);
+	private static final Coord DC = Coord.of(CONTENT_W - PAD - ITEM_H, 0);
+	private static final Coord CC = DC.addx(-ITEM_H);
+	private static final Coord BC = CC.addx(-ITEM_H);
+	private static final Coord AC = BC.addx(-ITEM_H);
 
 	private static final Color ON = new Color(160, 235, 255);
 	private static final Color ONO = new Color(97, 243, 226);
@@ -220,7 +222,7 @@ class IngredientsWdg extends Widget {
 
 	private static final Tex MARK_X = Resource.loadtex("gfx/hud/mark-x");
 	private static final Coord MARK_C = Coord.of(0, UI.scale(1));
-	private static final Coord NAME_C = Coord.of(AlchemyWnd.ITEM_H, 0);
+	private static final Coord NAME_C = Coord.of(ITEM_H, 0);
 	public static final Comparator<Effect> COMPARATOR = Comparator.comparing(Effect::type)
 	    .thenComparing(Effect::name);
 	public static final Comparator<Effect> ORDERATOR = Comparator.comparing(Effect::order)
@@ -236,8 +238,8 @@ class IngredientsWdg extends Widget {
 	public boolean order = false;
 
 	public InfoList(NamesProvider nameProvider) {
-	    super(AlchemyWnd.CONTENT_W, AlchemyWnd.ITEMS - 3, AlchemyWnd.ITEM_H);
-	    bgcolor = AlchemyWnd.BGCOLOR;
+	    super(CONTENT_W, ITEMS - 3, ITEM_H);
+	    bgcolor = BGCOLOR;
 	    this.nameProvider = nameProvider;
 	}
 
@@ -316,7 +318,7 @@ class IngredientsWdg extends Widget {
 	    if(x >= AC.x && x < BC.x) {return Effect.A;}
 	    if(x >= BC.x && x < CC.x) {return Effect.B;}
 	    if(x >= CC.x && x < DC.x) {return Effect.C;}
-	    if(x >= DC.x && x < DC.x + AlchemyWnd.ITEM_H) {return Effect.D;}
+	    if(x >= DC.x && x < DC.x + ITEM_H) {return Effect.D;}
 	    return null;
 	}
     }

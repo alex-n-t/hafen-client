@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static me.ender.alchemy.AlchemyWnd.*;
+
 public class ComboWdg extends Widget {
     private static final String ALL = "All";
     private static final String TESTED = "Tested";
@@ -26,10 +28,10 @@ public class ComboWdg extends Widget {
 	this.namesProvider = namesProvider;
 
 	ingredients = new IngredientList(namesProvider, this::onIngredientChanged);
-	Coord p = add(ingredients, AlchemyWnd.PAD, AlchemyWnd.PAD).pos("br");
+	Coord p = add(ingredients, PAD, PAD).pos("br");
 
 	combo = new ComboList(namesProvider);
-	p = add(combo, p.add(AlchemyWnd.GAP, -combo.sz.y)).pos("ul");
+	p = add(combo, p.add(GAP, -combo.sz.y)).pos("ul");
 
 	strip = new TabStrip<>(this::onTabSelected);
 
@@ -44,7 +46,7 @@ public class ComboWdg extends Widget {
 	    .action(this::highlight)
 	    .settip("Highlight all ingredients that are not tested against selected one", CFGBox.TT_WIDTH);
 	
-	add(highlight, combo.pos("ur").sub(highlight.sz).addy(-AlchemyWnd.PAD));
+	add(highlight, combo.pos("ur").sub(highlight.sz).addy(-PAD));
 
 	pack();
     }
@@ -81,8 +83,8 @@ public class ComboWdg extends Widget {
 	private boolean dirty = true;
 
 	public IngredientList(NamesProvider nameProvider, Consumer<String> onChanged) {
-	    super(AlchemyWnd.LIST_W, AlchemyWnd.ITEMS, AlchemyWnd.ITEM_H);
-	    bgcolor = AlchemyWnd.BGCOLOR;
+	    super(LIST_W, ITEMS, ITEM_H);
+	    bgcolor = BGCOLOR;
 
 	    this.nameProvider = nameProvider;
 	    this.onChanged = onChanged;
@@ -137,15 +139,15 @@ public class ComboWdg extends Widget {
 
     private static class ComboList extends FilteredListBox<String> {
 	private static final Coord MARK_C = Coord.of(0, UI.scale(1));
-	private static final Coord NAME_C = Coord.of(AlchemyWnd.ITEM_H, 0);
+	private static final Coord NAME_C = Coord.of(ITEM_H, 0);
 	private final NamesProvider nameProvider;
 	private boolean dirty = true;
 	private String target = null;
 	private final Set<String> combos = new HashSet<>();
 
 	public ComboList(NamesProvider nameProvider) {
-	    super(AlchemyWnd.CONTENT_W, AlchemyWnd.ITEMS - 2, AlchemyWnd.ITEM_H);
-	    bgcolor = AlchemyWnd.BGCOLOR;
+	    super(CONTENT_W, ITEMS - 2, ITEM_H);
+	    bgcolor = BGCOLOR;
 	    showFilterText = false;
 	    this.nameProvider = nameProvider;
 

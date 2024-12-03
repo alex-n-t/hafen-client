@@ -6,15 +6,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static me.ender.alchemy.AlchemyWnd.*;
+
 class RecipesWdg extends Widget {
     private final ElixirWdg elixir;
 
 
     RecipesWdg() {
 	ElixirList list = new ElixirList(this::onSelectionChanged);
-	Coord p = add(list, AlchemyWnd.PAD, AlchemyWnd.PAD).pos("ur");
+	Coord p = add(list, PAD, PAD).pos("ur");
 
-	elixir = add(new ElixirWdg(AlchemyWnd.CONTENT_W, list.sz.y), p.addx(AlchemyWnd.GAP));
+	elixir = add(new ElixirWdg(CONTENT_W, list.sz.y), p.addx(GAP));
 
 	pack();
     }
@@ -29,8 +31,8 @@ class RecipesWdg extends Widget {
 	private boolean dirty = true;
 
 	public ElixirList(Consumer<Elixir> onChanged) {
-	    super(AlchemyWnd.LIST_W, AlchemyWnd.ITEMS, AlchemyWnd.ITEM_H);
-	    bgcolor = AlchemyWnd.BGCOLOR;
+	    super(LIST_W, ITEMS, ITEM_H);
+	    bgcolor = BGCOLOR;
 	    this.onChanged = onChanged;
 	    listen(AlchemyData.ELIXIRS_UPDATED, this::onElixirsUpdated);
 	}
@@ -72,7 +74,7 @@ class RecipesWdg extends Widget {
 	    RichText text = names.getOrDefault(name, null);
 	    if(text != null) {return text;}
 
-	    text = RichText.stdfrem.render(String.format("$img[%s,h=16,c] %s", elixir.recipe.res, name), AlchemyWnd.CONTENT_W);
+	    text = RichText.stdfrem.render(String.format("$img[%s,h=16,c] %s", elixir.recipe.res, name), CONTENT_W);
 	    names.put(name, text);
 	    return text;
 	}
