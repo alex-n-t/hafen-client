@@ -165,7 +165,7 @@ public class AlchemyData {
     }
 
     public static void autoProcess(GItem item) {
-	//TODO: add option to enable/disable this?
+	if(!CFG.ALCHEMY_AUTO_PROCESS.get()) {return;}
 	if(item.ui.gui.getchild(AlchemyWnd.class) != null || item.ui.gui.getchild(TrackWnd.class) != null) {
 	    process(item, false);
 	}

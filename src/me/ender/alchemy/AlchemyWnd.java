@@ -39,7 +39,9 @@ public class AlchemyWnd extends WindowX implements DTarget {
 	    tab.c = Coord.of(p);
 	}
 
-	add(new CFGBox("Limit recipe storing", CFG.ALCHEMY_LIMIT_RECIPE_SAVE, "Will save recipe only if elixir is dropped with Recipes tab open"), strip.pos("ur").addx(GAP));
+	p = strip.pos("ur").addx(GAP);
+	p = add(new CFGBox("Limit recipe storing", CFG.ALCHEMY_LIMIT_RECIPE_SAVE, "Will save recipe only if elixir is dropped with Recipes tab open"), p).pos("ur");
+	add(new CFGBox("Auto process", CFG.ALCHEMY_AUTO_PROCESS, "While Alchemy or Ingredient Track window is open all ingredients with known effects and exixirs with known recipes you see would be recorded"), p.addx(GAP));
 
 	strip.select(CFG.ALCHEMY_LAST_TAB.get());
     }

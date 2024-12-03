@@ -153,6 +153,7 @@ public class CFG<T> {
     public static final CFG<Boolean> UI_STACK_EXT_INV_UNPACK = new CFG<>("ui.stack.ext_inv_unpack", true);
     
     public static final CFG<Boolean> ALCHEMY_LIMIT_RECIPE_SAVE = new CFG<>("alchemy.limit_recipe_saving", true);
+    public static final CFG<Boolean> ALCHEMY_AUTO_PROCESS = new CFG<>("alchemy.auto_process", false);
     public static final CFG<Integer> ALCHEMY_LAST_TAB = new CFG<>("alchemy.last_lab", 0);
 
     public static final CFG<Float> CAMERA_BRIGHT = new CFG<>("camera.bright", 0f);
