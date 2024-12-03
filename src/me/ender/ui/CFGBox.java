@@ -2,7 +2,7 @@ package me.ender.ui;
 
 import haven.CFG;
 import haven.CheckBox;
-import haven.Text;
+import haven.RichText;
 
 public class CFGBox extends CheckBox implements CFG.Observer<Boolean> {
 
@@ -22,7 +22,7 @@ public class CFGBox extends CheckBox implements CFG.Observer<Boolean> {
 	this.cfg = cfg;
 	defval();
 	if(tip != null) {
-	    tooltip = Text.render(tip).tex();
+	    tooltip = RichText.render(tip, 200).tex();
 	}
 	if(observe) {cfg.observe(this);}
     }
