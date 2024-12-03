@@ -1,3 +1,7 @@
+$size[14]{$u{Update for 03.12.24:}
+  * Alchemy: made auto-processing optional and disabled by default
+  * Alchemy: updated help
+ 
 $size[14]{$u{Update for 02.12.24:}
   * slight tweaks to inventory sorter's ordering
   * Alchemy: ingredient tab got rework - it now allows tracking tested/untested effects on ingredients and tracking possible positions of an effect
