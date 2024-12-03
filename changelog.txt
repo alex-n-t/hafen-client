@@ -1,5 +1,7 @@
 $size[14]{$u{Update for 03.12.24:}
+  * fixed rare crash when teleporting with quest/tracking pointers
   * Alchemy: made auto-processing optional and disabled by default
+  * Alchemy: added option for deeper effect tracking
   * Alchemy: updated help
  
 $size[14]{$u{Update for 02.12.24:}
