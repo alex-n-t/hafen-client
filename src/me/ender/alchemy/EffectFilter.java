@@ -1,5 +1,6 @@
 package me.ender.alchemy;
 
+import haven.CFG;
 import haven.GItem;
 import haven.ItemInfo;
 
@@ -17,14 +18,21 @@ public class EffectFilter implements IAlchemyItemFilter {
 
     @Override
     public boolean matches(GItem item) {
-	if(testedIngredients.contains(item.resname())) {return false;}
-	
+	String res = item.resname();
+	if(testedIngredients.contains(res)) {return false;}
+
 	Set<Effect> effects = new HashSet<>();
 
 	for (ItemInfo info : item.info()) {
 	    AlchemyData.tryAddIngredientEffect(effects, info);
 	}
 
-	return !testedEffects.containsAll(effects);
+	if(!testedEffects.containsAll(effects)) {return true;}
+
+	if(!CFG.ALCHEMY_DEEP_EFFECT_TRACK.get()) {return false;}
+
+	if(effects.size() >= AlchemyData.MAX_EFFECTS) {return false;}
+
+	return !testedEffects.containsAll(AlchemyData.untestedEffects(res));
     }
 }

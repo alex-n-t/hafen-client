@@ -46,7 +46,7 @@ class IngredientsWdg extends Widget {
 
 	tabs.select(selectedTab);
 
-	add(tabs, p.addy(-tabs.sz.y));
+	adda(tabs, p, 0, 1);
 
 	listen(AlchemyData.INGREDIENTS_UPDATED, this::onDataUpdated);
 	listen(AlchemyData.COMBOS_UPDATED, this::onDataUpdated);
@@ -56,7 +56,11 @@ class IngredientsWdg extends Widget {
 	    .action(this::highlight)
 	    .settip("Highlight all ingredients that have effects not tested against selected ingredient", CFGBox.TT_WIDTH);
 
-	add(highlight, info.pos("ur").sub(highlight.sz).addy(-AlchemyWnd.PAD));
+	CFGBox cfgBox = new CFGBox("Deeper tracking", CFG.ALCHEMY_DEEP_EFFECT_TRACK, "Will also highlight ingredients that have unknown effects and some of the untested effects of that ingredient are also untested for tracked one.");
+	
+	p = info.pos("ur").addy(-AlchemyWnd.PAD);
+	p = adda(cfgBox, p, 1, 1).pos("ur").addy(-AlchemyWnd.PAD);
+	adda(highlight, p, 1, 1);
 
 	pack();
     }
@@ -232,7 +236,7 @@ class IngredientsWdg extends Widget {
 	public boolean order = false;
 
 	public InfoList(NamesProvider nameProvider) {
-	    super(AlchemyWnd.CONTENT_W, AlchemyWnd.ITEMS - 2, AlchemyWnd.ITEM_H);
+	    super(AlchemyWnd.CONTENT_W, AlchemyWnd.ITEMS - 3, AlchemyWnd.ITEM_H);
 	    bgcolor = AlchemyWnd.BGCOLOR;
 	    this.nameProvider = nameProvider;
 	}

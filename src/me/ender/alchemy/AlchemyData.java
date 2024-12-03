@@ -323,6 +323,17 @@ public class AlchemyData {
 	return tested;
     }
 
+    public static Set<Effect> untestedEffects(String res) {
+	Set<Effect> tested = testedEffects(res);
+	if(tested.isEmpty()) {return Collections.emptySet();}
+
+	HashSet<Effect> effects = new HashSet<>(effects());
+	if(effects.removeAll(tested)) {
+	    return effects;
+	}
+	return Collections.emptySet();
+    }
+
     public static boolean tryAddUnknownEffects(Ingredient ingredient) {
 	boolean changed = false;
 	initEffects();
