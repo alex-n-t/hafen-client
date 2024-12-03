@@ -21,7 +21,7 @@ public class L10N {
     public static final List<String> LANGUAGES;
     public static final CFG<String> LANGUAGE = new CFG<>("i10n.language", DEFAULT_LANGUAGE);
     public static final CFG<Boolean> DBG = new CFG<>("i10n.debug", false);
-    private static final String language = LANGUAGE.get();
+    public static final String language = LANGUAGE.get();
     
     enum Bundle {
 	BUTTON("button"),

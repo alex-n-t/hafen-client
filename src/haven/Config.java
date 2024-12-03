@@ -45,6 +45,7 @@ public class Config {
     public static final Properties jarprops = getjarprops();
     public static final File HOMEDIR = getHomeDir();
     public static final String confid = get().getprop("config.client-id", "unknown");
+    public static final String clientType = get().getprop("ender.client-type", confid);
     public static final Variable<Boolean> par = Variable.def(() -> true);
     public final Properties localprops = getlocalprops();
 
