@@ -10,11 +10,11 @@ import java.util.List;
 
 public class AlchemyWnd extends WindowX implements DTarget {
     public static final int PAD = UI.scale(5);
-    static final int LIST_W = UI.scale(175);
+    static final int LIST_W = UI.scale(180);
     static final int GAP = UI.scale(25);
-    static final int ITEMS = 25;
+    static final int ITEMS = 22;
     static final int ITEM_H = UI.scale(16);
-    static final int CONTENT_W = UI.scale(275);
+    static final int CONTENT_W = UI.scale(280);
     public static final Coord WND_SZ = Coord.of(2 * PAD + LIST_W + GAP + CONTENT_W, ITEM_H * ITEMS);
     static final Color BGCOLOR = new Color(0, 0, 0, 96);
     private final List<Widget> tabs = new LinkedList<>();
