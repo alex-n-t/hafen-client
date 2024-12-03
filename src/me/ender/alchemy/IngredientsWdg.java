@@ -2,6 +2,7 @@ package me.ender.alchemy;
 
 import haven.*;
 import haven.Button;
+import me.ender.ui.CFGBox;
 import me.ender.ui.TabStrip;
 
 import java.awt.*;
@@ -51,9 +52,9 @@ class IngredientsWdg extends Widget {
 	listen(AlchemyData.COMBOS_UPDATED, this::onDataUpdated);
 	listen(AlchemyData.EFFECTS_UPDATED, this::onDataUpdated);
 
-	Widget highlight = new Button(UI.scale(90), "Track combos", false)
+	Widget highlight = new Button(UI.scale(90), "Track effects", false)
 	    .action(this::highlight)
-	    .settip("Highlight all ingredients that have effects not tested against selected ingredient");
+	    .settip("Highlight all ingredients that have effects not tested against selected ingredient", CFGBox.TT_WIDTH);
 
 	add(highlight, info.pos("ur").sub(highlight.sz).addy(-AlchemyWnd.PAD));
 

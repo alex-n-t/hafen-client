@@ -1,6 +1,7 @@
 package me.ender.alchemy;
 
 import haven.*;
+import me.ender.ui.CFGBox;
 import me.ender.ui.TabStrip;
 
 import java.util.HashSet;
@@ -41,7 +42,7 @@ public class ComboWdg extends Widget {
 
 	Widget highlight = new Button(UI.scale(90), "Track combos", false)
 	    .action(this::highlight)
-	    .settip("Highlight all ingredients that are not tested against selected one");
+	    .settip("Highlight all ingredients that are not tested against selected one", CFGBox.TT_WIDTH);
 	
 	add(highlight, combo.pos("ur").sub(highlight.sz).addy(-AlchemyWnd.PAD));
 
