@@ -244,7 +244,7 @@ public class AlchemyData {
 	    .filter(AlchemyData::isNatural)
 	    .collect(Collectors.toList());
 
-	if(natural.size() < 2) {return;}
+	if(natural.isEmpty()) {return;}
 	initCombos();
 	boolean listUpdated = false;
 	boolean combosUpdated = false;
