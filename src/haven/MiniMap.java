@@ -1129,8 +1129,10 @@ public class MiniMap extends Widget {
     
     void drawPointers(GOut g) {
 	for (IPointer p : pointers()) {
-	    if(curloc != null && p.seg() == curloc.seg.id) {
-		p.drawmmarrow(g, p2c(p.tc(curloc.seg.id)), sz);
+	    if(curloc == null || p.seg() != curloc.seg.id) {continue;}
+	    Coord2d tc = p.tc(curloc.seg.id);
+	    if(tc != null) {
+		p.drawmmarrow(g, p2c(tc), sz);
 	    }
 	}
 	g.chcolor();
