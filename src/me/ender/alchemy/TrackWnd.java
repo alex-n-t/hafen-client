@@ -24,6 +24,7 @@ public class TrackWnd extends WindowX implements DTarget {
 
 	listen(AlchemyData.COMBOS_UPDATED, this::update);
 	listen(AlchemyData.EFFECTS_UPDATED, this::update);
+	listen(AlchemyData.INGREDIENTS_UPDATED, this::update);
     }
 
     private static final BufferedImage IMG_MATCH = RichText.render(RichText.color("$font[monospaced]{✓}", new Color(160, 255, 160)), 0).img;
@@ -37,9 +38,8 @@ public class TrackWnd extends WindowX implements DTarget {
 	if(filter == null) {return null;}
 
 	Ingredient tracked = filter.tracked();
-	if(tracked == null) {return null;}
 
-	if(tracked.effects.contains(effect)) {
+	if(tracked != null && tracked.effects.contains(effect)) {
 	    return IMG_MATCH;
 	} else if(filter.testedEffects().contains(effect)) {
 	    return IMG_NO_MATCH;
