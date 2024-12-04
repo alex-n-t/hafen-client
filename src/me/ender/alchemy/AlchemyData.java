@@ -4,10 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import haven.*;
-import haven.res.ui.tt.alch.ingr_buff.BuffAttr;
-import haven.res.ui.tt.alch.ingr_heal.HealWound;
-import haven.res.ui.tt.alch.ingr_time_less.LessTime;
-import haven.res.ui.tt.alch.ingr_time_more.MoreTime;
 import haven.res.ui.tt.attrmod.AttrMod;
 import haven.rx.Reactor;
 import me.ender.Reflect;
@@ -364,14 +360,9 @@ public class AlchemyData {
     }
 
     public static void tryAddIngredientEffect(Collection<Effect> effects, ItemInfo info) {
-	if(info instanceof BuffAttr) {
-	    effects.add(new Effect(Effect.BUFF, ((BuffAttr) info).res));
-	} else if(info instanceof HealWound) {
-	    effects.add(new Effect(Effect.HEAL, ((HealWound) info).res));
-	} else if(info instanceof LessTime) {
-	    effects.add(new Effect(Effect.TIME, Effect.LESS));
-	} else if(info instanceof MoreTime) {
-	    effects.add(new Effect(Effect.TIME, Effect.MORE));
+	Effect effect = Effect.from(info);
+	if(effect != null) {
+	    effects.add(effect);
 	}
     }
 

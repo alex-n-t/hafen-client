@@ -1,9 +1,14 @@
 package me.ender.alchemy;
 
 import haven.*;
+import haven.Label;
 import me.ender.ClientUtils;
+import me.ender.ItemHelpers;
 
-class TrackWnd extends WindowX implements DTarget {
+import java.awt.*;
+import java.awt.image.BufferedImage;
+
+public class TrackWnd extends WindowX implements DTarget {
     private final Label label;
     Tex image;
     String res = null;
@@ -19,6 +24,28 @@ class TrackWnd extends WindowX implements DTarget {
 
 	listen(AlchemyData.COMBOS_UPDATED, this::update);
 	listen(AlchemyData.EFFECTS_UPDATED, this::update);
+    }
+
+    private static final BufferedImage IMG_MATCH = RichText.render(RichText.color("$font[monospaced]{✓}", new Color(160, 255, 160)), 0).img;
+    private static final BufferedImage IMG_NO_MATCH = RichText.render(RichText.color("$font[monospaced]{✗}", new Color(255, 160, 160)), 0).img;
+    private static final BufferedImage IMG_UNKNOWN = RichText.render(RichText.color("$font[monospaced]{?}", new Color(96, 255, 255)), 0).img;
+
+    public static BufferedImage getMark(Effect effect) {
+	if(effect == null) {return null;}
+
+	AlchemyItemFilter filter = GItem.alchemyFilter;
+	if(filter == null) {return null;}
+
+	Ingredient tracked = filter.tracked();
+	if(tracked == null) {return null;}
+
+	if(tracked.effects.contains(effect)) {
+	    return IMG_MATCH;
+	} else if(filter.testedEffects().contains(effect)) {
+	    return IMG_NO_MATCH;
+	}
+
+	return IMG_UNKNOWN;
     }
 
     public static void track(UI ui, String target, boolean trackEffects, boolean update, NamesProvider namesProvider) {
@@ -64,6 +91,7 @@ class TrackWnd extends WindowX implements DTarget {
     @Override
     public void dispose() {
 	GItem.setAlchemyFilter(null);
+	ItemHelpers.invalidateIngredientTooltips(ui);
 	super.dispose();
     }
 
@@ -81,9 +109,10 @@ class TrackWnd extends WindowX implements DTarget {
 	if(res == null) {
 	    GItem.setAlchemyFilter(null);
 	} else if(trackEffects) {
-	    GItem.setAlchemyFilter(new EffectFilter(AlchemyData.testedEffects(res), AlchemyData.combos(res)));
+	    GItem.setAlchemyFilter(new EffectFilter(AlchemyData.ingredient(res), AlchemyData.testedEffects(res), AlchemyData.combos(res)));
 	} else {
-	    GItem.setAlchemyFilter(new ComboFilter(AlchemyData.combos(res)));
+	    GItem.setAlchemyFilter(new ComboFilter(AlchemyData.ingredient(res), AlchemyData.testedEffects(res), AlchemyData.combos(res)));
 	}
+	ItemHelpers.invalidateIngredientTooltips(ui);
     }
 }

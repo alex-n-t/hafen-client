@@ -4,6 +4,7 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import haven.MenuGrid.Pagina;
+import haven.res.ui.tt.alch.effect.Effect;
 import haven.res.ui.tt.attrmod.AttrMod;
 import haven.res.ui.tt.level.Level;
 import haven.res.ui.tt.slot.Slotted;
@@ -72,6 +73,13 @@ public class ItemData {
     public static boolean hasFoodInfo(GItem item) {
 	try {
 	    return item.info().stream().anyMatch(i -> i instanceof FoodInfo);
+	} catch (Loading ignored) {}
+	return false;
+    }
+
+    public static boolean hasIngredientInfo(GItem item) {
+	try {
+	    return item.info().stream().anyMatch(i -> i instanceof Effect);
 	} catch (Loading ignored) {}
 	return false;
     }

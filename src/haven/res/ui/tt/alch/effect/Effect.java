@@ -2,6 +2,8 @@
 package haven.res.ui.tt.alch.effect;
 
 import haven.*;
+import me.ender.alchemy.TrackWnd;
+
 import java.util.*;
 import java.awt.image.BufferedImage;
 
@@ -31,7 +33,14 @@ public abstract class Effect extends ItemInfo.Tip {
     public static final Layout.ID<Subtip> sid = Subtip::new;
 
     public void add(CompImage img) {
-	img.add(CompImage.mk(alchtip()), new Coord(0, img.sz.y));
+	BufferedImage tip = alchtip();
+	try {
+	    BufferedImage mark = TrackWnd.getMark(me.ender.alchemy.Effect.from(this));
+	    if(mark != null) {
+		tip = ItemInfo.catimgsh(1, mark, tip);
+	    }
+	} catch (Exception ignore) {}
+	img.add(CompImage.mk(tip), new Coord(0, img.sz.y));
     }
 
     public BufferedImage alchtip() {

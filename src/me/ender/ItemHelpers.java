@@ -30,6 +30,11 @@ public class ItemHelpers {
 	children.forEach(w -> {if(ItemData.hasFoodInfo(w.item)) {w.clearLongTip();}});
     }
 
+    public static void invalidateIngredientTooltips(UI ui) {
+	Set<WItem> children = ui.root.children(WItem.class);
+	children.forEach(w -> {if(ItemData.hasIngredientInfo(w.item)) {w.clearLongTip();}});
+    }
+
     private static String preserveDishes(WItem item, UI ui) {
 	if(!ItemData.hasFoodInfo(item.item)) {return null;}
 

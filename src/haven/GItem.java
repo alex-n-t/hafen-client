@@ -28,7 +28,7 @@ package haven;
 
 import me.ender.Reflect;
 import me.ender.alchemy.AlchemyData;
-import me.ender.alchemy.IAlchemyItemFilter;
+import me.ender.alchemy.AlchemyItemFilter;
 import rx.functions.Action0;
 
 import java.util.*;
@@ -40,7 +40,7 @@ import static haven.WItem.*;
 
 public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owner, RandomSource {
     private static ItemFilter filter;
-    private static IAlchemyItemFilter alchemyFilter;
+    public static AlchemyItemFilter alchemyFilter;
     private static long lastFilter = 0;
     public Indir<Resource> res;
     public MessageBuf sdt;
@@ -69,7 +69,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	lastFilter = System.currentTimeMillis();
     }
 
-    public static void setAlchemyFilter(IAlchemyItemFilter filter) {
+    public static void setAlchemyFilter(AlchemyItemFilter filter) {
 	GItem.alchemyFilter = filter;
 	lastFilter = System.currentTimeMillis();
     }

@@ -89,6 +89,19 @@ public class Effect {
 	this(type, res.name, opt);
     }
 
+    public static Effect from(ItemInfo info) {
+	if(info instanceof BuffAttr) {
+	    return new Effect(Effect.BUFF, ((BuffAttr) info).res);
+	} else if(info instanceof HealWound) {
+	    return new Effect(Effect.HEAL, ((HealWound) info).res);
+	} else if(info instanceof LessTime) {
+	    return new Effect(Effect.TIME, Effect.LESS);
+	} else if(info instanceof MoreTime) {
+	    return new Effect(Effect.TIME, Effect.MORE);
+	}
+	return null;
+    }
+
     public boolean matches(String filter) {
 	String[] parts = filter.split(":", 2);
 	if(parts.length < 2) {return false;}

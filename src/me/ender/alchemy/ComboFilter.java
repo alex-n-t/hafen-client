@@ -4,10 +4,13 @@ import haven.GItem;
 
 import java.util.Set;
 
-public class ComboFilter implements IAlchemyItemFilter {
+public class ComboFilter extends AlchemyItemFilter {
     private final Set<String> tested;
 
-    public ComboFilter(Set<String> tested) {this.tested = tested;}
+    public ComboFilter(Ingredient ingredient, Set<Effect> testedEffects, Set<String> testedIngredients) {
+	super(ingredient, testedEffects);
+	this.tested = testedIngredients;
+    }
 
     public boolean matches(GItem item) {
 	String res = item.resname();

@@ -7,12 +7,12 @@ import haven.ItemInfo;
 import java.util.HashSet;
 import java.util.Set;
 
-public class EffectFilter implements IAlchemyItemFilter {
-    private final Set<Effect> testedEffects;
+public class EffectFilter extends AlchemyItemFilter {
+
     private final Set<String> testedIngredients;
 
-    public EffectFilter(Set<Effect> effects, Set<String> ingredients) {
-	this.testedEffects = effects;
+    public EffectFilter(Ingredient ingredient, Set<Effect> effects, Set<String> ingredients) {
+	super(ingredient, effects);
 	this.testedIngredients = ingredients;
     }
 
