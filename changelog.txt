@@ -1,7 +1,8 @@
 $size[14]{$u{Update for 04.12.24:}
   * merged loftar's changes
   * Alchemy changes: 
-      - show $img[gfx/hud/chkmarks,h=12,c] for tested ingredients that have common effects and $img[gfx/hud/mark-x,h=12,c] for ones that don't have common effects
+      - while tracking ingredients mark matched effects in tooltips with $col[0,255,0]{$font[monospaced]{✓}}, mismatched with $col[255,0,0]{$font[monospaced]{✗}} and untested with $col[0,255,255]{$font[monospaced]{?}}
+      - in Combos tab show $img[gfx/hud/chkmarks,h=12,c] for tested ingredients that have common effects and $img[gfx/hud/mark-x,h=12,c] for ones that don't have common effects
       - renamed Ingredients tab to Effects
       - swapped Combos and Recipes tabs
       - synced selected ingredient between Effects and Combos tabs
