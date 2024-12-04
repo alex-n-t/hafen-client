@@ -12,12 +12,11 @@ import java.util.function.Consumer;
 
 import static me.ender.alchemy.AlchemyWnd.*;
 
-class IngredientsWdg extends Widget {
+class IngredientsWdg extends AlchemyWdg {
     private static final String KNOWN = "Known";
     private static final String TESTED = "Tested";
     private static final String UNTESTED = "Untested";
 
-    private static String LAST_SELECTED_INGREDIENT;
     private static String LAST_SELECTED_TAB = KNOWN;
     private final NamesProvider nameProvider;
 
@@ -82,7 +81,14 @@ class IngredientsWdg extends Widget {
     }
 
     private void onSelectionChanged(String res) {
-	LAST_SELECTED_INGREDIENT = selectedName = res;
+	LAST_SELECTED_INGREDIENT = res;
+	select(res);
+    }
+
+    @Override
+    public void select(String res) {
+	if(Objects.equals(selectedName, res)) {return;}
+	selectedName = res;
 	selected = AlchemyData.ingredient(res);
 
 	effectsDirty = true;

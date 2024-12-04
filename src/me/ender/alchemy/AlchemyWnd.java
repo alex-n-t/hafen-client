@@ -15,10 +15,11 @@ public class AlchemyWnd extends WindowX implements DTarget {
     static final int ITEMS = 22;
     static final int ITEM_H = UI.scale(16);
     static final int CONTENT_W = UI.scale(280);
+    public static String LAST_SELECTED_INGREDIENT;
     public static final Coord WND_SZ = Coord.of(2 * PAD + LIST_W + GAP + CONTENT_W, ITEM_H * ITEMS);
     static final Color BGCOLOR = new Color(0, 0, 0, 96);
-    private final List<Widget> tabs = new LinkedList<>();
-    private final TabStrip<Widget> strip;
+    private final List<AlchemyWdg> tabs = new LinkedList<>();
+    private final TabStrip<AlchemyWdg> strip;
 
     public AlchemyWnd() {
 	super(WND_SZ, "Alchemy");
@@ -30,25 +31,30 @@ public class AlchemyWnd extends WindowX implements DTarget {
 
 	strip = add(new TabStrip<>(this::onTabSelected));
 
-	tabs.add(strip.insert(add(new IngredientsWdg(namesProvider)), null, "Ingredients", null).tag);
-	tabs.add(strip.insert(add(new RecipesWdg()), null, "Recipes", null).tag);
+	tabs.add(strip.insert(add(new IngredientsWdg(namesProvider)), null, "Effects", null).tag);
 	tabs.add(strip.insert(add(new ComboWdg(namesProvider)), null, "Combos", null).tag);
+	tabs.add(strip.insert(add(new RecipesWdg()), null, "Recipes", null).tag);
 
 	Coord p = strip.pos("bl").addys(5);
 	for (Widget tab : tabs) {
 	    tab.c = Coord.of(p);
 	}
 
-	p = strip.pos("ur").addx(GAP);
-	p = add(new CFGBox("Limit recipe storing", CFG.ALCHEMY_LIMIT_RECIPE_SAVE, "Will save recipe only if elixir is dropped with Recipes tab open"), p).pos("ur");
-	add(new CFGBox("Auto process", CFG.ALCHEMY_AUTO_PROCESS, "While Alchemy or Ingredient Track window is open all ingredients with known effects and exixirs with known recipes you see would be recorded"), p.addx(GAP));
+	p = Coord.of(LIST_W + GAP + CONTENT_W + PAD, 0);
+	p = adda(new CFGBox("Auto process", CFG.ALCHEMY_AUTO_PROCESS, "While Alchemy or Ingredient Track window is open all ingredients with known effects and exixirs with known recipes you see would be recorded"), p, 1,0).pos("ul");
+	adda(new CFGBox("Limit recipe storing", CFG.ALCHEMY_LIMIT_RECIPE_SAVE, "Will save recipe only if elixir is dropped with Recipes tab open"), p.addx(-GAP), 1, 0);
 
 	strip.select(CFG.ALCHEMY_LAST_TAB.get());
     }
 
     private void onTabSelected(Widget selected) {
-	for (Widget tab : tabs) {
-	    tab.show(tab == selected);
+	for (AlchemyWdg tab : tabs) {
+	    if(tab == selected) {
+		tab.select(LAST_SELECTED_INGREDIENT);
+		tab.show();
+	    } else {
+		tab.hide();
+	    }
 	}
 	pack();
     }

@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 import static me.ender.alchemy.AlchemyWnd.*;
 
-class RecipesWdg extends Widget {
+class RecipesWdg extends AlchemyWdg {
     private final ElixirWdg elixir;
 
 

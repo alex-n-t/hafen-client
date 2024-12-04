@@ -11,11 +11,10 @@ import java.util.function.Consumer;
 
 import static me.ender.alchemy.AlchemyWnd.*;
 
-public class ComboWdg extends Widget {
+public class ComboWdg extends AlchemyWdg {
     private static final String ALL = "All";
     private static final String TESTED = "Tested";
     private static final String UNTESTED = "Untested";
-    private static String LAST_SELECTED_INGREDIENT;
     private static int LAST_SELECTED_TAB = 0;
     private final NamesProvider namesProvider;
     private final IngredientList ingredients;
@@ -73,6 +72,11 @@ public class ComboWdg extends Widget {
 
     private void onIngredientChanged(String res) {
 	LAST_SELECTED_INGREDIENT = res;
+	select(res);
+    }
+
+    @Override
+    public void select(String res) {
 	combo.setTarget(res);
 	TrackWnd.track(ui, combo.target, false, true, namesProvider);
     }
@@ -212,6 +216,7 @@ public class ComboWdg extends Widget {
 
 	@Override
 	protected void drawitem(GOut g, String item, int i) {
+	    //TODO: maybe show checkmarks for tested that have common effects and X for tested ones that don't have common effects?
 	    if(combos.contains(item)) {
 		g.image(CheckBox.smark, MARK_C);
 	    }
