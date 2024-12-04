@@ -1,13 +1,24 @@
+$size[14]{$u{Update for 04.12.24:}
+  * merged loftar's changes
+  * Alchemy changes: 
+      - show $img[gfx/hud/chkmarks,h=12,c] for tested ingredients that have common effects and $img[gfx/hud/mark-x,h=12,c] for ones that don't have common effects
+      - renamed Ingredients tab to Effects
+      - swapped Combos and Recipes tabs
+      - synced selected ingredient between Effects and Combos tabs
+      - updated help
+ 
 $size[14]{$u{Update for 03.12.24:}
   * fixed rare crash when teleporting with quest/tracking pointers
-  * Alchemy: made auto-processing optional and disabled by default
-  * Alchemy: added option for deeper effect tracking
-  * Alchemy: updated help
+  * Alchemy changes: 
+      - made auto-processing optional and disabled by default
+      - added option for deeper effect tracking
+      - updated help
  
 $size[14]{$u{Update for 02.12.24:}
   * slight tweaks to inventory sorter's ordering
-  * Alchemy: ingredient tab got rework - it now allows tracking tested/untested effects on ingredients and tracking possible positions of an effect
-  * Alchemy: if Alchemy window or effect/combo tracking window are open, then ingredients and elixirs would be auto-processed for their info
+  * Alchemy changes: 
+      - ingredient tab got rework - it now allows tracking tested/untested effects on ingredients and tracking possible positions of an effect
+      - if Alchemy window or effect/combo tracking window are open, then ingredients and elixirs would be auto-processed for their info
  
 $size[14]{$u{Update for 01.12.24:}
   * merged loftar's changes
