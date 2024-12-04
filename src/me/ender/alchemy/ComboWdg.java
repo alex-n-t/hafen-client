@@ -44,7 +44,7 @@ public class ComboWdg extends AlchemyWdg {
 	Widget highlight = new Button(UI.scale(90), "Track combos", false)
 	    .action(this::highlight)
 	    .settip("Highlight all ingredients that are not tested against selected one", CFGBox.TT_WIDTH);
-	
+
 	add(highlight, combo.pos("ur").sub(highlight.sz).addy(-PAD));
 
 	pack();
@@ -147,6 +147,7 @@ public class ComboWdg extends AlchemyWdg {
 	private final NamesProvider nameProvider;
 	private boolean dirty = true;
 	private String target = null;
+	private Ingredient ingredient = null;
 	private final Set<String> combos = new HashSet<>();
 
 	public ComboList(NamesProvider nameProvider) {
@@ -160,6 +161,7 @@ public class ComboWdg extends AlchemyWdg {
 
 	public void setTarget(String target) {
 	    this.target = target;
+	    ingredient = AlchemyData.ingredient(target);
 	    updateCombos();
 	}
 
@@ -216,9 +218,15 @@ public class ComboWdg extends AlchemyWdg {
 
 	@Override
 	protected void drawitem(GOut g, String item, int i) {
-	    //TODO: maybe show checkmarks for tested that have common effects and X for tested ones that don't have common effects?
 	    if(combos.contains(item)) {
-		g.image(CheckBox.smark, MARK_C);
+		boolean matches = false;
+		if(ingredient != null) {
+		    Ingredient tmp = AlchemyData.ingredient(item);
+		    if(tmp != null) {
+			matches = ingredient.effects.stream().anyMatch(tmp.effects::contains);
+		    }
+		}
+		g.image(matches ? CheckBox.smark : MARK_X, MARK_C);
 	    }
 	    g.image(nameProvider.tex(item), NAME_C);
 	}

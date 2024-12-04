@@ -226,7 +226,6 @@ class IngredientsWdg extends AlchemyWdg {
 	private static final Color OFF = new Color(112, 96, 96);
 	private static final Color OFFO = new Color(213, 184, 184);
 
-	private static final Tex MARK_X = Resource.loadtex("gfx/hud/mark-x");
 	private static final Coord MARK_C = Coord.of(0, UI.scale(1));
 	private static final Coord NAME_C = Coord.of(ITEM_H, 0);
 	public static final Comparator<Effect> COMPARATOR = Comparator.comparing(Effect::type)

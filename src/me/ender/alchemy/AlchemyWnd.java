@@ -15,6 +15,7 @@ public class AlchemyWnd extends WindowX implements DTarget {
     static final int ITEMS = 22;
     static final int ITEM_H = UI.scale(16);
     static final int CONTENT_W = UI.scale(280);
+    static final Tex MARK_X = Resource.loadtex("gfx/hud/mark-x");
     public static String LAST_SELECTED_INGREDIENT;
     public static final Coord WND_SZ = Coord.of(2 * PAD + LIST_W + GAP + CONTENT_W, ITEM_H * ITEMS);
     static final Color BGCOLOR = new Color(0, 0, 0, 96);
