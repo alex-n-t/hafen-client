@@ -44,7 +44,11 @@ public class AlchemyWnd extends WindowX implements DTarget {
 	p = Coord.of(LIST_W + GAP + CONTENT_W + PAD, 0);
 	p = adda(new CFGBox("Auto process", CFG.ALCHEMY_AUTO_PROCESS, "While Alchemy or Ingredient Track window is open all ingredients with known effects and exixirs with known recipes you see would be recorded"), p, 1,0).pos("ul");
 	adda(new CFGBox("Limit recipe storing", CFG.ALCHEMY_LIMIT_RECIPE_SAVE, "Will save recipe only if elixir is dropped with Recipes tab open"), p.addx(-GAP), 1, 0);
+    }
 
+    @Override
+    protected void attached() {
+	super.attached();
 	strip.select(CFG.ALCHEMY_LAST_TAB.get());
     }
 
@@ -81,10 +85,11 @@ public class AlchemyWnd extends WindowX implements DTarget {
 	super.wdgmsg(sender, msg, args);
     }
 
-    public void close() {
-	ui.destroy(this);
+    @Override
+    public void dispose() {
 	ui.gui.alchemywnd = null;
 	CFG.ALCHEMY_LAST_TAB.set(strip.getSelectedButtonIndex());
+	super.dispose();
     }
 
     public void showHelp() {
