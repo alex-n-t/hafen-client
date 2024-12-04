@@ -27,6 +27,7 @@ class IngredientsWdg extends AlchemyWdg {
     private String selectedName = null;
 
     boolean effectsDirty = true;
+    boolean needUpdate = false;
     private final Set<Effect> tested = new HashSet<>();
     private final Set<Effect> untested = new HashSet<>();
 
@@ -72,7 +73,7 @@ class IngredientsWdg extends AlchemyWdg {
 
     private void onDataUpdated() {
 	effectsDirty = true;
-	updateInfo();
+	needUpdate = true;
     }
 
     private void onTabSelected(String tab) {
@@ -83,6 +84,16 @@ class IngredientsWdg extends AlchemyWdg {
     private void onSelectionChanged(String res) {
 	LAST_SELECTED_INGREDIENT = res;
 	select(res);
+    }
+
+    @Override
+    public void draw(GOut g) {
+	if(needUpdate) {
+	    needUpdate = false;
+	    selected = AlchemyData.ingredient(selectedName);
+	    updateInfo();
+	}
+	super.draw(g);
     }
 
     @Override

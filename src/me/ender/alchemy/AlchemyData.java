@@ -217,16 +217,16 @@ public class AlchemyData {
 	    Ingredient ingredient = new Ingredient(effects, base);
 	    if(base == null || !Objects.equals(ingredient, base)) {
 		INGREDIENTS.put(res, ingredient);
-		Reactor.event(INGREDIENTS_UPDATED);
 		saveIngredients();
 		updateIngredientList(res);
+		Reactor.event(INGREDIENTS_UPDATED);
 	    }
 	    effectsChanged = tryAddUnknownEffects(ingredient);
 	}
 
 	if(effectsChanged) {
-	    Reactor.event(EFFECTS_UPDATED);
 	    saveEffects();
+	    Reactor.event(EFFECTS_UPDATED);
 	}
     }
 
