@@ -31,6 +31,8 @@ public class Effect {
 
     public static final String LESS = "less";
     public static final String MORE = "more";
+    public static final String INCREASED_DURATION = "Increased Duration";
+    public static final String REDUCED_DURATION = "Reduced Duration";
 
 
     public String raw;
@@ -65,7 +67,7 @@ public class Effect {
 	this.raw = opt == null
 	    ? String.format("%s:%s", type, res)
 	    : String.format("%s:%s:%s", type, res, opt);
-	
+
 	id = String.format("%s:%s", type, res);
     }
 
@@ -106,22 +108,27 @@ public class Effect {
 	String[] parts = filter.split(":", 2);
 	if(parts.length < 2) {return false;}
 
-	if(!Objects.equals(type, parts[0])) {return false;}
-	if(parts[1].isEmpty()) {return true;}
+	String type = parts[0];
+	String name = parts[1];
 
-	return name().toLowerCase().contains(parts[1]);
+	if(type.isEmpty() || Objects.equals(this.type, type)) {
+	    if(name.isEmpty()) {return true;}
+
+	    return name().toLowerCase().contains(name);
+	}
+	return false;
     }
 
     public String type() {return type;}
 
     public int order() {
 	int value = 0;
-	
+
 	if(isEnabled(A)) {value -= 8;}
 	if(isEnabled(B)) {value -= 4;}
 	if(isEnabled(C)) {value -= 2;}
 	if(isEnabled(D)) {value -= 1;}
-	
+
 	return value;
     }
 
@@ -160,10 +167,10 @@ public class Effect {
 	    if(TIME.equals(type)) {
 		switch (res) {
 		    case LESS:
-			name = "Increased Duration";
+			name = INCREASED_DURATION;
 			break;
 		    case MORE:
-			name = "Reduced Duration";
+			name = REDUCED_DURATION;
 			break;
 		    default:
 			name = res;
