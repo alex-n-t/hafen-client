@@ -11,6 +11,7 @@ import haven.res.ui.tt.alch.ingr_heal.HealWound;
 import haven.res.ui.tt.alch.ingr_time_less.LessTime;
 import haven.res.ui.tt.alch.ingr_time_more.MoreTime;
 import haven.res.ui.tt.attrmod.AttrMod;
+import me.ender.ClientUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -102,6 +103,19 @@ public class Effect {
 	    return new Effect(Effect.TIME, Effect.MORE);
 	}
 	return null;
+    }
+
+    public static String name(ItemInfo info) {
+	if(info instanceof BuffAttr) {
+	    return ClientUtils.prettyResName(((BuffAttr) info).res);
+	} else if(info instanceof HealWound) {
+	    return ClientUtils.prettyResName(((HealWound) info).res);
+	} else if(info instanceof LessTime) {
+	    return REDUCED_DURATION;
+	} else if(info instanceof MoreTime) {
+	    return INCREASED_DURATION;
+	}
+	return "";
     }
 
     public boolean matches(String filter) {
