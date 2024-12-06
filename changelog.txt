@@ -1,3 +1,6 @@
+$size[14]{$u{Update for 06.12.24:}
+  * use separate marker for tracked alchemy ingredients, instead of re-using filter's purple border
+ 
 $size[14]{$u{Update for 05.12.24:}
   * merged loftar's changes
   * Alchemy:
