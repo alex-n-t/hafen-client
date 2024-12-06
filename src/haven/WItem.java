@@ -36,7 +36,6 @@ import haven.res.ui.tt.wear.Wear;
 import haven.resutil.Curiosity;
 import me.ender.ClientUtils;
 import me.ender.ItemHelpers;
-import me.ender.Reflect;
 
 import java.awt.*;
 import java.util.*;
@@ -53,6 +52,7 @@ import static me.ender.WindowDetector.*;
 
 public class WItem extends Widget implements DTarget {
     public static final Resource missing = Resource.local().loadwait("gfx/invobjs/missing");
+    public static final Tex alchemy_mark = Resource.loadtex("gfx/hud/mark-alch");
     public static final Coord TEXT_PADD_TOP = new Coord(0, -3), TEXT_PADD_BOT = new Coord(0, 2);
     public static final Color DURABILITY_COLOR = new Color(214, 253, 255);
     public static final Color ARMOR_COLOR = new Color(255, 227, 191);
@@ -303,6 +303,9 @@ public class WItem extends Widget implements DTarget {
 	    drawmain(g, spr);
 	    g.defstate();
 	    GItem.InfoOverlay<?>[] ols = itemols.get();
+	    if(item.alchemyMatches()) {
+		g.aimage(alchemy_mark, Coord.of(0, sz.y), 0, 1);
+	    }
 	    if(ols != null) {
 		for(GItem.InfoOverlay<?> ol : ols)
 		    ol.draw(g);

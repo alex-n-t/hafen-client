@@ -392,6 +392,7 @@ public class ExtInventory extends Widget {
 	final String resname;
 	final Double quality;
 	final boolean matches;
+	private final boolean alchemyMatches;
 	final boolean loading;
 	final Color color;
 	final Pipe.Op state;
@@ -402,6 +403,7 @@ public class ExtInventory extends Widget {
 	    this.resname = resname(w);
 	    this.quality = quality;
 	    this.matches = w.item.matches();
+	    this.alchemyMatches = w.item.alchemyMatches();
 	    this.color = w.olcol.get();
 	    this.state = this.color != null ? new ColorMask(this.color) : null;
 	    loading = name.startsWith("???");
@@ -411,6 +413,9 @@ public class ExtInventory extends Widget {
 	@Override
 	public int compareTo(ItemType other) {
 	    int byMatch = Boolean.compare(other.matches, matches);
+	    if(byMatch != 0) { return byMatch; }
+
+	    byMatch = Boolean.compare(other.alchemyMatches, alchemyMatches);
 	    if(byMatch != 0) { return byMatch; }
 	    
 	    int byOverlay = 0;
@@ -547,6 +552,9 @@ public class ExtInventory extends Widget {
 		g.chcolor(MATCH_COLOR);
 		g.rect(Coord.z, sz);
 		g.chcolor();
+	    }
+	    if(type.alchemyMatches) {
+		g.aimage(alchemy_mark, Coord.of(0, sz.y), 0, 1);
 	    }
 	}
 
