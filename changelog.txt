@@ -1,3 +1,8 @@
+$size[14]{$u{Update for 07.12.24:}
+  * added button to sort food on a table
+  * tweaked coloring and sorting of quests in QuestHelper
+  * added button to toggle how quests ready to turn-in are sorted in QuestHelper
+ 
 $size[14]{$u{Update for 06.12.24:}
   * use separate marker for tracked alchemy ingredients, instead of re-using filter's purple border
  
