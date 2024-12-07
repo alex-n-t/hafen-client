@@ -12,7 +12,15 @@ public class QuestHelper extends GameUI.Hidewnd {
 	super(Coord.z, "Quest Helper");
 	this.gui = gui;
 	questList = add(new QuestList(UI.scale(250), 15, gui));
+	addtwdg(new IButton("gfx/hud/btn-sort", "", "-d", "-h"))
+	    .action(this::toggleSorting)
+	    .settip("Toggle sorting of ready to turn-in quests");
 	pack();
+    }
+
+    private void toggleSorting() {
+	CFG.QUESTHELPER_DONE_FIRST.set(!CFG.QUESTHELPER_DONE_FIRST.get());
+	questList.sort();
     }
 
     public void ProcessQuest(List<QuestWnd.Quest.Condition> conditions, int id, String questTitle) {

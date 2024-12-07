@@ -5,7 +5,6 @@ import me.ender.minimap.SMarker;
 
 import java.awt.*;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,7 +14,6 @@ public class QuestCondition implements Comparable<QuestCondition> {
     private final GameUI gui;
     private static final Pattern pat = Pattern.compile("(Tell|Greet| to| at) (\\w+)");
     private String questGiver = "";
-    private Optional<MiniMap.IPointer> questGiverPointer = Optional.empty();
     private SMarker questGiverMarker;
     private final String questTitle;
     private final String searchDescription;
@@ -43,44 +41,43 @@ public class QuestCondition implements Comparable<QuestCondition> {
 	searchDescription = i > 0 ? description.substring(0, i - 1) : description;
 
 	addMarker();
-	//addPointer();
     }
 
-    public void UpdateQuestCondition(String description, boolean isEndpoint, boolean isLast)
+    public void update(String description, boolean isEndpoint, boolean isLast)
     {
 	this.isEndpoint = isEndpoint;
 	this.isLast = isLast;
 	this.description = description;
 
 	addMarker();
-	//addPointer();
     }
 
-    public void RemoveMarker()
+    public void removeMarker()
     {
 	if (questGiverMarker != null)
 	    questGiverMarker.questConditions.remove(this);
     }
 
-    public String Name() {
+    public String name() {
 	if(isCredo()) return "\uD83D\uDD6E " + description;
-	else if(isLast) return "★ " + description;
+	else if(isLast) return "✓ " + description;
 	else return description;
     }
 
-    public Color NameColor() {
-	if(isLast && !isCredo()) return isCurrent ? Color.CYAN : Color.GREEN;
-	else return isCurrent ? Color.WHITE : Color.LIGHT_GRAY;
+    public Color color() {
+	return isLast 
+	    ? isCurrent ? Color.CYAN : Color.GREEN 
+	    : isCurrent ? Color.WHITE : Color.LIGHT_GRAY;
     }
 
-    public Color QuestGiverMarkerColor() {
+    public Color questGiverMarkerColor() {
 	if(isEndpoint) {
 	    if(isLast) return Color.GREEN;
 	    else return Color.YELLOW;
 	} else return Color.WHITE;
     }
     
-    public String Distance() {
+    public String distance() {
 	if(questGiver == null || gui == null || gui.map == null || gui.mapfile == null) {return null;}
 
 	MiniMap.Location loc = gui.mapfile.playerLocation();
@@ -94,8 +91,6 @@ public class QuestCondition implements Comparable<QuestCondition> {
 
 	if(questGiverMarker != null)
 	    if(questGiverMarker.seg == loc.seg.id) {tc = questGiverMarker.tc.sub(loc.tc);}
-     	//else if (questGiverPointer.isPresent())
-	    //tc = questGiverPointer.map(p -> p.tc(loc.seg.id).floor(tilesz)).orElse(null);
 
 	if(tc == null) {return null;}
 
@@ -109,39 +104,33 @@ public class QuestCondition implements Comparable<QuestCondition> {
     }
 
     public int compareTo(QuestCondition o) {
-	int result = -Boolean.compare(isCredo(), o.isCredo());
-	if(result == 0) {
-	    result = -Boolean.compare(isCurrent, o.isCurrent);
-	}
-	if(result == 0) {
-	    result = -Boolean.compare(questTitle != null, o.questTitle != null);
-	}
-	if(result == 0) {
-	    result = Boolean.compare(isLast, o.isLast);
-	}
-	if(result == 0) {
-	    result = description.compareTo(o.description);
-	}
-	return result;
-    }
+	int result = -Boolean.compare(isCurrent, o.isCurrent);
+	if(result != 0) {return result;}
 
-    private boolean checkMapFile() {return gui.mapfile != null;}
+	result = -Boolean.compare(isCredo(), o.isCredo());
+	if(result != 0) {return result;}
+	
+	result = Boolean.compare(isLast, o.isLast);
+	if(result != 0) {return CFG.QUESTHELPER_DONE_FIRST.get() ? -result : result;}
+
+
+	result = -Boolean.compare(questTitle != null, o.questTitle != null);
+	if(result != 0) {return result;}
+
+	return description.compareTo(o.description);
+    }
 
     private boolean isCredo() {return gui.chrwdg != null && gui.chrwdg.skill != null && gui.chrwdg.skill.credos != null && gui.chrwdg.skill.credos.pqid == questId;}
 
     private void addMarker()
     {
-	if (questGiverMarker == null && !questGiver.isEmpty() && checkMapFile())
+	if(questGiverMarker == null && !questGiver.isEmpty() && gui.mapfile != null) {
 	    questGiverMarker = gui.mapfile.findMarker(questGiver);
-	if (questGiverMarker != null) {
-	    if (!questGiverMarker.questConditions.contains(this))
-		questGiverMarker.questConditions.add(this);
 	}
-    }
-
-    private void addPointer()
-    {
-	if (!questGiverPointer.isPresent() && !questGiver.isEmpty())
-	    questGiverPointer = gui.findPointer(questGiver);
+	if (questGiverMarker != null) {
+	    if (!questGiverMarker.questConditions.contains(this)) {
+		questGiverMarker.questConditions.add(this);
+	    }
+	}
     }
 }

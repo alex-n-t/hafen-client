@@ -23,8 +23,13 @@ public class QuestList extends Listbox<QuestCondition> {
     }
 
     public void SelectedQuest(Integer questId){
-	for (QuestCondition questCondition : questConditions)
+	for (QuestCondition questCondition : questConditions) {
 	    questCondition.isCurrent = questCondition.questId == questId;
+	}
+	sort();
+    }
+    
+    public void sort() {
 	Collections.sort(questConditions);
     }
 
@@ -37,7 +42,7 @@ public class QuestList extends Listbox<QuestCondition> {
 	if (questCondition == null)
 	    questConditions.add(new QuestCondition(questDescription, isEndpoint, isLast, questId, questTitle, gui));
 	else
-	    questCondition.UpdateQuestCondition(questDescription, isEndpoint, isLast);
+	    questCondition.update(questDescription, isEndpoint, isLast);
 	SelectedQuest(questId);
     }
 
@@ -45,7 +50,7 @@ public class QuestList extends Listbox<QuestCondition> {
     {
 	QuestCondition questCondition = GetQuestCondition(questId, questDescription);
 	if (questCondition != null) {
-	    questCondition.RemoveMarker();
+	    questCondition.removeMarker();
 	    questConditions.remove(questCondition);
 	}
     }
@@ -54,7 +59,7 @@ public class QuestList extends Listbox<QuestCondition> {
     {
 	for (QuestCondition questCondition: new ArrayList<>(questConditions))
 	    if (questCondition.questId == questId) {
-		questCondition.RemoveMarker();
+		questCondition.removeMarker();
 		questConditions.remove(questCondition);
 	}
 	SelectedQuest(-2);
@@ -74,9 +79,9 @@ public class QuestList extends Listbox<QuestCondition> {
 
     @Override
     protected void drawitem(GOut g, QuestCondition questCondition, int i) {
-	g.chcolor(questCondition.NameColor());
-	g.atext(questCondition.Name(), TEXT_C, 0, 0.5);
-	String distance = questCondition.Distance();
+	g.chcolor(questCondition.color());
+	g.atext(questCondition.name(), TEXT_C, 0, 0.5);
+	String distance = questCondition.distance();
 	if(distance != null) {
 	    g.atext(distance, DIST_C, 1, 0.5);
 	}
