@@ -47,15 +47,17 @@ public class InventorySorter implements Defer.Callable<Void> {
 
     private final List<Inventory> inventories;
 
-    public InventorySorter(List<Inventory> inv) {
+    private InventorySorter(List<Inventory> inv) {
 	this.inventories = inv;
     }
 
     public static void sort(Inventory inv) {
+	if(invalidCursor(inv.ui)) {return;}
 	start(new InventorySorter(Collections.singletonList(inv)), inv.ui.gui);
     }
 
     public static void sortAll(GameUI gui) {
+	if(invalidCursor(gui.ui)) {return;}
 	List<Inventory> targets = new ArrayList<>();
 	for (ExtInventory w : gui.ui.root.children(ExtInventory.class)) {
 	    if(w == null) {continue;}
@@ -70,6 +72,14 @@ public class InventorySorter implements Defer.Callable<Void> {
 	}
     }
 
+    private static boolean invalidCursor(UI ui) {
+	if(ui.isDefaultCursor()) {
+	    return false;
+	}
+	ui.message("Need to have default cursor active to sort inventory!", GameUI.MsgType.ERROR);
+	return true;
+    }
+    
     @Override
     public Void call() throws InterruptedException {
 	for (Inventory inv : inventories) {
