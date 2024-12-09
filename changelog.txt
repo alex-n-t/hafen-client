@@ -1,3 +1,8 @@
+$size[14]{$u{Update for 09.12.24:}
+  * merged loftar's changes
+  * merged makubo's PR (#132) with some localization improvements
+  * display remaining % of a log in gob info after inspecting it
+ 
 $size[14]{$u{Update for 07.12.24:}
   * added button to sort food on a table
   * tweaked coloring and sorting of quests in QuestHelper
