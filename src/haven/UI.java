@@ -1154,6 +1154,10 @@ public class UI {
 	}
     }
 
+    public boolean isDefaultCursor() {
+	return RootWidget.defcurs == getcurs(mc);
+    }
+
     static {
 	scalef = loadscale();
     }
