@@ -28,8 +28,15 @@ public class GeneralGobInfo extends GobInfo {
     private static final Map<Pair<Color, String>, Text.Line> TEXT_CACHE = new HashMap<>();
     public static final int MARGIN = UI.scale(3);
     public static final int PAD = 0;
-    public static Pattern GOB_Q = Pattern.compile("Quality: (\\d+)");
+    private static final Pattern GOB_Q = Pattern.compile("Quality: (\\d+)");
+    private static final Pattern GOB_TAKEN = Pattern.compile("(\\d+)% taken");
     private static final Map<Long, Integer> gobQ = new LinkedHashMap<Long, Integer>() {
+	@Override
+	protected boolean removeEldestEntry(Map.Entry eldest) {
+	    return size() > 50;
+	}
+    };
+    private static final Map<Long, Integer> gobTaken = new LinkedHashMap<Long, Integer>() {
 	@Override
 	protected boolean removeEldestEntry(Map.Entry eldest) {
 	    return size() > 50;
@@ -38,7 +45,7 @@ public class GeneralGobInfo extends GobInfo {
     private GobHealth health;
     private int scalePercent = -1;
     private String contents = null;
-    int q;
+    int q, taken;
     private static final Map<String, Integer> POS = new HashMap<>();
     
     public final GobTimerData timer;
@@ -54,25 +61,47 @@ public class GeneralGobInfo extends GobInfo {
     protected GeneralGobInfo(Gob owner) {
 	super(owner);
 	q = gobQ.getOrDefault(gob.id, 0);
+	taken = gobTaken.getOrDefault(gob.id, -1);
 	timer = GobTimerData.from(gob);
 	center = new Pair<>(0.5, 1.0);
     }
 
     public static void parse(Gob gob, List<String> lines) {
+	int value;
 	for (String line : lines) {
-	    Matcher m = GeneralGobInfo.GOB_Q.matcher(line);
-	    if(m.matches()) {
-		try {
-		    int q = Integer.parseInt(m.group(1));
-		    gob.setQuality(q);
-		} catch (Exception ignored) {}
+	    //Quality
+	    value = parse(GOB_Q, line);
+	    if(value > 0) {
+		gob.setQuality(value);
+		continue;
+	    }
+	    //Taken
+	    value = parse(GOB_TAKEN, line);
+	    if(value > 0) {
+		gob.setTaken(value);
+		continue;
 	    }
 	}
+    }
+
+    private static int parse(Pattern pattern, String line) {
+	Matcher m = pattern.matcher(line);
+	if(m.matches()) {
+	    try {
+		return Integer.parseInt(m.group(1));
+	    } catch (Exception ignored) {}
+	}
+	return -1;
     }
 
     public void setQ(int q) {
 	gobQ.put(gob.id, q);
 	this.q = q;
+    }
+
+    public void setTaken(int v) {
+	gobTaken.put(gob.id, v);
+	this.taken = v;
     }
     
     @Override
@@ -88,6 +117,7 @@ public class GeneralGobInfo extends GobInfo {
 	up(POS.getOrDefault(resid, 1));
 	BufferedImage[] parts = new BufferedImage[]{
 	    growth(),
+	    remaining(),
 	    health(),
 	    icons(),
 	    content(),
@@ -198,6 +228,14 @@ public class GeneralGobInfo extends GobInfo {
 	    return line.img;
 	}
 	return null;
+    }
+
+    private BufferedImage remaining() {
+	if(taken < 0) {return null;}
+	//Do we need an option to disable this info part?
+	int remain = (100 - taken);
+	Color c = Utils.blendcol(remain / 100.0, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN);
+	return text(String.format("%d%%", remain), c).img;
     }
     
     private static int getTreeScale(Gob gob) {
