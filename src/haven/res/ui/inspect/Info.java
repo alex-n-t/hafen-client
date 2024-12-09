@@ -39,6 +39,8 @@ public class Info implements UI.Notice {
 	    lines.addAll(cell.lines);
 	    lines.add(text);
 	    cell.lines = lines;
+
+	    GeneralGobInfo.parse(gob, lines);
 	}
     }
 

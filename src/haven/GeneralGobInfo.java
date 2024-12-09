@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static me.ender.gob.GobContents.*;
@@ -56,8 +57,19 @@ public class GeneralGobInfo extends GobInfo {
 	timer = GobTimerData.from(gob);
 	center = new Pair<>(0.5, 1.0);
     }
-    
-    
+
+    public static void parse(Gob gob, List<String> lines) {
+	for (String line : lines) {
+	    Matcher m = GeneralGobInfo.GOB_Q.matcher(line);
+	    if(m.matches()) {
+		try {
+		    int q = Integer.parseInt(m.group(1));
+		    gob.setQuality(q);
+		} catch (Exception ignored) {}
+	    }
+	}
+    }
+
     public void setQ(int q) {
 	gobQ.put(gob.id, q);
 	this.q = q;

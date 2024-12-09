@@ -2235,9 +2235,6 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 		args = Utils.extend(args, inf.clickargs());
 		Gob gob = Gob.from(inf.ci);
 		if(gob != null) {
-		    if(ui.isCursor(CURSOR_STUDY)) {
-		        ui.gui.setDetectGob(gob);
-		    }
 		    if(clickb == 3) {
 			Reactor.GOB_INTERACT.onNext(gob);
 		    }

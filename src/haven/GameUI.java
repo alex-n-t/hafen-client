@@ -43,7 +43,6 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.List;
-import java.util.regex.Matcher;
 
 import static haven.ItemFilter.*;
 import haven.render.Location;
@@ -106,7 +105,6 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     public AlchemyWnd alchemywnd = null;
     public ActWindow craftlist, buildlist, actlist;
     public TimerPanel timers;
-    private Gob detectGob;
     public StudyWnd studywnd;
     
     public static abstract class BeltSlot {
@@ -1854,10 +1852,6 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	resize(parent.sz);
     }
 
-    public void setDetectGob(Gob gob) {
-	detectGob = gob;
-    }
-    
     public static interface LogMessage extends UI.Notice {
 	public ChatUI.Channel.Message logmessage();
     }
@@ -1870,17 +1864,6 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	    logged = new ChatUI.Channel.SimpleMessage(msg.message(), msg.color());
 	msgtime = Utils.rtime();
 	lastmsg = RootWidget.msgfoundry.render(msg.message(), msg.color());
-	Gob g = detectGob;
-	if(g != null) {
-	    Matcher m = GeneralGobInfo.GOB_Q.matcher(msg.message());
-	    if(m.matches()) {
-		try {
-		    int q = Integer.parseInt(m.group(1));
-		    g.setQuality(q);
-		} catch (Exception ignored) {}
-		detectGob = null;
-	    }
-	}
 	syslog.append(logged);
 	ui.sfxrl(msg.sfx());
 	return(true);
