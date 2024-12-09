@@ -3,6 +3,7 @@ $size[14]{$u{Update for 09.12.24:}
   * merged makubo's PR (#132) with some localization improvements
   * display remaining % of a log in gob info after inspecting it
   * do not allow to sort inventory with not-default cursor
+  * added Mud Ointment as treatment for Sore Snout
  
 $size[14]{$u{Update for 07.12.24:}
   * added button to sort food on a table
