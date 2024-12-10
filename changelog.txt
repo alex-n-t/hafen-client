@@ -1,4 +1,5 @@
 $size[14]{$u{Update for 10.12.24:}
+  * merged loftar's changes
   * fixed map export and import progress windows being invisible
   * added system log messages when map export/import completes
   * fixed potential crash with weapon tooltips
