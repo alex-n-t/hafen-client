@@ -63,24 +63,33 @@ public class CustomCursors {
     }
 
     public static void inspect(MapView map, Coord c) {
-	if(map.cursor == INSPECT || map.cursor == TRACK) {
+	boolean isMining = map.cursor == null && isMining(map.ui);
+	if(map.cursor == INSPECT || map.cursor == TRACK || isMining) {
 	    map.new Hittest(c) {
 		@Override
 		protected void hit(Coord pc, Coord2d mc, ClickData inf) {
-		    map.ttip(null);
-		    if(inf != null) {
+		    String tip = null;
+		    if(inf != null && !isMining) {
 			Gob gob = Gob.from(inf.ci);
 			if(gob != null) {
-			    map.ttip(map.cursor == INSPECT ? gob.inspect(map.fullTip) : gob.tooltip());
+			    tip = map.cursor == INSPECT ? gob.inspect(map.fullTip) : gob.tooltip();
 			}
-		    } else if(map.cursor == INSPECT) {
-			MCache mCache = map.ui.sess.glob.map;
+		    } else if(map.cursor == INSPECT || isMining) {
+			MCache mCache = map.glob.map;
 			int tile = mCache.gettile(mc.div(tilesz).floor());
 			Resource res = mCache.tilesetr(tile);
 			if(res != null) {
-			    map.ttip(res.name);
+			    if(isMining) {
+				Resource.Tooltip tooltip = res.layer(Resource.tooltip);
+				if(tooltip != null) {
+				    tip = tooltip.t;
+				}
+			    } else {
+				tip = res.name;
+			    }
 			}
 		    }
+		    map.ttip(tip);
 		}
 
 		@Override
@@ -91,6 +100,15 @@ public class CustomCursors {
 	} else {
 	    map.ttip(null);
 	}
+    }
+
+    private static boolean isMining(UI ui) {
+	Indir<Resource> cursor = ui.root.cursor;
+	if(cursor == null) {return false;}
+	try {
+	    return "gfx/hud/curs/mine".equals(cursor.get().name);
+	} catch (Loading ignore) {}
+	return false;
     }
 
     private static void stopCustomModes(MapView map) {
