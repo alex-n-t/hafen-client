@@ -1011,6 +1011,7 @@ public class MapWnd extends WindowX implements Console.Directory {
 			    file.export(out, MapFile.ExportFilter.all, prog);
 			}
 			complete = true;
+			gui.msg("Map export complete!", GameUI.MsgType.INFO);
 		    } finally {
 			if(!complete)
 			    Files.deleteIfExists(path);
@@ -1045,6 +1046,7 @@ public class MapWnd extends WindowX implements Console.Directory {
 			prog.prog("Importing map data");
 			fp.position(0);
 			file.reimport(new Updater(new BufferedInputStream(Channels.newInputStream(fp))), MapFile.ImportFilter.all);
+			gui.msg("Map import complete!", GameUI.MsgType.INFO);
 		    }
 		} catch(InterruptedException e) {
 		} catch(Exception e) {
