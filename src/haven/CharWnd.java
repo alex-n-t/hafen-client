@@ -457,6 +457,7 @@ public class CharWnd extends WindowX {
     }
     
     public Glob.CAttr findattr(String name) {
+	if(this.sattr == null) {return null;}
 	for (SAttrWnd.SAttr skill : this.sattr.attrs) {
 	    if(name.equals(skill.attr.nm)) {
 		return skill.attr;
