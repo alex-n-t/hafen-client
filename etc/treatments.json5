@@ -109,6 +109,9 @@
   "paginae/wound/somethingbroken": [
     "gfx/invobjs/splint"
   ],
+  "paginae/wound/soresnout": [
+    "gfx/invobjs/mudointment"
+  ],
   "paginae/wound/swampfever": [
     "gfx/invobjs/jar-snakejuice"
   ],

@@ -538,6 +538,15 @@ public class Widget {
 	synchronized (boundListeners) {boundListeners.clear();}
 	synchronized (focusListeners) {focusListeners.clear();}
 	synchronized (destroyListeners) {destroyListeners.clear();}
+	synchronized (subscriptions) {
+	    subscriptions.forEach(Subscription::unsubscribe);
+	    subscriptions.clear();
+
+	}
+	synchronized (disposables) {
+	    disposables.forEach(Disposable::dispose);
+	    disposables.clear();
+	}
         disposed = true;
     }
     
@@ -552,8 +561,6 @@ public class Widget {
     }
 
     public void remove() {
-	subscriptions.forEach(Subscription::unsubscribe);
-	subscriptions.clear();
 	if(canfocus)
 	    setcanfocus(false);
 	if(parent != null) {
@@ -571,10 +578,6 @@ public class Widget {
 
     public void destroy() {
 	synchronized (destroyListeners) {destroyListeners.forEach(action -> action.call(this));}
-	synchronized (disposables) {
-	    disposables.forEach(Disposable::dispose);
-	    disposables.clear();
-	}
 	remove();
 	rdispose();
     }
@@ -1915,7 +1918,13 @@ public class Widget {
 	private Tex rend = null;
 	private boolean hrend = false;
 	private KeyMatch rkey = null;
+	private int width = UI.scale(300);
 
+	public KeyboundTip(String base, boolean rich, boolean i10n, int width) {
+	    this(base, rich, i10n);
+	    this.width = width;
+	}
+	
 	public KeyboundTip(String base, boolean rich, boolean i10n) {
 	    this.base = i10n ? L10N.label(base) : base;;
 	    this.rich = rich;
@@ -1933,13 +1942,11 @@ public class Widget {
 	    KeyMatch key = (kb_gkey == null) ? null : kb_gkey.key();
 	    if(!hrend || (rkey != key)) {
 		String tip;
-		int w = 0;
 		if(base != null) {
 		    if(rich) {
 			tip = base;
 			if((key != null) && (key != KeyMatch.nil))
 			    tip = String.format("%s\n\nKeyboard shortcut: $col[255,255,0]{%s}", tip, RichText.Parser.quote(key.name()));
-			w = UI.scale(300);
 		    } else {
 			tip = RichText.Parser.quote(base);
 			if((key != null) && (key != KeyMatch.nil))
@@ -1951,7 +1958,7 @@ public class Widget {
 		    else
 			tip = String.format("Keyboard shortcut: $col[255,255,0]{%s}", RichText.Parser.quote(key.name()));
 		}
-		rend = (tip == null) ? null : RichText.render(tip, w).tex();
+		rend = (tip == null) ? null : RichText.render(tip, width).tex();
 		hrend = true;
 		rkey = key;
 	    }
@@ -1983,6 +1990,11 @@ public class Widget {
 
     public Widget settip(String text, boolean rich) {
 	tooltip = new KeyboundTip(text, rich, true);
+	return(this);
+    }
+
+    public Widget settip(String text, int width) {
+	tooltip = new KeyboundTip(text, true, true, width);
 	return(this);
     }
 
@@ -2136,15 +2148,15 @@ public class Widget {
     }
     
     public void listen(String event, Action1<Reactor.Event> callback) {
-	subscriptions.add(Reactor.listen(event, callback));
+	synchronized (subscriptions) {subscriptions.add(Reactor.listen(event, callback));}
     }
     
     public void listen(String event, Action0 callback) {
-	subscriptions.add(Reactor.listen(event, callback));
+	synchronized (subscriptions) {subscriptions.add(Reactor.listen(event, callback));}
     }
     
     public <T> void listen(String event, Action1<T> callback, Class<T> clazz) {
-	subscriptions.add(Reactor.listen(event, callback, clazz));
+	synchronized (subscriptions) {subscriptions.add(Reactor.listen(event, callback, clazz));}
     }
     
     public static int poshl(Coord c, int w, Widget... children) {

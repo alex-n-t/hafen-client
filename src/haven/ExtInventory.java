@@ -1,12 +1,14 @@
 package haven;
 
 import auto.Actions;
+import auto.InventorySorter;
 import auto.Targets;
 import haven.render.Pipe;
 import haven.resutil.Curiosity;
 import haven.rx.Reactor;
 import me.ender.ClientUtils;
 import me.ender.Reflect;
+import me.ender.WindowDetector;
 import rx.Subscription;
 
 import java.awt.*;
@@ -44,6 +46,7 @@ public class ExtInventory extends Widget {
     private WindowX wnd;
     private final ICheckBox chb_show = new ICheckBox("gfx/hud/btn-extlist", "", "-d", "-h");
     private final ICheckBox chb_repeat = new ICheckBox("gfx/hud/btn-repeat", "", "-d", "-h");
+    private final IButton btn_sort = new IButton("gfx/hud/btn-sort", "", "-d", "-h");
     
     public ExtInventory(Coord sz) {
 	inv = new Inventory(sz);
@@ -54,6 +57,8 @@ public class ExtInventory extends Widget {
 	    .rclick(this::toggleInventory)
 	    .changed(this::setVisibility)
 	    .settip("LClick to toggle extra info\nRClick to hide inventory when info is visible", true);
+	btn_sort.action(() -> InventorySorter.sort(inv));
+	btn_sort.settip("Sort");
     
 	Composer composer = new Composer(extension).hmrgn(margin).vmrgn(margin);
 	composer.add(0);
@@ -126,6 +131,7 @@ public class ExtInventory extends Widget {
 	hideExtension();
 	disabled = true;
 	chb_show.hide();
+	btn_sort.hide();
 	if(wnd != null) {wnd.placetwdgs();}
     }
     
@@ -140,8 +146,12 @@ public class ExtInventory extends Widget {
 	if(chb_show.parent != null) {
 	    chb_show.unlink();
 	}
+	if(btn_sort.parent != null) {
+	    btn_sort.unlink();
+	}
 	if(wnd != null) {
 	    wnd.remtwdg(chb_show);
+	    wnd.remtwdg(btn_sort);
 	}
 	super.unlink();
     }
@@ -173,6 +183,7 @@ public class ExtInventory extends Widget {
 	    if(!disabled) {
 		chb_show.a = vis;
 		wnd.addtwdg(chb_show);
+		if(!WindowDetector.isWindowType(wnd, InventorySorter.EXCLUDE)) {wnd.addtwdg(btn_sort);}
 		grouping.sel = Grouping.valueOf(wnd.cfg.getValue(CFG_GROUP, Grouping.NONE.name()));
 		needUpdate = true;
 	    }
@@ -381,6 +392,7 @@ public class ExtInventory extends Widget {
 	final String resname;
 	final Double quality;
 	final boolean matches;
+	private final boolean alchemyMatches;
 	final boolean loading;
 	final Color color;
 	final Pipe.Op state;
@@ -391,6 +403,7 @@ public class ExtInventory extends Widget {
 	    this.resname = resname(w);
 	    this.quality = quality;
 	    this.matches = w.item.matches();
+	    this.alchemyMatches = w.item.alchemyMatches();
 	    this.color = w.olcol.get();
 	    this.state = this.color != null ? new ColorMask(this.color) : null;
 	    loading = name.startsWith("???");
@@ -400,6 +413,9 @@ public class ExtInventory extends Widget {
 	@Override
 	public int compareTo(ItemType other) {
 	    int byMatch = Boolean.compare(other.matches, matches);
+	    if(byMatch != 0) { return byMatch; }
+
+	    byMatch = Boolean.compare(other.alchemyMatches, alchemyMatches);
 	    if(byMatch != 0) { return byMatch; }
 	    
 	    int byOverlay = 0;
@@ -536,6 +552,9 @@ public class ExtInventory extends Widget {
 		g.chcolor(MATCH_COLOR);
 		g.rect(Coord.z, sz);
 		g.chcolor();
+	    }
+	    if(type.alchemyMatches) {
+		g.aimage(alchemy_mark, Coord.of(0, sz.y), 0, 1);
 	    }
 	}
 

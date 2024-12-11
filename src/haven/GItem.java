@@ -27,6 +27,8 @@
 package haven;
 
 import me.ender.Reflect;
+import me.ender.alchemy.AlchemyData;
+import me.ender.alchemy.AlchemyItemFilter;
 import rx.functions.Action0;
 
 import java.util.*;
@@ -39,6 +41,7 @@ import static haven.WItem.*;
 
 public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owner, RandomSource {
     private static ItemFilter filter;
+    public static AlchemyItemFilter alchemyFilter;
     private static long lastFilter = 0;
     public Indir<Resource> res;
     public MessageBuf sdt;
@@ -57,8 +60,10 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
     private ItemInfo.Raw rawinfo;
     private List<ItemInfo> info = Collections.emptyList();
     private boolean matches = false;
+    private boolean alchemyMatches = false;
     public boolean sendttupdate = false;
     private long filtered = 0;
+    private boolean infoDirty = false;
     private final List<Action0> matchListeners = new ArrayList<>();
     public Consumer<GItem> infoCallback = null;
 
@@ -66,6 +71,12 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	GItem.filter = filter;
 	lastFilter = System.currentTimeMillis();
     }
+
+    public static void setAlchemyFilter(AlchemyItemFilter filter) {
+	GItem.alchemyFilter = filter;
+	lastFilter = System.currentTimeMillis();
+    }
+    
     @RName("item")
     public static class $_ implements Factory {
 	public Widget create(UI ui, Object[] args) {
@@ -207,6 +218,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	    hovering = null;
 	hoverset = false;
 	testMatch();
+	processInfoChange();
     }
     
     public final ItemInfo.AttrCache<ItemData.Content> contains = new ItemInfo.AttrCache<>(this::info, ItemInfo.AttrCache.cache(ItemInfo::getContent), ItemData.Content.EMPTY);
@@ -280,11 +292,19 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	    .stream()
 	    .anyMatch(wItem -> wItem.item.matches());
     }
+
+    public boolean alchemyMatches() {
+	return alchemyMatches
+	    || contents != null && contents.children(WItem.class)
+	    .stream()
+	    .anyMatch(wItem -> wItem.item.alchemyMatches());
+    }
     
     public void testMatch() {
 	try {
 	    if(filtered < lastFilter && spr != null) {
 		matches = filter != null && filter.matches(info());
+		alchemyMatches = alchemyFilter != null && alchemyFilter.matches(this);
 		filtered = lastFilter;
 		List<Action0> listeners;
 		synchronized (matchListeners) {
@@ -345,6 +365,7 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	    rawinfo = new ItemInfo.Raw(args);
 	    infoseq++;
 	    filtered = 0;
+	    infoDirty = true;
 	    meterUpdated = System.currentTimeMillis();
 	    if(sendttupdate){wdgmsg("ttupdate");}
 	} else if(name == "meter") {
@@ -705,5 +726,18 @@ public class GItem extends AWidget implements ItemInfo.SpriteOwner, GSprite.Owne
 	if(Reflect.getFieldValueBool(wdg, "dirty")) {
 	    cont.itemsChanged();
 	}
+    }
+
+    public double quality() {
+	QualityList ql = itemq.get();
+	return (ql != null && !ql.isEmpty()) ? ql.single().value : 0;
+    }
+
+    private void processInfoChange() {
+	if(!infoDirty || spr == null) {return;}
+	try {
+	    AlchemyData.autoProcess(this);
+	    infoDirty = false;
+	} catch (Loading ignore) {}
     }
 }

@@ -44,10 +44,11 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.List;
-import java.util.regex.Matcher;
 
 import static haven.ItemFilter.*;
 import haven.render.Location;
+import me.ender.alchemy.AlchemyWnd;
+
 import static haven.Inventory.invsq;
 
 public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.Handler {
@@ -55,6 +56,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     public final String chrid, genus;
     public final long plid;
     private final Hidepanel ulpanel, umpanel, urpanel, blpanel, mapmenupanel, brpanel, menupanel;
+    public StatusWdg statuswdg;
+    public TimeWdg timewdg;
     public Widget portrait;
     public MenuGrid menu;
     public MapView map;
@@ -100,9 +103,9 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     public final Map<Integer, String> polowners = new HashMap<Integer, String>();
     public Bufflist buffs;
     public CraftDBWnd craftwnd = null;
+    public AlchemyWnd alchemywnd = null;
     public ActWindow craftlist, buildlist, actlist;
     public TimerPanel timers;
-    private Gob detectGob;
     public StudyWnd studywnd;
     
     public static abstract class BeltSlot {
@@ -348,9 +351,12 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	opts.hide();
 	zerg = add(new Zergwnd(), Utils.getprefc("wndc-zerg", UI.scale(new Coord(187, 50))));
 	zerg.hide();
-	questHelper = add(new QuestHelper(), UI.scale(new Coord(187, 50)));
+	questHelper = add(new QuestHelper(this), UI.scale(new Coord(187, 50)));
 	questHelper.hide();
 	placemmap();
+	timewdg = add(new TimeWdg(), new Coord(umpanel.c.x - UI.scale(200), 0));
+	CFG.ALWAYS_SHOW_DEWY_TIME.observe(cfg -> timewdg.updateTime());
+	statuswdg = add(new StatusWdg());
     }
 
     protected void attached() {
@@ -633,6 +639,14 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	    craftwnd = add(new CraftDBWnd(), ClientUtils.getScreenCenter(ui));
 	} else {
 	    craftwnd.close();
+	}
+    }
+
+    public void toggleAlchemyDB() {
+	if(alchemywnd == null) {
+	    alchemywnd = add(new AlchemyWnd(), ClientUtils.getScreenCenter(ui).sub(AlchemyWnd.WND_SZ.div(2)));
+	} else {
+	    alchemywnd.close();
 	}
     }
     
@@ -1832,24 +1846,19 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	if(prog != null)
 	    prog.move(sz.sub(prog.sz).mul(0.5, 0.35));
 	beltwdg.c = new Coord(blpw + UI.scale(10), sz.y - beltwdg.sz.y - UI.scale(5));
+	statuswdg.c = new Coord(sz.x/2 + UI.scale(70), UI.scale(10));
+	timewdg.c = new Coord(sz.x/2 - UI.scale(270), UI.scale(10));
     }
     
     public void presize() {
 	resize(parent.sz);
     }
 
-    public void setDetectGob(Gob gob) {
-	detectGob = gob;
-    }
-    
     public static interface LogMessage extends UI.Notice {
 	public ChatUI.Channel.Message logmessage();
     }
 
-    public boolean msg(UI.NoticeEvent ev) {
-	if(ev.propagate(this))
-	    return(true);
-	UI.Notice msg = ev.msg;
+    public boolean msg(UI.Notice msg) {
 	ChatUI.Channel.Message logged;
 	if(msg instanceof LogMessage)
 	    logged = ((LogMessage)msg).logmessage();
@@ -1857,17 +1866,6 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	    logged = new ChatUI.Channel.SimpleMessage(msg.message(), msg.color());
 	msgtime = Utils.rtime();
 	lastmsg = RootWidget.msgfoundry.render(msg.message(), msg.color());
-	Gob g = detectGob;
-	if(g != null) {
-	    Matcher m = GeneralGobInfo.GOB_Q.matcher(msg.message());
-	    if(m.matches()) {
-		try {
-		    int q = Integer.parseInt(m.group(1));
-		    g.setQuality(q);
-		} catch (Exception ignored) {}
-		detectGob = null;
-	    }
-	}
 	syslog.append(logged);
 	ui.sfxrl(msg.sfx());
 	return(true);
@@ -1878,7 +1876,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     }
     
     public void msg(String msg, MsgType type) {
-	msg(new UI.SimpleMessage(msg, type.color, type.sfx));
+	msg(new UI.NoticeEvent(new UI.SimpleMessage(msg, type.color, type.sfx)));
     }
     
     public enum MsgType {

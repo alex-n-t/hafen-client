@@ -36,6 +36,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.*;
 import haven.MiniMap.*;
 import haven.BuddyWnd.GroupSelector;
+import me.ender.QuestCondition;
 import me.ender.minimap.*;
 
 import static haven.MCache.tilesz;
@@ -345,6 +346,12 @@ public class MapWnd extends WindowX implements Console.Directory {
 		Gob gob = MarkerID.find(ui.sess.glob.oc, mark.m);
 		if(gob != null)
 		    mvclick(mv, null, loc, gob, button);
+		if(button == 3 && !press && !domark && !((SMarker) mark.m).questConditions.isEmpty())
+		{
+		    QuestCondition questCondition = ((SMarker) mark.m).questIterator.next();
+		    if (questCondition != null)
+		    	this.ui.gui.chrwdg.wdgmsg("qsel", questCondition.questId);
+		}
 	    }
 	    return(false);
 	}
@@ -936,6 +943,7 @@ public class MapWnd extends WindowX implements Console.Directory {
 	}
 
 	public void tick(double dt) {
+	    super.tick(dt);
 	    if(!th.isAlive())
 		destroy();
 	}
@@ -977,6 +985,7 @@ public class MapWnd extends WindowX implements Console.Directory {
 	}
 
 	public void tick(double dt) {
+	    super.tick(dt);
 	    if(!th.isAlive())
 		destroy();
 	}
@@ -1002,6 +1011,7 @@ public class MapWnd extends WindowX implements Console.Directory {
 			    file.export(out, MapFile.ExportFilter.all, prog);
 			}
 			complete = true;
+			gui.msg("Map export complete!", GameUI.MsgType.INFO);
 		    } finally {
 			if(!complete)
 			    Files.deleteIfExists(path);
@@ -1036,6 +1046,7 @@ public class MapWnd extends WindowX implements Console.Directory {
 			prog.prog("Importing map data");
 			fp.position(0);
 			file.reimport(new Updater(new BufferedInputStream(Channels.newInputStream(fp))), MapFile.ImportFilter.all);
+			gui.msg("Map import complete!", GameUI.MsgType.INFO);
 		    }
 		} catch(InterruptedException e) {
 		} catch(Exception e) {

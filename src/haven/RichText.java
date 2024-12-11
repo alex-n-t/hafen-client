@@ -40,6 +40,7 @@ import static java.text.AttributedCharacterIterator.Attribute;
 public class RichText extends Text {
     public static final Parser std;
     public static final Foundry stdf;
+    public static final Foundry stdfrem;
     public final Part parts;
 
     static {
@@ -48,6 +49,7 @@ public class RichText extends Text {
 	a.put(TextAttribute.SIZE, UI.scale(10.0f));
 	std = new Parser(a);
 	stdf = new Foundry(std);
+	stdfrem = new Foundry(new Parser(Resource.remote(), a));
     }
     
     private RichText(String text, BufferedImage img, Part parts) {

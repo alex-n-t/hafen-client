@@ -69,6 +69,7 @@ public class RemoteUI implements UI.Receiver, UI.Runner {
 	    sendua("os.version", Utils.getprop("os.version", ""));
 	    sendua("mem.heap", String.valueOf(Runtime.getRuntime().maxMemory()));
 	    sendua("cpu.num", String.valueOf(Runtime.getRuntime().availableProcessors()));
+	    sendua("ui.scale", String.valueOf(UI.scale(1.0)));
 	    haven.render.Environment env = ui.getenv();
 	    if(env != null) {
 		sendua("render.env", env.getClass().getSimpleName());
@@ -76,6 +77,9 @@ public class RemoteUI implements UI.Receiver, UI.Runner {
 		sendua("render.device", env.caps().device());
 		sendua("render.driver", env.caps().driver());
 	    }
+	    sendua("ender.client", Config.clientType);
+	    sendua("ender.theme", CFG.THEME.get().name());
+	    sendua("ender.lang", L10N.language);
 	} catch(Exception e) {
 	    new Warning(e).issue();
 	}

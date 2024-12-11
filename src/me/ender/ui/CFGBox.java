@@ -2,10 +2,12 @@ package me.ender.ui;
 
 import haven.CFG;
 import haven.CheckBox;
-import haven.Text;
+import haven.RichText;
+import haven.UI;
 
 public class CFGBox extends CheckBox implements CFG.Observer<Boolean> {
 
+    public static final int TT_WIDTH = UI.scale(200);
     protected final CFG<Boolean> cfg;
 
     public CFGBox(String lbl, CFG<Boolean> cfg) {
@@ -22,7 +24,7 @@ public class CFGBox extends CheckBox implements CFG.Observer<Boolean> {
 	this.cfg = cfg;
 	defval();
 	if(tip != null) {
-	    tooltip = Text.render(tip).tex();
+	    tooltip = RichText.render(tip, TT_WIDTH).tex();
 	}
 	if(observe) {cfg.observe(this);}
     }

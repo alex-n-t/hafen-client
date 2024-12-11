@@ -40,10 +40,12 @@ import java.util.Properties;
 import java.util.function.*;
 
 public class Config {
+    public static final boolean iswindows = System.getProperty("os.name").startsWith("Windows");
     public static final String LINE_SEPARATOR = System.lineSeparator();
     public static final Properties jarprops = getjarprops();
     public static final File HOMEDIR = getHomeDir();
     public static final String confid = get().getprop("config.client-id", "unknown");
+    public static final String clientType = get().getprop("ender.client-type", confid);
     public static final Variable<Boolean> par = Variable.def(() -> true);
     public final Properties localprops = getlocalprops();
 

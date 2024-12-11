@@ -9,8 +9,8 @@ import java.util.Set;
 import static me.ender.ResName.*;
 
 public class ItemHelpers {
-    private static final Coord DISHES_SZ = Coord.of(3, 3);
-    private static final Coord TABLECLOTH_SZ = Coord.of(1, 2);
+    public static final Coord DISHES_SZ = Coord.of(3, 3);
+    public static final Coord TABLECLOTH_SZ = Coord.of(1, 2);
     private static final int DISH_HP_WARNING = 1;
 
 
@@ -28,6 +28,11 @@ public class ItemHelpers {
     public static void invalidateFoodItemTooltips(UI ui) {
 	Set<WItem> children = ui.root.children(WItem.class);
 	children.forEach(w -> {if(ItemData.hasFoodInfo(w.item)) {w.clearLongTip();}});
+    }
+
+    public static void invalidateIngredientTooltips(UI ui) {
+	Set<WItem> children = ui.root.children(WItem.class);
+	children.forEach(w -> {if(ItemData.hasIngredientInfo(w.item)) {w.clearLongTip();}});
     }
 
     private static String preserveDishes(WItem item, UI ui) {

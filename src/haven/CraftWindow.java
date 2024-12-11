@@ -2,12 +2,13 @@ package haven;
 
 import haven.MenuGrid.Pagina;
 import me.ender.ui.ICraftParent;
+import me.ender.ui.TabStrip;
 
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import static haven.TabStrip.frame;
+import static me.ender.ui.TabStrip.frame;
 
 public class CraftWindow extends GameUI.Hidewnd implements ICraftParent {
     private final TabStrip<Pagina> tabStrip;
@@ -106,8 +107,7 @@ public class CraftWindow extends GameUI.Hidewnd implements ICraftParent {
 	if(text.length() > 12) {
 	    text = text.substring(0, 12 - 2) + "..";
 	}
-	TabStrip.Button<Pagina> added = tabStrip.insert(0, icon, text, pagina.button().act().name);
-	added.tag = pagina;
+	TabStrip.Button<Pagina> added = tabStrip.insert(0, pagina, icon, text, pagina.button().act().name);
 	tabStrip.select(added);
 	added.setActive(true);
 	if(tabStrip.getButtonCount() > 4) {
