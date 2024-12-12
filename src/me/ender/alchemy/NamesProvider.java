@@ -48,10 +48,10 @@ public class NamesProvider implements Disposable {
 	}
 	String name = name(res);
 	try {
-	    return RichText.stdfrem.render(String.format("$img[%s,h=16,c] %s", res, name), width).tex();
+	    return RichText.render(String.format("$img[%s,h=16,c] %s", res, name), width).tex();
 	} catch (Exception ignore) {
 	}
-	return RichText.stdfrem.render(String.format("$img[gfx/invobjs/missing,h=16,c] %s", name), width).tex();
+	return RichText.render(String.format("$img[gfx/invobjs/missing,h=16,c] %s", name), width).tex();
     }
 
     public int compare(String o1, String o2) {

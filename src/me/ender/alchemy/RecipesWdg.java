@@ -74,7 +74,7 @@ class RecipesWdg extends AlchemyWdg {
 	    RichText text = names.getOrDefault(name, null);
 	    if(text != null) {return text;}
 
-	    text = RichText.stdfrem.render(String.format("$img[%s,h=16,c] %s", elixir.recipe.res, name), CONTENT_W);
+	    text = RichText.render(String.format("$img[%s,h=16,c] %s", elixir.recipe.res, name), CONTENT_W);
 	    names.put(name, text);
 	    return text;
 	}

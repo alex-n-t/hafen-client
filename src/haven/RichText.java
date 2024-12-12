@@ -40,7 +40,6 @@ import static java.text.AttributedCharacterIterator.Attribute;
 public class RichText extends Text {
     public static final Parser std;
     public static final Foundry stdf;
-    public static final Foundry stdfrem;
     public final Part parts;
 
     static {
@@ -49,7 +48,6 @@ public class RichText extends Text {
 	a.put(TextAttribute.SIZE, UI.scale(10.0f));
 	std = new Parser(a);
 	stdf = new Foundry(std);
-	stdfrem = new Foundry(new Parser(Resource.remote(), a));
     }
     
     private RichText(String text, BufferedImage img, Part parts) {
@@ -384,7 +382,7 @@ public class RichText extends Text {
 	}
 	
 	public Parser(Map<? extends Attribute, ?> defattrs) {
-	    this(Resource.local(), defattrs);
+	    this(Resource.remote(), defattrs);
 	}
 	
 	public Parser(Resource.Pool respool, Object... attrs) {
@@ -392,7 +390,7 @@ public class RichText extends Text {
 	}
 	
 	public Parser(Object... attrs) {
-	    this(Resource.local(), attrs);
+	    this(Resource.remote(), attrs);
 	}
 	
 	public static class PState {
