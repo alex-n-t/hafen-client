@@ -58,7 +58,7 @@ public class KeyBinder {
 	}
 	binds = tmpGeneralCFG;
 	binds.forEach((action, keyBind) -> keyBind.action = action);
-	order = Arrays.asList(Action.values()); //TODO: rework ordering to use order of added binds, not order of actions
+	order = new ArrayList<>();
 	defaults();
     }
     
@@ -78,8 +78,11 @@ public class KeyBinder {
 	add(KeyEvent.VK_3, CTRL,  ACT_BELT);
 	add(ACT_POUCH_0);
 	add(ACT_POUCH_1);
+	add(KeyEvent.VK_Q, ALT,   BOT_PICK_ALL_HERBS);
     	add(KeyEvent.VK_D, ALT,   ACT_DRINK);
     	add(ACT_REFILL_DRINKS);
+	add(KeyEvent.VK_W, ALT,   BOT_OPEN_GATE);
+	add(KeyEvent.VK_Q, CTRL,  BOT_MOUNT_HORSE);
 	add(KeyEvent.VK_C, ALT,   OPEN_QUICK_CRAFT);
 	add(KeyEvent.VK_B, ALT,   OPEN_QUICK_BUILD);
 	add(KeyEvent.VK_A, ALT,   OPEN_QUICK_ACTION);
@@ -90,13 +93,14 @@ public class KeyBinder {
 	add(KeyEvent.VK_S, ALT,   TOGGLE_STUDY);
 	add(KeyEvent.VK_F, ALT,   FILTER);
 	add(SORT_INVENTORY);
+	add(TOGGLE_INSPECT);
+	add(TOGGLE_HIDE_TREES);
 	add(KeyEvent.VK_I, ALT,   TOGGLE_GOB_INFO);
 	add(KeyEvent.VK_H, CTRL,  TOGGLE_GOB_HITBOX);
 	add(KeyEvent.VK_R, ALT,   TOGGLE_GOB_RADIUS);
 	add(KeyEvent.VK_Z, CTRL,  TOGGLE_TILE_CENTERING);
-	add(KeyEvent.VK_Q, ALT,   BOT_PICK_ALL_HERBS);
-	add(KeyEvent.VK_W, ALT,   BOT_OPEN_GATE);
-	add(KeyEvent.VK_Q, CTRL,  BOT_MOUNT_HORSE);
+	
+	add(TOGGLE_PEACE);
 	add(AGGRO_ONE_PVE);
 	add(AGGRO_ONE_PVP);
 	add(AGGRO_ALL);
@@ -117,10 +121,6 @@ public class KeyBinder {
 	add(KeyEvent.VK_UP, CTRL, CAM_SNAP_NORTH);
 	add(KeyEvent.VK_DOWN, CTRL, CAM_SNAP_SOUTH);
 	add(KeyEvent.VK_HOME, NONE, CAM_RESET);
-	
-	add(TOGGLE_HIDE_TREES);
-	add(TOGGLE_INSPECT);
-	add(TOGGLE_PEACE);
     }
     
     private static synchronized void store() {
@@ -151,6 +151,7 @@ public class KeyBinder {
 	if(!binds.containsKey(action)) {
 	    binds.put(action, bind);
 	}
+	if(!order.contains(action)) {order.add(action);}
 	return action;
     }
     
