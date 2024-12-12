@@ -3,7 +3,7 @@ paginae/act/equipment
 #uint16 pver
 1
 #String name
-Equip Sword and Shield
+Sword and Shield
 #String preq
 
 #uint16 hk
