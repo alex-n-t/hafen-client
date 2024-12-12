@@ -30,7 +30,7 @@ public class ExtInventory extends Widget {
     private static final String CFG_SHOW = "ext.show";
     private static final String CFG_INV = "ext.inv";
     private static int curType = 0;
-    private static final Set<String> EXCLUDES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("Steelbox", "Pouch", "Frame", "Tub", "Fireplace", "Rack", "Pane mold", "Table", "Purse")));
+    private static final Set<String> EXCLUDES = new HashSet<>(Arrays.asList("Steelbox", "Pouch", "Frame", "Tub", "Fireplace", "Rack", "Pane mold", "Table", "Purse", "Archery Target"));
     public final Inventory inv;
     private final ItemGroupList list;
     private final Widget extension;
