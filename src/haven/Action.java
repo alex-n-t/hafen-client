@@ -1,6 +1,7 @@
 package haven;
 
 import auto.Actions;
+import auto.Equip;
 import auto.InventorySorter;
 import me.ender.CustomCursors;
 import me.ender.GobInfoOpts;
@@ -42,6 +43,10 @@ public enum Action {
     AGGRO_ONE_PVE(Actions::aggroOnePVE, "Aggro closest non-player to cursor", "Will try to aggro (or switch target to) one non-player target closest to cursor"),
     AGGRO_ONE_PVP(Actions::aggroOnePVP, "Aggro closest player to cursor", "Will try to aggro (or switch target to) one player closest to cursor"),
     AGGRO_ALL(Actions::aggroAll, "Aggro all creatures near player", "Will try to aggro all creatures near player that are not in party"),
+
+    EQUIP_BOW(gui -> Equip.twoHanded(gui, Equip.BOW), "Equip Bow"),
+    EQUIP_SPEAR(gui -> Equip.twoHanded(gui, Equip.SPEAR), "Equip Boar Spear"),
+    EQUIP_SWORD_N_BOARD(gui -> Equip.twoItems(gui, Equip.SHIELD, Equip.SWORD), "Equip Sword & Shield"),
     
     //Camera controls
     CAM_ZOOM_IN(gui -> gui.map.zoomCamera(-1), "Camera zoom in"),
