@@ -62,6 +62,7 @@ public class Equipory extends Widget implements DTarget {
     };
     
     public enum SLOTS {
+	INVALID(-1),
 	HEAD(0),       //00: Headgear
 	ACCESSORY(1),  //01: Main Accessory
 	SHIRT(2),      //02: Shirt
@@ -363,5 +364,13 @@ public class Equipory extends Widget implements DTarget {
     
     public void sendDrop(int slot) {
 	wdgmsg("drop", slot);
+    }
+
+    public void sendDrop(SLOTS slot) {
+	sendDrop(slot.idx);
+    }
+
+    public WItem slot(SLOTS slot) {
+	return slots[slot.idx];
     }
 }

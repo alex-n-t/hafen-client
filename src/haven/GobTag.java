@@ -392,6 +392,7 @@ public enum GobTag {
     }
     
     public static boolean ofType(String name, String[] patterns) {
+        if(name == null || name.isEmpty()) {return false;}
         for (String pattern : patterns) {
             if(name.contains(pattern)) { return true; }
         }
