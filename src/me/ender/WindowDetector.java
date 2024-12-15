@@ -138,7 +138,8 @@ public class WindowDetector {
     private static void extendTableWindow(Window wnd) {
 	Inventory food = null;
 	for (Inventory inventory : wnd.children(Inventory.class)) {
-	    if(inventory.isz.equals(DISHES_SZ) || inventory.isz.equals(TABLECLOTH_SZ)) {continue;}
+	    Coord isz = inventory.isz;
+	    if(isz.equals(DISHES_SZ) || isz.equals(TABLECLOTH_SZ) || isz.equals(ALCHEMY_SZ)) {continue;}
 	    food = inventory;
 	    break;
 	}

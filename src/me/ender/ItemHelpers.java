@@ -11,6 +11,7 @@ import static me.ender.ResName.*;
 public class ItemHelpers {
     public static final Coord DISHES_SZ = Coord.of(3, 3);
     public static final Coord TABLECLOTH_SZ = Coord.of(1, 2);
+    public static final Coord ALCHEMY_SZ = Coord.of(4, 2);
     private static final int DISH_HP_WARNING = 1;
 
 
