@@ -1,3 +1,7 @@
+$size[14]{$u{Update for 16.12.24:}
+  * merged loftar's changes
+  * Alchemy: updated ingredient and effect lists
+ 
 $size[14]{$u{Update for 14.12.24:}
   * merged loftar's code
   * added black wood and sea brick to tile highlight
