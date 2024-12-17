@@ -1,3 +1,6 @@
+$size[14]{$u{Update for 17.12.24:}
+  * merged loftar's changes
+ 
 $size[14]{$u{Update for 16.12.24:}
   * merged loftar's changes
   * Alchemy: updated ingredient and effect lists
