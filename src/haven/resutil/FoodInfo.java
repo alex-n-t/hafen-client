@@ -27,16 +27,13 @@
 package haven.resutil;
 
 import haven.*;
-import me.ender.ClientUtils;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
 import java.util.List;
 
-import static haven.QualityList.SingleType.*;
-
 public class FoodInfo extends ItemInfo.Tip {
+    public static int PAD = UI.scale(5);
     public final double end, glut, sev, cons;
     public final Event[] evs;
     public final Effect[] efs;
@@ -80,70 +77,34 @@ public class FoodInfo extends ItemInfo.Tip {
     }
 
     public void layout(Layout l) {
-	String head = String.format("Energy: $col[128,128,255]{%s%%}, Hunger: $col[255,192,128]{%s\u2030}", Utils.odformat2(end * 100, 2), Utils.odformat2(glut * 1000, 2));
+	String energy_hunger = glut != 0
+	    ? Utils.odformat2(end / (10 * glut), 2)
+	    : end == 0 ? "0" : "∞";
+	String head = String.format("Energy: $col[128,128,255]{%s%%}, Hunger: $col[255,192,128]{%s\u2030}, Energy/Hunger: $col[128,128,255]{%s%%}", Utils.odformat2(end * 100, 2), Utils.odformat2(glut * 1000, 2), energy_hunger);
 	if(cons != 0)
 	    head += String.format(", Satiation: $col[192,192,128]{%s%%}", Utils.odformat2(cons * 100, 2));
 	l.cmp.add(RichText.render(head, 0).img, Coord.of(0, l.cmp.sz.y));
 	for(int i = 0; i < evs.length; i++) {
-	    double probability = 100 * evs[i].a / fepSum;
-	    String fepItemString = String.format("%s (%s%%)", Utils.odformat2(evs[i].a, 2), Utils.odformat2(probability, 2));
 	    Color col = Utils.blendcol(evs[i].ev.col, Color.WHITE, 0.5);
-	    l.cmp.add(catimgsh(5, evs[i].img, RichText.render(String.format("%s: %s{%s}", evs[i].ev.nm, RichText.Parser.col2a(col), Utils.odformat2(evs[i].a, 2)), 0).img),
+	    String fepStr = Utils.odformat2(evs[i].a, 2);
+	    if(sev > 0) {
+		double probability = 100 * evs[i].a / sev;
+		fepStr += String.format(" (%s%%)", Utils.odformat2(probability, 2));
+	    }
+	    l.cmp.add(catimgsh(5, evs[i].img, RichText.render(String.format("%s: %s{%s}", evs[i].ev.nm, RichText.Parser.col2a(col), fepStr), 0).img),
 		      Coord.of(UI.scale(5), l.cmp.sz.y));
 	}
+	/* disabling this - custom total is added by ItemData.modifyFoodTooltip 
 	if(sev > 0)
 	    l.cmp.add(RichText.render(String.format("Total: $col[128,192,255]{%s} ($col[128,192,255]{%s}/\u2030 hunger)", Utils.odformat2(sev, 2), Utils.odformat2(sev / (1000 * glut), 2)), 0).img,
 		      Coord.of(UI.scale(5), l.cmp.sz.y));
+		      */
 	for(int i = 0; i < efs.length; i++) {
 	    BufferedImage efi = ItemInfo.longtip(efs[i].info);
 	    if(efs[i].p != 1)
 		efi = catimgsh(5, efi, RichText.render(String.format("$i{($col[192,192,255]{%d%%} chance)}", (int)Math.round(efs[i].p * 100)), 0).img);
 	    l.cmp.add(efi, Coord.of(UI.scale(5), l.cmp.sz.y));
 	}
-	//ItemData.modifyFoodTooltip(owner, imgs, types, glut, fepSum);
-    }
-    
-    public static class Data implements ItemData.ITipData {
-	private final double end;
-	private final double glut;
-	private final List<Pair<String, Double>> fep;
-	private final int[] types;
-	
-	public Data(FoodInfo info, QualityList q) {
-	    end = info.end;
-	    glut = info.glut;
-	    QualityList.Quality single = q.single(Quality);
-	    if(single == null) {
-		single = QualityList.DEFAULT;
-	    }
-	    double multiplier = single.multiplier;
-	    fep = new ArrayList<>(info.evs.length);
-	    for (int i = 0; i < info.evs.length; i++) {
-		fep.add(new Pair<>(info.evs[i].res, ClientUtils.round(info.evs[i].a / multiplier, 2)));
-	    }
-	    types  = info.types;
-	}
-	
-	@Override
-	public ItemInfo create(Session sess) {
-	    Event[] evs;
-	    if (fep == null) {
-		evs = new Event[0];
-	    } else {
-		evs = new Event[fep.size()];
-		for (int i = 0; i < fep.size(); i++) {
-		    Pair<String, Double> tmp = fep.get(i);
-		    evs[i] = new Event(Resource.remote().loadwait(tmp.a), tmp.b);
-		}
-	    }
-	    int[] t;
-	    if (types == null) {
-		t = new int[0];
-	    } else {
-		t = types;
-	    }
-	    
-	    return new FoodInfo(null, end, glut, evs, new Effect[0], t);
-	}
+	ItemData.modifyFoodTooltip(owner, l.cmp, types, glut, sev);
     }
 }
