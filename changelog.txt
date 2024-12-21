@@ -1,3 +1,8 @@
+$size[14]{$u{Update for 21.12.24:}
+  * merged loftar's changes
+  * fixed FEP percentages in tooltip
+  * made "#Pick All" action ignore distance and radar settings
+ 
 $size[14]{$u{Update for 17.12.24:}
   * merged loftar's changes
  
