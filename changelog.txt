@@ -1,4 +1,8 @@
 $size[14]{$u{Update for 21.12.24:}
+  * fixed rare crash related to tooltip while mining
+  * improved info for another rare crash
+ 
+$size[14]{$u{Update for 21.12.24:}
   * merged loftar's changes
   * fixed FEP percentages in tooltip
   * made "#Pick All" action ignore distance and radar settings
