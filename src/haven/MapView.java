@@ -2438,7 +2438,8 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 	if(selection != null) {
 	    if(selection.tt != null)
 		return(selection.tt);
-	} 
+	}
+	String stip = this.stip;
 	if(stip != null) {
 	    if(fullTip != ui.modshift) {
 		fullTip = ui.modshift;
