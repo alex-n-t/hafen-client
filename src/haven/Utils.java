@@ -432,6 +432,10 @@ public class Utils {
 	}
     }
 
+    public static String sv(Object arg) {
+	return((String)arg);
+    }
+
     public static int iv(Object arg) {
 	return(((Number)arg).intValue());
     }
@@ -450,6 +454,11 @@ public class Utils {
 
     public static boolean bv(Object arg) {
 	return(iv(arg) != 0);
+    }
+
+    public static Indir<Resource> irv(Object arg) {
+	Indir<?> s = (Indir)arg;
+	return(() -> (Resource)s.get());
     }
 
     /* Nested format: [[KEY, VALUE], [KEY, VALUE], ...] */
