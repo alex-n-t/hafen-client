@@ -1,3 +1,7 @@
+$size[14]{$u{Update for 07.01.25:}
+  * merged loftar's changes
+  * fixed crash related to food tooltips while eating
+ 
 $size[14]{$u{Update for 21.12.24:}
   * fixed rare crash related to tooltip while mining
   * improved info for another rare crash
