@@ -2,6 +2,7 @@ package auto;
 
 import haven.*;
 import me.ender.ClientUtils;
+import me.ender.ItemHelpers;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -57,6 +58,19 @@ public class Actions {
 	    .collect(Collectors.toList());
 	
 	Bot.process(targets).actions(ITarget::rclick).start(gui.ui, true);
+    }
+
+    public static void saltFood(GameUI gui) {
+	List<ITarget> targets = ItemHelpers.findAll(gui.ui, w -> ItemData.hasFoodInfo(w.item) && !ItemData.isSalted(w.item))
+	    .map(ItemTarget::new)
+	    .collect(Collectors.toList());
+
+	Bot.process(targets)
+	    .actions(
+		(t, b) -> {if(!InvHelper.pickItemOnCursor(b.gui(), "Salt")) {b.cancel("No salt!");}},
+		ITarget::interact
+	    )
+	    .start(gui.ui);
     }
     
     public static void refillDrinks(GameUI gui) {

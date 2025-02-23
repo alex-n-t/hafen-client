@@ -16,6 +16,8 @@ public interface ITarget {
 	rclick(UI.MOD_SHIFT);
     }
     
+    default void interact(Bot b) {interact();}
+    
     void rclick(int modflags);
     
     void click(int button, int modflags);
