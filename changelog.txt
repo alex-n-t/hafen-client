@@ -1,3 +1,6 @@
+$size[14]{$u{Update for 02.03.25:}
+  * merged loftar's attribute changes
+
 $size[14]{$u{Update for 23.02.25:}
   * added "Salt All" button to tables
  
