@@ -5,6 +5,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import haven.*;
 import haven.res.ui.tt.attrmod.AttrMod;
+import haven.res.ui.tt.attrmod.Entry;
+import haven.res.ui.tt.attrmod.Mod;
+import haven.res.ui.tt.attrmod.resattr;
 import haven.rx.Reactor;
 import me.ender.Reflect;
 
@@ -368,9 +371,12 @@ public class AlchemyData {
 
     public static void tryAddElixirEffect(double qc, Collection<Effect> effects, ItemInfo info) {
 	if(info instanceof AttrMod) {
-	    for (AttrMod.Mod mod : ((AttrMod) info).mods) {
+	    for (Entry e : ((AttrMod) info).tab) {
+		if(!(e instanceof Mod)) {continue;}
+		Mod mod = (Mod) e;
+		if(!(mod.attr instanceof resattr)) {continue;}
 		long a = Math.round(qc * mod.mod);
-		effects.add(new Effect(Effect.BUFF, mod.attr.name, Long.toString(a)));
+		effects.add(new Effect(Effect.BUFF, ((resattr) mod.attr).res.name, Long.toString(a)));
 	    }
 	} else if(Reflect.is(info, "HealWound")) {
 	    //this is from elixir, it uses different resource and has value

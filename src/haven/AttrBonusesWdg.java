@@ -1,6 +1,8 @@
 package haven;
 
 import haven.res.ui.tt.attrmod.AttrMod;
+import haven.res.ui.tt.attrmod.Attribute;
+import haven.res.ui.tt.attrmod.Mod;
 
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -183,7 +185,7 @@ public class AttrBonusesWdg extends Widget implements ItemInfo.Owner {
 	}
 	
 	return new AttrMod(this, values.stream()
-	    .map(m -> new AttrMod.Mod(m.getKey(), m.getValue()))
+	    .map(m -> new Mod(Attribute.get(m.getKey()), m.getValue()))
 	    .collect(Collectors.toList()));
     }
 

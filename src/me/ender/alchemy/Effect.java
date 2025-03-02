@@ -11,6 +11,8 @@ import haven.res.ui.tt.alch.ingr_heal.HealWound;
 import haven.res.ui.tt.alch.ingr_time_less.LessTime;
 import haven.res.ui.tt.alch.ingr_time_more.MoreTime;
 import haven.res.ui.tt.attrmod.AttrMod;
+import haven.res.ui.tt.attrmod.Attribute;
+import haven.res.ui.tt.attrmod.Mod;
 import me.ender.ClientUtils;
 
 import java.io.IOException;
@@ -244,7 +246,7 @@ public class Effect {
 	    int a = getValue(effect.opt);
 	    switch (effect.type) {
 		case BUFF:
-		    tips.add(new AttrMod(null, Collections.singletonList(new AttrMod.Mod(Resource.remote().loadwait(res), 10 * a))));
+		    tips.add(new AttrMod(null, Collections.singletonList(new Mod(Attribute.get(Resource.remote().loadwait(res)), 10 * a))));
 		    break;
 		case HEAL:
 		    tips.add(new FixWound(null, Resource.remote().load(res), null, 10 * a));
