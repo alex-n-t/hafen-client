@@ -4,6 +4,7 @@ import haven.*;
 import haven.render.Homo3D;
 import haven.render.Pipe;
 import haven.render.RenderTree;
+import me.ender.ClientUtils;
 import me.ender.CustomCursors;
 
 import javax.swing.*;
@@ -57,7 +58,7 @@ public class Minesweeper {
     }
 
     public static void markDustSpawn(Sprite.Owner owner, float str) {
-	if(owner instanceof Gob) {addCountAtGob((Gob) owner, (byte) (str / 30f));}
+	ClientUtils.owner2ogob(owner).ifPresent(value -> addCountAtGob(value, (byte) (str / 30f)));
     }
 
     public static void markMinedOutTile(Sprite.Owner owner) {

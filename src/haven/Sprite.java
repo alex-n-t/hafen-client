@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.function.*;
 import java.lang.reflect.Constructor;
 import haven.render.*;
+import me.ender.ClientUtils;
 
 public abstract class Sprite implements RenderTree.Node, PView.Render2D {
     public final Resource res;
@@ -163,7 +164,7 @@ public abstract class Sprite implements RenderTree.Node, PView.Render2D {
 	if(tex2d == null) {return;} //quick check, since most sprites don't have 2d textures
 	synchronized (texLock) {
 	    if(tex2d == null) {return;}
-	    if(owner instanceof Gob && !((Gob) owner).info.enabled()) {return;}
+	    if(ClientUtils.owner2ogob(owner).map(x -> !x.info.enabled()).orElse(false)) {return;}
 	    Coord sc = Homo3D.obj2sc(pos2d, state, Area.sized(g.sz()));
 	    if(sc == null) {return;}
 	    if(sc.isect(Coord.z, g.sz())) {
