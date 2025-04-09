@@ -244,6 +244,9 @@ public class Session implements Resource.Resolver {
     public Indir<Resource> dynres(UID uid) {
 	return(Resource.remote().dynres(uid));
     }
+
+    public final Function<Object, Object> resmapper = new ResID.ResolveMapper(this);
+
     
     public Indir<Resource> getres2(int id) {
 	synchronized (rescache) {

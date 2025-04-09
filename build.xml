@@ -97,6 +97,7 @@
         <pathelement path="lib/rxjava-1.1.5.jar" />
       </classpath>
       <compilerarg value="-Xlint:unchecked" />
+      <compilerarg value="-Xlint:deprecation" />
       <compilerarg value="-Xlint:-options" />
       <!-- <compilerarg value="-Xbarda" /> -->
     </javac>
