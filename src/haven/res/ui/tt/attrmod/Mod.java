@@ -8,7 +8,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 @Resource.PublishedCode(name = "attrmod")
-@FromResource(name = "ui/tt/attrmod", version = 11)
+@FromResource(name = "ui/tt/attrmod", version = 12)
 public class Mod extends Entry {
     public final double mod;
 
