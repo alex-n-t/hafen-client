@@ -1,3 +1,8 @@
+$size[14]{$u{Update for 09.04.25:}
+  * merged loftar's changes
+  * added some dungeon rats to list of targets for aggro action
+  * added option to mark animals that can be sheared
+ 
 $size[14]{$u{Update for 02.03.25:}
   * merged loftar's attribute changes
 
