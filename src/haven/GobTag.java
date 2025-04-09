@@ -18,6 +18,7 @@ public enum GobTag {
     HORSE, MARE, STALLION, FOAL,
     PIG, SOW, HOG, PIGLET,
     SHEEP, EWE, RAM, LAMB,
+    FLEECE,
     
     GEM, ARROW,
     VEHICLE, PUSHED, //vehicle that is pushed (wheelbarrow, plow)
@@ -244,6 +245,7 @@ public enum GobTag {
                 } else if(domesticated(gob, name, tags)) {
                     tags.add(ANIMAL);
                     tags.add(DOMESTIC);
+                    if(name.contains("-fleece")) {tags.add(FLEECE);}
                 } else if(DBG && !UNKNOWN.contains(name)) {
                     UNKNOWN.add(name);
                     gob.glob.sess.ui.message(name, GameUI.MsgType.ERROR);

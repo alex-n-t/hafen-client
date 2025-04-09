@@ -22,6 +22,9 @@ public class GobContents {
     public static final String READY = "Ready";
     public static final String COLD = "Cold";
     
+    private static final String ANIMAL = "tag/animal";
+    public static final String FLEECE = "Fleece";
+    
     static {
 	final Gson gson = new Gson();
 	try {
@@ -34,6 +37,7 @@ public class GobContents {
     
     public static Map<String, String> getData(Gob gob) {
 	if(gob.is(GobTag.SMELTER)) {return DATA.get(SMELTER);}
+	if(gob.is(GobTag.ANIMAL)) {return DATA.get(ANIMAL);}
 	String resid = gob.resid();
 	if(resid == null) {return null;}
 	return DATA.get(resid);

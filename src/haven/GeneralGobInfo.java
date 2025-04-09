@@ -341,6 +341,10 @@ public class GeneralGobInfo extends GobInfo {
 		GobInfoOpts.enabled(TreeSubPart.BOUGH) ? getIcon(data.get(BOUGH)) : null,
 	    };
 
+	} else if(gob.is(GobTag.FLEECE) && GobInfoOpts.enabled(InfoPart.ANIMAL_FLEECE)) {
+	    parts = new BufferedImage[]{
+		getIcon(data.get(FLEECE)),
+	    };
 	} else if(CFG.SHOW_PROGRESS_COLOR.get()) { //should this be separate option?
 	    if(gob.is(GobTag.SMELTER)) {
 		parts = new BufferedImage[]{
