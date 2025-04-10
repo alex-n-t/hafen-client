@@ -403,7 +403,7 @@ public enum GobTag {
     }
     
     private static boolean domesticated(Gob gob, String name, Set<GobTag> tags) {
-        if(name.contains("/cattle/")) {
+        if(name.contains("/cattle/") && !name.contains("/aurochs")) {
             tags.add(CATTLE);
             if(name.contains("/cattle/bull")) {
                 tags.add(BULL);
