@@ -1,3 +1,7 @@
+$size[14]{$u{Update for 02.05.25:}
+  * merged loftar's changes
+  * fixed inventory sorter breaking if you have pouches gilded onto your clothes 
+ 
 $size[14]{$u{Update for 09.04.25:}
   * merged loftar's changes
   * added some dungeon rats to list of targets for aggro action
