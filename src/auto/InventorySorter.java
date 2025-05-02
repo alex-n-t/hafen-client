@@ -97,6 +97,15 @@ public class InventorySorter implements Defer.Callable<Void> {
 
     private void doSort(Inventory inv) {
 	boolean[][] grid = new boolean[inv.isz.x][inv.isz.y];
+	boolean[] mask = inv.sqmask;
+	if(mask != null) {
+	    int mo = 0;
+	    for (int y = 0; y < inv.isz.y; y++) {
+		for (int x = 0; x < inv.isz.x; x++) {
+		    grid[x][y] = mask[mo++];
+		}
+	    }
+	}
 	List<WItem> items = new ArrayList<>();
 	for (Widget wdg = inv.lchild; wdg != null; wdg = wdg.prev) {
 	    if(wdg.visible && wdg instanceof WItem) {
