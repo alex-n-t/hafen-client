@@ -65,7 +65,7 @@ public class LandSurvey extends Window {
     private void initsurf() {
 	MCache map = mv.ui.sess.glob.map;
 	for(Coord vc : data.varea)
-	    data.wz[data.varea.ridx(vc)] = data.dz[data.varea.ridx(vc)] = (int)Math.round(map.getfz(vc) * data.gran);
+	    data.wz[data.varea.ridx(vc)] = data.dz[data.varea.ridx(vc)] = (int)Math.round(map.getfz2(vc) * data.gran);
 	data.seq++;
 	upd = true;
     }
@@ -75,7 +75,7 @@ public class LandSurvey extends Window {
 	double zs = 0;
 	int nv = 0;
 	for(Coord vc : data.varea) {
-	    zs += map.getfz(vc);
+	    zs += map.getfz2(vc);
 	    nv++;
 	}
 	int z = Math.round((float)(zs / nv) * data.gran);
@@ -90,7 +90,7 @@ public class LandSurvey extends Window {
 	int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
 	int sd = 0, hn = 0;
 	for(Coord vc : data.varea) {
-	    int vz = Math.round((float)map.getfz(vc) * data.gran);
+	    int vz = Math.round((float)map.getfz2(vc) * data.gran);
 	    int tz = data.dz[data.varea.ridx(vc)];
 	    min = Math.min(min, vz); max = Math.max(max, vz);
 	    sd += tz - vz;

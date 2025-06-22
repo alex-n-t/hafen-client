@@ -65,7 +65,7 @@ public class Display implements RenderTree.Node, TickList.Ticking, TickList.Tick
 	for(Coord vc : data.varea) {
 	    float tz;
 	    try {
-		tz = (float)map.getfz(vc);
+		tz = (float)map.getfz2(vc);
 	    } catch(Loading l) {
 		tz = 0;
 	    }
@@ -95,7 +95,7 @@ public class Display implements RenderTree.Node, TickList.Ticking, TickList.Tick
 	float[] mz = new float[varea.area()];
 	for(Coord vc : varea) {
 	    try {
-		mz[varea.ridx(vc)] = (float)map.getfz(vc);
+		mz[varea.ridx(vc)] = (float)map.getfz2(vc);
 	    } catch(Loading l) {}
 	}
 	for(Coord tc : tarea) {
