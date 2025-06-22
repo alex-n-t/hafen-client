@@ -1,3 +1,6 @@
+$size[14]{$u{Update for 22.06.25:}
+  * merged loftar's changes
+ 
 $size[14]{$u{Update for 02.05.25:}
   * merged loftar's changes
   * fixed inventory sorter breaking if you have pouches gilded onto your clothes 
