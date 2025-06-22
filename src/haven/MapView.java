@@ -446,10 +446,11 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
     
     public class OrthoCam extends Camera {
 	public boolean exact = true;
+	protected float dfield = (float)(100 * Math.sqrt(2));
 	protected float dist = 500.0f;
 	protected float elev = (float)Math.PI / 6.0f;
 	protected float angl = -(float)Math.PI / 4.0f;
-	protected float field = (float)(100 * Math.sqrt(2));
+	protected float field = dfield;
 	private Coord dragorig = null;
 	private float anglorig;
 	protected Coord3f cc, jc;
@@ -531,7 +532,7 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 		    tf = Double.parseDouble(opt.arg);
 		    break;
 		case 'Z':
-		    field = tfield = Float.parseFloat(opt.arg);
+		    field = tfield = dfield = Float.parseFloat(opt.arg);
 		    break;
 		}
 	    }
@@ -604,7 +605,7 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 		return(true);
 	    } else if(kb_camreset.key().match(ev)) {
 		tangl = angl + (float)Utils.cangle(-(float)Math.PI * 0.25f - angl);
-		chfield((float)(100 * Math.sqrt(2)));
+		chfield(dfield);
 		return(true);
 	    }
 	    return(false);
@@ -2128,11 +2129,13 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 	} else if(msg == "sel") {
 	    boolean sel = Utils.bv(args[0]);
 	    synchronized(this) {
-		if(sel && (selection == null)) {
-		    selection = new Selector();
-		} else if(!sel && (selection != null)) {
+		if(selection != null) {
 		    selection.destroy();
 		    selection = null;
+		}
+		if(sel) {
+		    Coord max = (args.length > 1) ? (Coord)args[1] : null;
+		    selection = new Selector(max);
 		}
 	    }
 	} else if(msg == "shake") {
@@ -2506,12 +2509,13 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 
 	    public Material mat() {return(mat);}
 	};
-    private class Selector implements Grabber {
-	Coord sc;
-	MCache.Overlay ol;
-	UI.Grab mgrab;
-	int modflags;
-	Text tt;
+    public class Selector implements Grabber {
+	public final Coord max;
+	public Coord sc;
+	public int modflags;
+	private MCache.Overlay ol;
+	private UI.Grab mgrab;
+	private Text tt;
 	final GrabXL xl = new GrabXL(this) {
 		public boolean mmousedown(Coord cc, int button) {
 		    if(button != 1)
@@ -2525,6 +2529,10 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 
 	{
 	    grab(xl);
+	}
+
+	public Selector(Coord max) {
+	    this.max = max;
 	}
 
 	public boolean mmousedown(Coord mc, int button) {
@@ -2544,10 +2552,20 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 	    }
 	}
 
+	public Coord getec(Coord mc) {
+	    Coord tc = mc.div(MCache.tilesz2);
+	    if(max != null) {
+		Coord dc = tc.sub(sc);
+		tc = sc.add(Utils.clip(dc.x, -(max.x - 1), (max.x - 1)),
+			    Utils.clip(dc.y, -(max.y - 1), (max.y - 1)));
+	    }
+	    return(tc);
+	}
+
 	public boolean mmouseup(Coord mc, int button) {
 	    synchronized(MapView.this) {
 		if(sc != null) {
-		    Coord ec = mc.div(MCache.tilesz2);
+		    Coord ec = getec(mc);
 		    xl.mv = false;
 		    tt = null;
 		    ol.destroy();
@@ -2566,7 +2584,7 @@ public class MapView extends PView implements DTarget, Console.Directory, Widget
 	public void mmousemove(Coord mc) {
 	    synchronized(MapView.this) {
 		if(sc != null) {
-		    Coord tc = mc.div(MCache.tilesz2);
+		    Coord tc = getec(mc);
 		    Coord c1 = new Coord(Math.min(tc.x, sc.x), Math.min(tc.y, sc.y));
 		    Coord c2 = new Coord(Math.max(tc.x, sc.x), Math.max(tc.y, sc.y));
 		    ol.update(new Area(c1, c2.add(1, 1)));
