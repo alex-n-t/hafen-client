@@ -26,31 +26,43 @@
 
 package haven;
 
-public class Pair<A, B> {
-    public final A a;
-    public final B b;
+public class ILabel extends Widget {
+    public final Text.Furnace f;
+    public Text text;
 
-    public Pair(A a, B b) {
-	this.a = a;
-	this.b = b;
+    public ILabel(String text, Text.Furnace f) {
+	super(Coord.z);
+	this.f = f;
+	this.text = f.render(text);
+	resize(this.text.sz());
     }
 
-    public static <A, B> Pair<A, B> of(A a, B b) {
-	return(new Pair<A, B>(a, b));
+    public void draw(GOut g) {
+	g.image(text.tex(), Coord.z);
     }
 
-    public int hashCode() {
-	return((((a == null)?0:a.hashCode()) * 31) + ((b == null)?0:b.hashCode()));
+    public String text() {
+	return(text.text);
     }
 
-    public boolean equals(Object O) {
-	if(!(O instanceof Pair))
-	    return(false);
-	Pair o = (Pair<?, ?>)O;
-	return(Utils.eq(a, o.a) && Utils.eq(b, o.b));
+    public void settext(String text) {
+	if(text.equals(this.text.text))
+	    return;
+	this.text.dispose();
+	this.text = f.render(text);
+	resize(this.text.sz());
     }
 
-    public String toString() {
-	return(String.format("(%s . %s)", a, b));
+    public void dispose() {
+	super.dispose();
+	this.text.dispose();
+    }
+
+    public void uimsg(String msg, Object... args) {
+	if(msg == "set") {
+	    settext((String)args[0]);
+	} else {
+	    super.uimsg(msg, args);
+	}
     }
 }
