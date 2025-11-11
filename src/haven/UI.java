@@ -585,14 +585,14 @@ public class UI {
 	return(g);
     }
 
-    public static class WidgetGrab implements EventHandler<Event> {
+    public static class WidgetGrab implements EventHandler<Widget.Event> {
 	public final Widget wdg;
 
 	public WidgetGrab(Widget wdg) {
 	    this.wdg = wdg;
 	}
 
-	public boolean handle(Event ev) {
+	public boolean handle(Widget.Event ev) {
 	    return(ev.dispatch(wdg));
 	}
     }
@@ -615,7 +615,7 @@ public class UI {
     }
 
     public Grab grabmouse(Widget wdg) {
-	Predicate<Event> sel = ev -> (
+	Predicate<Widget.Event> sel = ev -> (
 	    /* XXX? These are just the traditionally mouse-grabbed events. Is grabmouse() itself obsolete? */
 	    (ev instanceof MouseDownEvent) || (ev instanceof MouseUpEvent) ||
 	    (ev instanceof MouseWheelEvent) || (ev instanceof CursorQuery));
@@ -623,7 +623,7 @@ public class UI {
     }
 
     public Grab grabkeys(Widget wdg) {
-	Predicate<Event> sel = ev -> ((ev instanceof KeyDownEvent) || (ev instanceof KeyUpEvent));
+	Predicate<Widget.Event> sel = ev -> ((ev instanceof KeyDownEvent) || (ev instanceof KeyUpEvent));
 	return(grab(wdg, KbdEvent.class, new EventHandler.Filter<>(new WidgetGrab(wdg), sel)));
     }
 
@@ -1172,7 +1172,7 @@ public class UI {
     }
 
     public boolean isDefaultCursor() {
-	return RootWidget.defcurs == getcurs(mc);
+	return CursorQuery.defcurs == getcurs(mc);
     }
 
     static {
