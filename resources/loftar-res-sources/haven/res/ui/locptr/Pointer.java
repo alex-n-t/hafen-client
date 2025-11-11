@@ -7,14 +7,13 @@ import java.awt.Color;
 import static java.lang.Math.*;
 
 /* >wdg: Pointer */
-@haven.FromResource(name = "ui/locptr", version = 21)
+@haven.FromResource(name = "ui/locptr", version = 22)
 public class Pointer extends Widget {
     public static final BaseColor col = new BaseColor(new Color(241, 227, 157, 255));
     public Indir<Resource> icon;
     public Coord2d tc;
     public Coord lc;
     public long gobid = -1;
-    public boolean click;
     private Tex licon;
 
     public Pointer(Indir<Resource> icon) {
@@ -85,18 +84,22 @@ public class Pointer extends Widget {
 	if(tc == null)
 	    return;
 	Gob gob = (gobid < 0) ? null : ui.sess.glob.oc.getgob(gobid);
-	Coord3f sl;
+	MapView mv = getparent(GameUI.class).map;
+	HomoCoord4f sl;
 	if(gob != null) {
 	    try {
-		sl = getparent(GameUI.class).map.screenxf(gob.getc());
+		sl = mv.clipxf(gob.getc(), true);
 	    } catch(Loading l) {
 		return;
 	    }
 	} else {
-	    sl = getparent(GameUI.class).map.screenxf(tc);
+	    try {
+		sl = mv.clipxf(Coord3f.of((float)tc.x, (float)tc.y, mv.getcc().z), true);
+	    } catch(Loading l) {
+		return;
+	    }
 	}
-	if(sl != null)
-	    drawarrow(g, new Coord(sl));
+	drawarrow(g, new Coord(sl.toview(Area.sized(mv.sz))));
     }
 
     public void update(Coord2d tc, long gobid) {
@@ -104,14 +107,8 @@ public class Pointer extends Widget {
 	this.gobid = gobid;
     }
 
-    public boolean mousedown(Coord c, int button) {
-	if(click && (lc != null)) {
-	    if(lc.dist(c) < 20) {
-		wdgmsg("click", button, ui.modflags());
-		return(true);
-	    }
-	}
-	return(super.mousedown(c, button));
+    public boolean checkhit(Coord c) {
+	return((lc != null) && (lc.dist(c) < 20));
     }
 
     public void uimsg(String name, Object... args) {
@@ -129,8 +126,6 @@ public class Pointer extends Widget {
 	    Indir<Resource> icon = (iconid < 0) ? null : ui.sess.getres(iconid);
 	    this.icon = icon;
 	    licon = null;
-	} else if(name == "cl") {
-	    click = ((Integer)args[0]) != 0;
 	} else {
 	    super.uimsg(name, args);
 	}
