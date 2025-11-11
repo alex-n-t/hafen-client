@@ -11,21 +11,21 @@ import static haven.MCache.tilesz;
 import static haven.render.sl.Cons.*;
 import static haven.render.sl.Type.*;
 
-@FromResource(name = "ui/surv", version = 44)
+@haven.FromResource(name = "ui/surv", version = 45)
 public class Display implements RenderTree.Node, TickList.Ticking, TickList.TickNode {
     public static final Attribute v_elev = new Attribute(FLOAT);
     public static final Attribute v_flags = new Attribute(INT);
     public static final AutoVarying f_elev = new AutoVarying(FLOAT) {
-	    public Expression root(VertexContext vctx) {return(v_elev.ref());}
-	};
+	public Expression root(VertexContext vctx) {return(v_elev.ref());}
+    };
     public static final AutoVarying f_flags = new AutoVarying(INT) {
-	    {ipol = Interpol.FLAT;}
-	    public Expression root(VertexContext vctx) {return(v_flags.ref());}
-	};
+	{ipol = Interpol.FLAT;}
+	public Expression root(VertexContext vctx) {return(v_flags.ref());}
+    };
     public static final VertexArray.Layout fmt =
 	new VertexArray.Layout(new VertexArray.Layout.Input(Homo3D.vertex, new VectorFormat(3, NumberFormat.FLOAT32), 0, 0, 16),
-			       new VertexArray.Layout.Input(v_flags,       new VectorFormat(1, NumberFormat.UINT8),   0, 12, 16),
-			       new VertexArray.Layout.Input(v_elev,        new VectorFormat(1, NumberFormat.UNORM8),  0, 13, 16));
+	    new VertexArray.Layout.Input(v_flags,       new VectorFormat(1, NumberFormat.UINT8),   0, 12, 16),
+	    new VertexArray.Layout.Input(v_elev,        new VectorFormat(1, NumberFormat.UNORM8),  0, 13, 16));
     public final Data data;
     public final MapView mv;
     public final MCache map;
@@ -50,10 +50,19 @@ public class Display implements RenderTree.Node, TickList.Ticking, TickList.Tick
 	this.vertices = new Model(Model.Mode.POINTS, va, null);
     }
 
+    private Coord3f orig() {
+	return(Coord3f.of(data.varea.ul.x * (float)tilesz.x, data.varea.ul.y * (float)tilesz.y, 0));
+    }
+
     private Coord3f vpos(Coord vc) {
 	return(Coord3f.of((vc.x - data.varea.ul.x) * (float)tilesz.x,
-			  (vc.y - data.varea.ul.y) * (float)tilesz.y,
-			  data.dz[data.varea.ridx(vc)] / data.gran));
+	    (vc.y - data.varea.ul.y) * (float)tilesz.y,
+	    data.dz[data.varea.ridx(vc)] / data.gran));
+    }
+
+    public float zsize(Coord vc) {
+	Coord3f vpos = vpos(vc).add(orig());
+	return(mv.screenxf(vpos).dist(mv.screenxf(vpos.add(0, 0, 1 / data.gran))));
     }
 
     private FillBuffer vfill(VertexArray.Buffer dst, Environment env) {
@@ -112,16 +121,16 @@ public class Display implements RenderTree.Node, TickList.Ticking, TickList.Tick
 
     public static final Function vcol = new Function.Def(VEC4) {{
 	code.add(new If(ne(bitand(f_flags.ref(), l(4)), l(0)),
-			new Return(vec4(0.0, 0.0, 1.0, 1.0))));
+	    new Return(vec4(0.0, 0.0, 1.0, 1.0))));
 	code.add(new If(ne(bitand(f_flags.ref(), l(1)), l(0)),
-			new Return(vec4(0.0, 0.5, 1.0, 1.0))));
+	    new Return(vec4(0.0, 0.5, 1.0, 1.0))));
 	code.add(new If(ne(bitand(f_flags.ref(), l(2)), l(0)),
-			       new Return(vec4(1.0, 0.0, 1.0, 1.0))));
+	    new Return(vec4(1.0, 0.0, 1.0, 1.0))));
 	code.add(new Return(vec4(0.0, 1.0, 0.0, 1.0)));
     }};
     public static final Function vsize = new Function.Def(FLOAT) {{
 	code.add(new If(ne(bitand(v_flags.ref(), l(8)), l(0)),
-			new Return(l(7.0))));
+	    new Return(l(7.0))));
 	code.add(new Return(l(3.0)));
     }};
     public static final ShaderMacro vshader = prog -> {
@@ -130,24 +139,24 @@ public class Display implements RenderTree.Node, TickList.Ticking, TickList.Tick
 	prog.vctx.ptsz.force();
     };
     public static final Pipe.Op vdraw = Pipe.Op.compose(new RUtils.AdHoc(vshader), States.Depthtest.none, States.maskdepth,
-							new Rendered.Order.Default(20102));
+	new Rendered.Order.Default(20102));
 
     public static final Function scol = new Function.Def(VEC4) {{
 	code.add(new If(lt(f_elev.ref(), l(0.5)),
-			new Return(mix(vec4(1.0, 0.4, 0.0, 1.0), vec4(1.0, 0.0, 0.0, 1.0),
-				       mul(f_elev.ref(), l(2.0)))),
-			new Return(mix(vec4(1.0, 0.0, 0.0, 1.0), vec4(1.0, 0.0, 0.43, 1.0),
-				       mul(sub(f_elev.ref(), l(0.5)), l(2.0))))));
+	    new Return(mix(vec4(1.0, 0.4, 0.0, 1.0), vec4(1.0, 0.0, 0.0, 1.0),
+		mul(f_elev.ref(), l(2.0)))),
+	    new Return(mix(vec4(1.0, 0.0, 0.0, 1.0), vec4(1.0, 0.0, 0.43, 1.0),
+		mul(sub(f_elev.ref(), l(0.5)), l(2.0))))));
     }};
     public static final ShaderMacro sshader = prog -> {
 	FragColor.fragcol(prog.fctx).mod(in -> mul(in, scol.call()), 0);
     };
     public static final Pipe.Op sdraw1 = Pipe.Op.compose(FragColor.slot.nil, new States.DepthBias(-2, -2), new Rendered.Order.Default(20100), States.facecull.nil);
     public static final Pipe.Op sdraw2 = Pipe.Op.compose(new RUtils.AdHoc(sshader), new BaseColor(255, 255, 255, 128), new States.DepthBias(-2, -2), States.facecull.nil,
-							 new Rendered.Order.Default(20101));
+	new Rendered.Order.Default(20101));
 
     public static final Pipe.Op seldraw = Pipe.Op.compose(new States.LineWidth(1), new BaseColor(0, 0, 255, 255), States.Depthtest.none, States.maskdepth,
-							  new Rendered.Order.Default(20103));
+	new Rendered.Order.Default(20103));
     public void select(Area area) {
 	if(selection != null) {
 	    selslots.values().forEach(RenderTree.Slot::remove);
@@ -203,7 +212,7 @@ public class Display implements RenderTree.Node, TickList.Ticking, TickList.Tick
 	Coord sel = null;
 	float minz = 0;
 	float mind = 0;
-	Coord3f orig = Coord3f.of(data.varea.ul.x * (float)tilesz.x, data.varea.ul.y * (float)tilesz.y, 0);
+	Coord3f orig = orig();
 	for(Coord vc : data.varea) {
 	    Coord3f sc = mv.screenxf(vpos(vc).add(orig));
 	    if(!any) {

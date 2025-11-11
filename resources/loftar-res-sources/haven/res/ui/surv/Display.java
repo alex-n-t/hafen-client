@@ -11,7 +11,7 @@ import static haven.MCache.tilesz;
 import static haven.render.sl.Cons.*;
 import static haven.render.sl.Type.*;
 
-@haven.FromResource(name = "ui/surv", version = 44)
+@haven.FromResource(name = "ui/surv", version = 45)
 public class Display implements RenderTree.Node, TickList.Ticking, TickList.TickNode {
     public static final Attribute v_elev = new Attribute(FLOAT);
     public static final Attribute v_flags = new Attribute(INT);
@@ -50,10 +50,19 @@ public class Display implements RenderTree.Node, TickList.Ticking, TickList.Tick
 	this.vertices = new Model(Model.Mode.POINTS, va, null);
     }
 
+    private Coord3f orig() {
+	return(Coord3f.of(data.varea.ul.x * (float)tilesz.x, data.varea.ul.y * (float)tilesz.y, 0));
+    }
+
     private Coord3f vpos(Coord vc) {
 	return(Coord3f.of((vc.x - data.varea.ul.x) * (float)tilesz.x,
 			  (vc.y - data.varea.ul.y) * (float)tilesz.y,
 			  data.dz[data.varea.ridx(vc)] / data.gran));
+    }
+
+    public float zsize(Coord vc) {
+	Coord3f vpos = vpos(vc).add(orig());
+	return(mv.screenxf(vpos).dist(mv.screenxf(vpos.add(0, 0, 1 / data.gran))));
     }
 
     private FillBuffer vfill(VertexArray.Buffer dst, Environment env) {
@@ -203,7 +212,7 @@ public class Display implements RenderTree.Node, TickList.Ticking, TickList.Tick
 	Coord sel = null;
 	float minz = 0;
 	float mind = 0;
-	Coord3f orig = Coord3f.of(data.varea.ul.x * (float)tilesz.x, data.varea.ul.y * (float)tilesz.y, 0);
+	Coord3f orig = orig();
 	for(Coord vc : data.varea) {
 	    Coord3f sc = mv.screenxf(vpos(vc).add(orig));
 	    if(!any) {

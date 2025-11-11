@@ -11,7 +11,7 @@ import static haven.MCache.tilesz;
 import static haven.render.sl.Cons.*;
 import static haven.render.sl.Type.*;
 
-@haven.FromResource(name = "ui/surv", version = 44)
+@haven.FromResource(name = "ui/surv", version = 45)
 public class LandSurvey extends Window {
     public final Area area;
     public final Data data;
@@ -196,11 +196,13 @@ public class LandSurvey extends Window {
 	public final Area area;
 	public final UI.Grab grab;
 	public final float[] sz;
+	public final float zsz;
 
 	public Mover(Coord vc, Area area, Coord sc) {
 	    this.vc = vc;
 	    this.sc = sc;
 	    this.area = area;
+	    this.zsz = dsp.zsize(vc);
 	    this.sz = new float[area.area()];
 	    for(Coord iv : area)
 		this.sz[area.ridx(iv)] = data.wz[data.varea.ridx(iv)];
@@ -211,8 +213,9 @@ public class LandSurvey extends Window {
 
 	public boolean handle(MouseEvent ev) {
 	    if(ev instanceof MouseMoveEvent) {
+		float diff = Math.round((sc.y - ev.c.y) / zsz);
 		for(Coord mv : area)
-		    data.wz[data.varea.ridx(mv)] = sz[area.ridx(mv)] + ((sc.y - ev.c.y) * 0.1f);
+		    data.wz[data.varea.ridx(mv)] = sz[area.ridx(mv)] + diff;
 		data.dupdate();
 		data.seq++;
 		upd = true;
@@ -236,12 +239,14 @@ public class LandSurvey extends Window {
 	public final Area area;
 	public final UI.Grab grab;
 	public final float[] sz;
+	public final float zsz;
 
 	public CMover(Coord vc, Area area, String corn, Coord sc) {
 	    this.vc = vc;
 	    this.sc = sc;
 	    this.area = area;
 	    this.corn = corn;
+	    this.zsz = dsp.zsize(vc);
 	    this.sz = new float[area.area()];
 	    for(Coord iv : area)
 		this.sz[area.ridx(iv)] = data.wz[data.varea.ridx(iv)];
@@ -252,7 +257,7 @@ public class LandSurvey extends Window {
 
 	public boolean handle(MouseEvent ev) {
 	    if(ev instanceof MouseMoveEvent) {
-		float diff = ((sc.y - ev.c.y) * 0.1f);
+		float diff = Math.round((sc.y - ev.c.y) / zsz);
 		float ul = (corn == "ul") ? diff : 0;
 		float ur = (corn == "ur") ? diff : 0;
 		float br = (corn == "br") ? diff : 0;
