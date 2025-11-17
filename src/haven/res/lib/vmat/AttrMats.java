@@ -12,6 +12,13 @@ public class AttrMats extends VarMats {
     public final Map<Integer, Material> mats;
     public final List<Resource> res;
 
+    public AttrMats(Gob gob, Map<Integer, Material> mats) {
+	super(gob);
+
+	this.mats = mats;
+	this.res = null;
+    }
+
     public AttrMats(Gob gob, Pair<Map<Integer, Material>, List<Resource>> data) {
 	super(gob);
 

@@ -17,7 +17,7 @@ public class CustomizeVarMat {
 
     public static String formatMaterials(Gob gob) {
 	AttrMats mats = gob.getattr(AttrMats.class);
-	if(mats == null || mats.res.isEmpty()) {return null;}
+	if(mats == null || mats.res == null || mats.res.isEmpty()) {return null;}
 
 	return String.format("Materials:\n- %s", mats.res.stream().map(ClientUtils::prettyResName).collect(Collectors.joining("\n- ")));
     }
