@@ -1,3 +1,6 @@
+$size[14]{$u{Update for 17.11.25:}
+  * fixed crash related to customized flags
+ 
 $size[14]{$u{Update for 11.11.25:}
   * merged loftar's changes
  
