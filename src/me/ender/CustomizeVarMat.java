@@ -9,13 +9,16 @@ import static haven.CFG.*;
 
 public class CustomizeVarMat {
     public static boolean NoMat(Gob gob) {
-	if(ResName.CUPBOARD.equals(gob.resid())) {
+	if(gob == null) {return false;}
+	String resId = gob.resid();
+	if(ResName.CUPBOARD.equals(resId)) {
 	    return DISPLAY_NO_MAT_CUPBOARDS.get();
 	}
 	return false;
     }
 
     public static String formatMaterials(Gob gob) {
+	if(gob == null) {return null;}
 	AttrMats mats = gob.getattr(AttrMats.class);
 	if(mats == null || mats.res == null || mats.res.isEmpty()) {return null;}
 
