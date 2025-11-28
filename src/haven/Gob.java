@@ -193,9 +193,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    .add(Overlay.class, o -> o);
 	public <T> T context(Class<T> cl) {return(OwnerContext.orparent(cl, ctxr.context(cl, this, false), gob));}
 	public Random mkrandoom() {return(gob.mkrandoom());}
-	@Deprecated
-	public Resource getres() {return(gob.getres());}
-	
+
 	public String name() {
 	    Sprite spr = this.spr;
 	    if(spr != null) {
@@ -207,7 +205,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    return "";
 	}
     }
-    
+
     private static class CustomColor implements SetupMod {
 	Pipe.Op op = null;
 	Color c = null;
@@ -216,7 +214,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    if(Objects.equals(c, this.c)) {
 		return;
 	    }
-	    
+
 	    if(c == null) {
 		op = null;
 	    } else {
@@ -224,7 +222,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	    }
 	    this.c = c;
 	}
-    
+
 	@Override
 	public Pipe.Op gobstate() {
 	    return op;
@@ -1130,36 +1128,28 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	return(Utils.mkrandoom(id));
     }
 
-    @Deprecated
-    public Resource getres() {
-	Drawable d = drawable;
-	if(d != null)
-	    return(d.getres());
-	return(null);
-    }
-
     public String resid() {
 	Drawable d = drawable;
 	if(d != null)
 	    return d.resId();
 	return null;
     }
-    
+
     public String inspect(boolean full) {
 	String info = String.format("%s [%d]", resid(), sdt());
 	if(!full) {return info;}
-	
+
 	String mats = CustomizeVarMat.formatMaterials(this);
 	if(mats != null) {
 	    info += "\n" + mats;
-	    
+
 	}
 	return info;
     }
-    
+
     public float hp() {
 	GobHealth health = getattr(GobHealth.class);
-	
+
 	if(health == null) {
 	    return 1.0f;
 	}
