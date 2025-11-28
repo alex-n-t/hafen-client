@@ -53,6 +53,11 @@ public class CharacterInfo {
     private String lastCurs = null;
 
     public void updateCursor(Indir<Resource> cursor) {
+	if(cursor == null) {
+	    lastCurs = null;
+	    return;
+	}
+
 	boolean invalidateFoodTips;
 	try {
 	    String name = cursor.get().name;
