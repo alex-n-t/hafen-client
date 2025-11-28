@@ -153,7 +153,7 @@ public class GobCombatInfo extends GAttrib implements RenderTree.Node, PView.Ren
 	String y = null, g = null, b = null, r = null;
 	
 	for (Buff buff : rel.buffs.children(Buff.class)) {
-	    int value = buff.getNMeter();
+	    int value = buff.ameter();
 	    if(value <= 0) {continue;}
 	    try {
 		String name = buff.res.get().name;

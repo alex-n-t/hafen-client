@@ -113,14 +113,13 @@ public class Buff extends Widget implements ItemInfo.ResOwner, Bufflist.Managed 
     private final AttrCache<Tex> nmeteri = new AttrCache<>(this::info, AttrCache.map1s(GItem.NumberInfo.class, ninf -> new TexI(GItem.NumberInfo.numrender(ninf.itemnum(), ninf.numcolor()))));
     private final AttrCache<Double> cmeteri = new AttrCache<>(this::info, AttrCache.map1(GItem.MeterInfo.class, minf -> minf::meter));
     private final AttrCache<Integer> nmeterv = new AttrCache<>(this::info, AttrCache.map1s(GItem.NumberInfo.class, GItem.NumberInfo::itemnum));
+    private final AttrCache<Tex> ametert = new AttrCache<>(this::info, AttrCache.map1s(AMeterInfo.class, minf -> new TexI(Utils.outline2(nfnd.render(Integer.toString((int) (100 * minf.ameter())), Color.WHITE).img, Color.BLACK))));
     
 
     public void draw(GOut g) {
 	g.chcolor(255, 255, 255, a);
 	Double ameter = ameteri.get();
-	int ameteri = 0;
 	if(ameter != null) {
-	    ameteri = (int) (100*ameter);
 	    g.image(cframe, Coord.z);
 	    g.chcolor(0, 0, 0, a);
 	    g.frect(ameteroff, ametersz);
@@ -133,17 +132,23 @@ public class Buff extends Widget implements ItemInfo.ResOwner, Bufflist.Managed 
 	    Tex img = res.get().flayer(Resource.imgc).tex();
 	    Coord isz = img.sz();
 	    g.image(img, imgoff);
-	    Tex nmeter = nmeteri.get();
-	    if(nmeter != null) {
-		String name = res.get().name;
-		if(CFG.SIMPLE_COMBAT_OPENINGS.get() && OPENINGS.containsKey(name)) {
-		    g.chcolor(OPENINGS.get(name));
-		    g.frect(imgoff, isz);
-		    g.chcolor(Color.WHITE);
-		} else {
-		    g.aimage(nmeter, imgoff.add(isz).sub(1, 1), 1, 1, nmeter.sz());
+	    Tex meteri;
+	    String name = res.get().name;
+	    if(CFG.SIMPLE_COMBAT_OPENINGS.get() && OPENINGS.containsKey(name)) {
+		g.chcolor(OPENINGS.get(name));
+		g.frect(imgoff, isz);
+		g.chcolor(Color.WHITE);
+		meteri = ametert.get();
+		if(meteri != null) {
+		    g.aimage(meteri, imgoff.add(isz).sub(1, 1), 1, 1, meteri.sz());
 		}
 	    }
+
+	    meteri = nmeteri.get();
+	    if(meteri != null) {
+		g.aimage(meteri, imgoff.add(isz).sub(1, 1), 1, 1, meteri.sz());
+	    }
+
 	    Double cmeter = cmeteri.get();
 	    if(cmeter != null) {
 		double m = Utils.clip(cmeter, 0.0, 1.0);
@@ -238,11 +243,6 @@ public class Buff extends Widget implements ItemInfo.ResOwner, Bufflist.Managed 
 	}
     }
 
-    public int getNMeter() {
-	Integer i = nmeterv.get();
-	return i == null ? 0 : i;
-    }
-    
     public int ameter() {
 	Double v = ameteri.get();
 	if(v == null) {return -1;}
