@@ -10,11 +10,11 @@ import haven.render.RenderTree;
 public class CustomizeStaticSprite {
     public static void added(StaticSprite sprite, RenderTree.Slot slot) {
 	try {
-	    if (CFG.DISPLAY_DECALS_ON_TOP.get() 
-		&& sprite.res.name.equals(ResName.PARCHMENT_DECAL) 
-		&& ((Gob)sprite.owner).getres().name.equals(ResName.CUPBOARD))
-	    {
-		slot.cstate(Location.xlate(new Coord3f(-5,-5,17.5f)));
+	    if(CFG.DISPLAY_DECALS_ON_TOP.get() && sprite.res.name.equals(ResName.PARCHMENT_DECAL)) {
+		Gob gob = ((Gob.Overlay) sprite.owner).gob;
+		if(gob.getres().name.equals(ResName.CUPBOARD)) {
+		    slot.cstate(Location.xlate(new Coord3f(-5, -5, 17.5f)));
+		}
 	    }
 	} catch (Exception ignored) {}
     }
