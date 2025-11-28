@@ -112,6 +112,8 @@ public class Buff extends Widget implements ItemInfo.ResOwner, Bufflist.Managed 
     private final AttrCache<Double> ameteri = new AttrCache<>(this::info, AttrCache.map1(AMeterInfo.class, minf -> minf::ameter));
     private final AttrCache<Tex> nmeteri = new AttrCache<>(this::info, AttrCache.map1s(GItem.NumberInfo.class, ninf -> new TexI(GItem.NumberInfo.numrender(ninf.itemnum(), ninf.numcolor()))));
     private final AttrCache<Double> cmeteri = new AttrCache<>(this::info, AttrCache.map1(GItem.MeterInfo.class, minf -> minf::meter));
+    private final AttrCache<Integer> nmeterv = new AttrCache<>(this::info, AttrCache.map1s(GItem.NumberInfo.class, GItem.NumberInfo::itemnum));
+    
 
     public void draw(GOut g) {
 	g.chcolor(255, 255, 255, a);
@@ -133,7 +135,7 @@ public class Buff extends Widget implements ItemInfo.ResOwner, Bufflist.Managed 
 	    g.image(img, imgoff);
 	    Tex nmeter = nmeteri.get();
 	    if(nmeter != null) {
-	    	String name = res.get().name;
+		String name = res.get().name;
 		if(CFG.SIMPLE_COMBAT_OPENINGS.get() && OPENINGS.containsKey(name)) {
 		    g.chcolor(OPENINGS.get(name));
 		    g.frect(imgoff, isz);
@@ -141,6 +143,7 @@ public class Buff extends Widget implements ItemInfo.ResOwner, Bufflist.Managed 
 		} else {
 		    g.aimage(nmeter, imgoff.add(isz).sub(1, 1), 1, 1, nmeter.sz());
 		}
+	    }
 	    Double cmeter = cmeteri.get();
 	    if(cmeter != null) {
 		double m = Utils.clip(cmeter, 0.0, 1.0);
@@ -234,11 +237,13 @@ public class Buff extends Widget implements ItemInfo.ResOwner, Bufflist.Managed 
 	    super.uimsg(msg, args);
 	}
     }
-    
-    public int getNMeter() {return nmeter;}
+
+    public int getNMeter() {
+	Integer i = nmeterv.get();
+	return i == null ? 0 : i;
+    }
     
     public int ameter() {
-	if(ameter >= 0) {return ameter;}
 	Double v = ameteri.get();
 	if(v == null) {return -1;}
 	return (int) Math.floor(v * 100);

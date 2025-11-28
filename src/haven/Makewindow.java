@@ -476,12 +476,12 @@ public class Makewindow extends Widget {
 	return null;
     }
 
-    public boolean globtype(char ch, java.awt.event.KeyEvent ev) {
-	if(ch == '\n') {
+    public boolean globtype(GlobKeyEvent ev) {
+	if(ev.c == '\n') {
 	    wdgmsg("make", ui.modctrl?1:0);
 	    return(true);
 	}
-	return(super.globtype(ch, ev));
+	return(super.globtype(ev));
     }
 
     public static class Optional extends ItemInfo.Tip {

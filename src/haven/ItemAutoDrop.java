@@ -241,8 +241,8 @@ public class ItemAutoDrop {
 		return (item.name.toLowerCase().contains(filter.toLowerCase()));
 	    }
 	    
-	    public boolean keydown(java.awt.event.KeyEvent ev) {
-		if(ev.getKeyCode() == java.awt.event.KeyEvent.VK_SPACE) {
+	    public boolean keydown(KeyDownEvent ev) {
+		if(ev.code == java.awt.event.KeyEvent.VK_SPACE) {
 		    if(sel != null) {
 			toggle(sel.name);
 		    }

@@ -1128,6 +1128,14 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
 	return(Utils.mkrandoom(id));
     }
 
+    public Resource getres() {
+	Drawable d = drawable;
+	if(d != null) {
+	    return(d.getres());
+	}
+	return(null);
+    }
+    
     public String resid() {
 	Drawable d = drawable;
 	if(d != null)

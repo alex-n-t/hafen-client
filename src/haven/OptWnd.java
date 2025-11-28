@@ -104,8 +104,8 @@ public class OptWnd extends WindowX {
 	    if(ui.gui != null) {act.run(ui.gui);}
 	}
 	
-	public boolean keydown(java.awt.event.KeyEvent ev) {
-	    if((this.key != -1) && (ev.getKeyChar() == this.key)) {
+	public boolean keydown(KeyDownEvent ev) {
+	    if((this.key != -1) && (ev.c == this.key)) {
 		click();
 		return (true);
 	    }
@@ -1458,11 +1458,11 @@ public class OptWnd extends WindowX {
 	
 	panel.add(new TextEntry(UI.scale(250), CFG.AUTOMAP_ENDPOINT.get()) {
 	    @Override
-	    public boolean keydown(KeyEvent ev) {
+	    public boolean keydown(KeyDownEvent ev) {
 		if(!parent.visible)
 		    return false;
 		CFG.AUTOMAP_ENDPOINT.set(text());
-		return buf.key(ev);
+		return buf.key(ev.awt);
 	    }
 	}, x, y);
  
