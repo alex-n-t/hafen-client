@@ -574,9 +574,9 @@ public class WItem extends Widget implements DTarget {
     }
 
     public boolean iteminteract(DTarget.Interact ev) {
-	if(!GildingWnd.processGilding(ui,this, ev.src)) {
-	    item.wdgmsg("itemact", ui.modflags());
-	}
+//	if(!GildingWnd.processGilding(ui,this, ev.src)) {
+	item.wdgmsg("itemact", ui.modflags());
+//	}
 	return(true);
     }
 
