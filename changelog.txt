@@ -1,3 +1,7 @@
+$size[14]{$u{Update for 05.12.25:}
+  * merged loftar's changes
+  * disabled custom gilding window
+ 
 $size[14]{$u{Update for 28.11.25:}
   * merged loftar's changes
 
