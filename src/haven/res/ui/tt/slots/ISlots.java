@@ -10,7 +10,7 @@ import java.awt.Color;
 import java.util.*;
 
 /* >tt: Fac */
-@FromResource(name = "ui/tt/slots", version = 31)
+@FromResource(name = "ui/tt/slots", version = 32)
 public class ISlots extends ItemInfo.Tip implements GItem.NumberInfo {
     public static final Text ch = Text.render("Gilding:");
     public static final Text.Foundry progf = new Text.Foundry(Text.dfont.deriveFont(Font.ITALIC), 10, new Color(0, 169, 224));
