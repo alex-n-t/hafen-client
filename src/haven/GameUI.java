@@ -566,6 +566,14 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	Debug.log = new java.io.PrintWriter(System.err);
 	ui.cons.clearout();
 	pathQueue.clear();
+	if(alchemywnd != null) {
+	    alchemywnd.close();
+	    alchemywnd = null;
+	}
+	if(craftwnd != null) {
+	    craftwnd.close();
+	    craftwnd = null;
+	}
 	super.dispose();
     }
     
