@@ -1,3 +1,6 @@
+$size[14]{$u{Update for 06.12.25:}
+  * changed the Alchemy window to read/store data from files in world-specific folders
+ 
 $size[14]{$u{Update for 05.12.25:}
   * merged loftar's changes
   * disabled custom gilding window
