@@ -19,6 +19,7 @@ public class EffectFilter extends AlchemyItemFilter {
     @Override
     public boolean matches(GItem item) {
 	String res = item.resname();
+	String genus = item.ui.gui.genus;
 	if(testedIngredients.contains(res)) {return false;}
 
 	Set<Effect> effects = new HashSet<>();
@@ -33,6 +34,6 @@ public class EffectFilter extends AlchemyItemFilter {
 
 	if(effects.size() >= AlchemyData.MAX_EFFECTS) {return false;}
 
-	return !testedEffects.containsAll(AlchemyData.untestedEffects(res));
+	return !testedEffects.containsAll(AlchemyData.untestedEffects(res, genus));
     }
 }

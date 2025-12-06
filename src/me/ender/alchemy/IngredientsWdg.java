@@ -90,7 +90,7 @@ class IngredientsWdg extends AlchemyWdg {
     public void draw(GOut g) {
 	if(needUpdate) {
 	    needUpdate = false;
-	    selected = AlchemyData.ingredient(selectedName);
+	    selected = AlchemyData.ingredient(selectedName, ui.gui.genus);
 	    updateInfo();
 	}
 	super.draw(g);
@@ -100,7 +100,7 @@ class IngredientsWdg extends AlchemyWdg {
     public void select(String res) {
 	if(Objects.equals(selectedName, res)) {return;}
 	selectedName = res;
-	selected = AlchemyData.ingredient(res);
+	selected = AlchemyData.ingredient(res, ui.gui.genus);
 
 	effectsDirty = true;
 	updateInfo();
@@ -137,9 +137,10 @@ class IngredientsWdg extends AlchemyWdg {
 	untested.clear();
 	if(selectedName == null) {return;}
 
-	tested.addAll(AlchemyData.testedEffects(selectedName));
+	String genus = ui.gui.genus;
+	tested.addAll(AlchemyData.testedEffects(selectedName, genus));
 
-	for (Effect effect : AlchemyData.effects()) {
+	for (Effect effect : AlchemyData.effects(genus)) {
 	    if(tested.contains(effect)) {continue;}
 	    untested.add(effect);
 	}
@@ -180,7 +181,7 @@ class IngredientsWdg extends AlchemyWdg {
 	private void update() {
 	    if(tvisible()) {
 		String selected = sel;
-		List<String> tmp = AlchemyData.allIngredients();
+		List<String> tmp = AlchemyData.allIngredients(ui.gui.genus);
 		tmp.sort(nameProvider::compare);
 		setItems(tmp);
 		dirty = false;
@@ -209,7 +210,7 @@ class IngredientsWdg extends AlchemyWdg {
 	    if(nameProvider.name(item).toLowerCase().contains(filter)) {
 		return true;
 	    }
-	    Ingredient ingredient = AlchemyData.ingredient(item);
+	    Ingredient ingredient = AlchemyData.ingredient(item, ui.gui.genus);
 	    if(ingredient == null) {return false;}
 	    return ingredient.effects.stream().anyMatch(e -> e.matches(filter));
 	}
@@ -272,7 +273,7 @@ class IngredientsWdg extends AlchemyWdg {
 	    String p = cpos(c.x);
 	    if(p != null) {
 		item.toggle(p);
-		AlchemyData.saveIngredients();
+		AlchemyData.saveIngredients(ui.gui.genus);
 	    }
 	}
 

@@ -14,6 +14,6 @@ public class ComboFilter extends AlchemyItemFilter {
 
     public boolean matches(GItem item) {
 	String res = item.resname();
-	return AlchemyData.allIngredients().contains(res) && !tested.contains(res);
+	return AlchemyData.allIngredients(item.ui.gui.genus).contains(res) && !tested.contains(res);
     }
 }

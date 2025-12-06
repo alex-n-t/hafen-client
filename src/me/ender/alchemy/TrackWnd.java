@@ -106,12 +106,13 @@ public class TrackWnd extends WindowX implements DTarget {
     public void highlight(String res, Tex img) {
 	image = img;
 	this.res = res;
+	String genus = ui.gui.genus;
 	if(res == null) {
 	    GItem.setAlchemyFilter(null);
 	} else if(trackEffects) {
-	    GItem.setAlchemyFilter(new EffectFilter(AlchemyData.ingredient(res), AlchemyData.testedEffects(res), AlchemyData.combos(res)));
+	    GItem.setAlchemyFilter(new EffectFilter(AlchemyData.ingredient(res, genus), AlchemyData.testedEffects(res, genus), AlchemyData.combos(res, genus)));
 	} else {
-	    GItem.setAlchemyFilter(new ComboFilter(AlchemyData.ingredient(res), AlchemyData.testedEffects(res), AlchemyData.combos(res)));
+	    GItem.setAlchemyFilter(new ComboFilter(AlchemyData.ingredient(res, genus), AlchemyData.testedEffects(res, genus), AlchemyData.combos(res, genus)));
 	}
 	ItemHelpers.invalidateIngredientTooltips(ui);
     }

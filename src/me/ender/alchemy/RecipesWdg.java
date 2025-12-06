@@ -56,7 +56,7 @@ class RecipesWdg extends AlchemyWdg {
 
 	private void update() {
 	    if(tvisible()) {
-		setItems(AlchemyData.elixirs());
+		setItems(AlchemyData.elixirs(ui.gui.genus));
 		dirty = false;
 	    } else {
 		dirty = true;

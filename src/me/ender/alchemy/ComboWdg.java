@@ -115,7 +115,7 @@ public class ComboWdg extends AlchemyWdg {
 
 	private void update() {
 	    if(tvisible()) {
-		List<String> tmp = AlchemyData.allIngredients();
+		List<String> tmp = AlchemyData.allIngredients(ui.gui.genus);
 		tmp.sort(nameProvider::compare);
 		setItems(tmp);
 		dirty = false;
@@ -161,7 +161,7 @@ public class ComboWdg extends AlchemyWdg {
 
 	public void setTarget(String target) {
 	    this.target = target;
-	    ingredient = AlchemyData.ingredient(target);
+	    ingredient = AlchemyData.ingredient(target, ui.gui.genus);
 	    updateCombos();
 	}
 
@@ -183,7 +183,7 @@ public class ComboWdg extends AlchemyWdg {
 	private void update() {
 	    if(tvisible()) {
 		updateCombos();
-		List<String> tmp = AlchemyData.allIngredients();
+		List<String> tmp = AlchemyData.allIngredients(ui.gui.genus);
 		tmp.sort(nameProvider::compare);
 		setItems(tmp);
 		dirty = false;
@@ -197,7 +197,7 @@ public class ComboWdg extends AlchemyWdg {
 	    needfilter();
 	    if(target == null) {return;}
 
-	    combos.addAll(AlchemyData.combos(target));
+	    combos.addAll(AlchemyData.combos(target, ui.gui.genus));
 	}
 
 	@Override
@@ -221,7 +221,7 @@ public class ComboWdg extends AlchemyWdg {
 	    if(combos.contains(item)) {
 		boolean matches = false;
 		if(ingredient != null) {
-		    Ingredient tmp = AlchemyData.ingredient(item);
+		    Ingredient tmp = AlchemyData.ingredient(item, ui.gui.genus);
 		    if(tmp != null) {
 			matches = ingredient.effects.stream().anyMatch(tmp.effects::contains);
 		    }

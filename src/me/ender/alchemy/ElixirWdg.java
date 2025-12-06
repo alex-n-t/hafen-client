@@ -17,7 +17,7 @@ public class ElixirWdg extends Widget {
 	name = add(new TextEntry(w, "") {
 	    @Override
 	    public void activate(String text) {
-		AlchemyData.rename(elixir, text);
+		AlchemyData.rename(elixir, text, ui.gui.genus);
 		name.settext(elixir.name());
 		//TODO: find a way to remove focus from text field
 	    }
@@ -46,7 +46,7 @@ public class ElixirWdg extends Widget {
 
     private void delete() {
 	//TODO: add confirmation popup?
-	AlchemyData.remove(elixir);
+	AlchemyData.remove(elixir, ui.gui.genus);
     }
 
     public void update(Elixir elixir) {
