@@ -32,7 +32,7 @@ import haven.res.ui.tt.attrmod.Mod;
 import haven.res.ui.tt.attrmod.resattr;
 import haven.res.ui.tt.ncont.NamedContents;
 import haven.res.ui.tt.slot.Slotted;
-import haven.res.ui.tt.slots.ISlots;
+import haven.res.ui.tt.slots_alt.ISlots;
 import haven.res.ui.tt.wear.Wear;
 import me.ender.DamageTip;
 import me.ender.Reflect;

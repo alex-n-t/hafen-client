@@ -24,7 +24,8 @@ public class Fac implements ItemInfo.InfoFactory {
 	int uses = (Integer)args[a++];
 	int used = (Integer)args[a++];
 	int left = uses - used;
-	ISlots ret = new ISlots(owner, left, pmin, pmax, attrs.toArray(new Resource[0]));
+	//use new ISlots for compatibility - `slots_alt` is used for w16.1 onward
+	haven.res.ui.tt.slots_alt.ISlots ret = new haven.res.ui.tt.slots_alt.ISlots(owner, uses, used, pmin, pmax, attrs.toArray(new Resource[0]));
 	while(a < args.length) {
 	    Indir<Resource> res = rr.getres((Integer)args[a++]);
 	    Message sdt = Message.nil;
