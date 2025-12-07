@@ -1,3 +1,10 @@
+$size[14]{$u{Update for 07.12.25:}
+  * merged loftar's changes
+  * added new cave entrances from w16.1 to auto mark config
+  * added riverbed and badlands to tile highlight
+  * fixed gilded items in w16.1 not showing their bonuses on equipment window
+  * fixed filter not working on gilded items in w16.1
+ 
 $size[14]{$u{Update for 06.12.25:}
   * changed the Alchemy window to read/store data from files in world-specific folders
  
