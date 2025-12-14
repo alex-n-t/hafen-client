@@ -1,3 +1,7 @@
+$size[14]{$u{Update for 14.12.25:}
+  * merged loftar's changes
+  * merged PR with mapper client fixes
+ 
 $size[14]{$u{Update for 07.12.25:}
   * merged loftar's changes
   * added new cave entrances from w16.1 to auto mark config
