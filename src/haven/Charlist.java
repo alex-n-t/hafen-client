@@ -97,7 +97,6 @@ public class Charlist extends Widget {
 	    adda(new Button(UI.scale(100), "Play"), pos("cbr").subs(10, 2), 1.0, 1.0).action(() -> {
 		Charlist.this.wdgmsg("play", chr.name);
 		Config.setPlayerName(chr.name);
-		Config.initAutomapper(ui);
 	    });
 	}
 
